@@ -1,0 +1,42 @@
+{
+  "type": "module",
+  "version": "0.0.0",
+  "main": "dist/index.js",
+  "scripts": {
+    "lint": "standardx -v \"./**/*.ts\"",
+    "build-tests": "esbuild test/*.ts --platform=node --format=esm --outdir=test --keep-names",
+    "test": "npm run build && npm run build-tests && rm -rf test/node_modules && cd test && npm i && NODE_ENV=test node ./index.js | tap-arc",
+    "build-cjs": "esbuild src/*.ts --format=cjs --keep-names --outdir=./dist --out-extension:.js=.cjs",
+    "build": "mkdir -p ./dist && rm -rf ./dist/* && npm run build-cjs && tsc",
+    "preversion": "npm run lint",
+    "postversion": "git push && git push --tags && npm publish",
+    "prepublishOnly": "npm run build"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@typescript-eslint/parser": "^5.55.0",
+    "esbuild": "^0.15.18",
+    "standardx": "^7.0.0",
+    "tap-arc": "^0.3.5",
+    "tapzero": "^0.6.1",
+    "typescript": "^5.0.2"
+  },
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./*": {
+      "import": [
+        "./dist/*.js",
+        "./dist/*"
+      ],
+      "require": [
+        "./dist/*.cjs",
+        "./dist/*"
+      ]
+    }
+  },
+  "author": "nichoth <nichoth@gmail.com> (https://nichoth.com)",
+  "license": "AGPL-3.0-or-later"
+}
