@@ -12,7 +12,6 @@
     "postversion": "git push && git push --tags && npm publish",
     "prepublishOnly": "npm run build"
   },
-  "dependencies": {},
   "devDependencies": {
     "@typescript-eslint/parser": "^5.55.0",
     "esbuild": "^0.15.18",
@@ -38,5 +37,21 @@
     }
   },
   "author": "nichoth <nichoth@gmail.com> (https://nichoth.com)",
-  "license": "AGPL-3.0-or-later"
+  "license": "AGPL-3.0-or-later",
+  "name": "@ssc-hermes/identity",
+  "description": "An identity record",
+  "directories": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ssc-hermes/identity.git"
+  },
+  "keywords": [
+    "identity"
+  ],
+  "bugs": {
+    "url": "https://github.com/ssc-hermes/identity/issues"
+  },
+  "homepage": "https://github.com/ssc-hermes/identity#readme"
 }
