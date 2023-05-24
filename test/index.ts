@@ -39,31 +39,28 @@ test('can use the keys', async t => {
     // first decrypt the key
     const encryptedKey = identity.key[rootDid]
     const decryptedKey = plainKey = await decryptKey(encryptedKey, crypto)
-
-    t.ok(decryptedKey instanceof CryptoKey, 'should return a CryptoKey')
+    t.ok(decryptedKey instanceof CryptoKey, 'decryptKey should return a CryptoKey')
 
     // now use it to encrypt a string
     const encrypted = await aesEncrypt(fromString('hello'), decryptedKey, ALGORITHM)
-    t.ok(encrypted, 'should return something')
+    t.ok(encrypted instanceof Uint8Array,
+        'should return a Uint8Array when you encrypt a string')
 
     // now decrypt the string
     const decrypted = toString(
         await aesDecrypt(encrypted, decryptedKey, ALGORITHM)
     )
 
-    t.equal(decrypted, 'hello', 'should decrypt the original string')
+    t.equal(decrypted, 'hello', 'can decrypt the original string')
 })
 
-// check that it is broken if you can't decrypt the key
 test('cannot decrypt the symmetric key with the wrong keys', async t => {
     const crypto = await createCryptoComponent()
 
     try {
         const readableKey = await decryptKey(identity.key[rootDid], crypto)
-        const extracted = toString(await aesExportKey(readableKey), 'base64pad')
-        const otherExtracted = toString(await aesExportKey(plainKey), 'base64pad')
-        console.log('extracted', extracted)
-        console.log('other extracted', otherExtracted)
+        t.ok(readableKey)
+        t.fail('should throw an error with the wrong keys')
     } catch (err) {
         t.ok(err, 'should throw an error because the keys are invalid')
     }
