@@ -1,5 +1,5 @@
 import { Ucan } from '@ucans/ucans'
-// import { toString } from 'uint8arrays/to-string'
+import { toString } from 'uint8arrays/to-string'
 // import { path as Path } from '@oddjs/odd'
 // import * as Identifiers from '@oddjs/odd/common/identifiers'
 import { aesGenKey, aesExportKey, rsa } from
@@ -33,7 +33,8 @@ export async function create (
     const exchangeKey = await crypto.keystore.publicExchangeKey()
 
     // i think only RSA is supported currently
-    const encryptedKey = rsa.encrypt(exported, exchangeKey)
+    const encryptedKey = toString(await rsa.encrypt(exported, exchangeKey),
+        'base64')
     initialKey[rootDid] = encryptedKey
 
     return {

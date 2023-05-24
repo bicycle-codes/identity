@@ -1,6 +1,0 @@
-{
-    "type": "module",
-    "dependencies": {
-        "@ssc-hermes/identity": "../"
-    }
-}

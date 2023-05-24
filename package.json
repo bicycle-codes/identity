@@ -13,6 +13,7 @@
     "prepublishOnly": "npm run build"
   },
   "devDependencies": {
+    "@ssc-hermes/node-components": "^0.0.6",
     "@typescript-eslint/parser": "^5.55.0",
     "esbuild": "^0.15.18",
     "standardx": "^7.0.0",
@@ -53,5 +54,9 @@
   "bugs": {
     "url": "https://github.com/ssc-hermes/identity/issues"
   },
-  "homepage": "https://github.com/ssc-hermes/identity#readme"
+  "homepage": "https://github.com/ssc-hermes/identity#readme",
+  "dependencies": {
+    "@ssc-hermes/util": "^0.6.1",
+    "@ucans/ucans": "^0.11.4"
+  }
 }
