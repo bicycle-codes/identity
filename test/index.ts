@@ -65,6 +65,6 @@ test('cannot decrypt the symmetric key with the wrong keys', async t => {
         console.log('extracted', extracted)
         console.log('other extracted', otherExtracted)
     } catch (err) {
-        t.ok(err, 'should throw an error because the crypto object is different')
+        t.ok(err, 'should throw an error because the keys are invalid')
     }
 })
