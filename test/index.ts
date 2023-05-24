@@ -1,15 +1,24 @@
 import { test } from 'tapzero'
 import { build, EdKeypair } from '@ucans/ucans'
-import { create } from '../dist/index.js'
 import { writeKeyToDid } from '@ssc-hermes/util'
 import { components } from '@ssc-hermes/node-components'
+import { Crypto } from '@oddjs/odd'
+import { aesEncrypt, aesDecrypt } from
+    '@oddjs/odd/components/crypto/implementation/browser'
+import { fromString } from 'uint8arrays/from-string'
+import { toString } from 'uint8arrays/to-string'
+import { create, decryptKey, Identity, ALGORITHM } from '../dist/index.js'
+
+let identity:Identity
+let rootDid:string
+let crypto:Crypto.Implementation
 
 test('create an identity', async t => {
     const keypair = await EdKeypair.create()
-    const { crypto } = components
-    const rootDid = await writeKeyToDid(crypto)
+    crypto = components.crypto
+    rootDid = await writeKeyToDid(crypto)
 
-    const identity = await create(crypto, {
+    identity = await create(crypto, {
         username: 'alice123',
         ucan: await build({
             audience: rootDid,
@@ -18,6 +27,28 @@ test('create an identity', async t => {
     })
 
     t.ok(identity, 'should return a new identity')
-    console.log('**identity**', identity)
-    t.ok(identity.key[rootDid], 'should map the DIDs to an encrypted key')
+    t.ok(identity.key[rootDid], 'should map the symmetric key, indexed by device DID')
+    t.ok(identity.ucan, 'should incldue the UCAN')
+})
+
+test('can use the keys', async t => {
+    // test that you can encrypt & decrypt with the symmetric key
+    //   saved in identity
+
+    // first decrypt the key
+    const encryptedKey = identity.key[rootDid]
+    const decryptedKey = await decryptKey(encryptedKey, crypto)
+
+    t.ok(decryptedKey instanceof CryptoKey, 'should return a CryptoKey')
+
+    // now use it to encrypt a string
+    const encrypted = await aesEncrypt(fromString('hello'), decryptedKey, ALGORITHM)
+    t.ok(encrypted, 'should return something')
+
+    // now decrypt the string
+    const decrypted = toString(
+        await aesDecrypt(encrypted, decryptedKey, ALGORITHM)
+    )
+
+    t.equal(decrypted, 'hello', 'should decrypt the original string')
 })
