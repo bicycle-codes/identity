@@ -17,7 +17,7 @@ This way we can save the identity document to a DB, while still keeping things e
 
 -------
 
-This module is agnostic about storage. You would want to save the identity object to a database or soemthing, which is easy to do because it is encrypted "at rest".
+This module is agnostic about storage. You would want to save the identity object to a database or something, which is easy to do because it is encrypted "at rest".
 
 ## install
 ```
