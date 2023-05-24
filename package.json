@@ -13,7 +13,7 @@
     "prepublishOnly": "npm run build"
   },
   "devDependencies": {
-    "@ssc-hermes/node-components": "^0.0.6",
+    "@ssc-hermes/node-components": "^0.1.0",
     "@typescript-eslint/parser": "^5.55.0",
     "esbuild": "^0.15.18",
     "standardx": "^7.0.0",
