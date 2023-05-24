@@ -3,10 +3,9 @@ import { build, EdKeypair } from '@ucans/ucans'
 import { writeKeyToDid } from '@ssc-hermes/util'
 import { components, createCryptoComponent } from '@ssc-hermes/node-components'
 import { Crypto } from '@oddjs/odd'
-import { aesEncrypt, aesDecrypt, aesExportKey } from
+import { aesEncrypt, aesDecrypt } from
     '@oddjs/odd/components/crypto/implementation/browser'
-import { fromString } from 'uint8arrays/from-string'
-import { toString } from 'uint8arrays/to-string'
+import { fromString, toString } from 'uint8arrays'
 import { create, decryptKey, Identity, ALGORITHM } from '../dist/index.js'
 
 let identity:Identity
@@ -31,24 +30,23 @@ test('create an identity', async t => {
     t.ok(identity.ucan, 'should incldue the UCAN')
 })
 
-let plainKey:CryptoKey
 test('can use the keys', async t => {
     // test that you can encrypt & decrypt with the symmetric key
     //   saved in identity
 
     // first decrypt the key
-    const encryptedKey = identity.key[rootDid]
-    const decryptedKey = plainKey = await decryptKey(encryptedKey, crypto)
+    const decryptedKey = await decryptKey(identity.key[rootDid], crypto)
     t.ok(decryptedKey instanceof CryptoKey, 'decryptKey should return a CryptoKey')
 
     // now use it to encrypt a string
-    const encrypted = await aesEncrypt(fromString('hello'), decryptedKey, ALGORITHM)
-    t.ok(encrypted instanceof Uint8Array,
+    const encryptedString = await aesEncrypt(
+        fromString('hello'), decryptedKey, ALGORITHM)
+    t.ok(encryptedString instanceof Uint8Array,
         'should return a Uint8Array when you encrypt a string')
 
     // now decrypt the string
     const decrypted = toString(
-        await aesDecrypt(encrypted, decryptedKey, ALGORITHM)
+        await aesDecrypt(encryptedString, decryptedKey, ALGORITHM)
     )
 
     t.equal(decrypted, 'hello', 'can decrypt the original string')

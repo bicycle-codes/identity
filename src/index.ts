@@ -11,7 +11,7 @@ export interface Identity {
     username:string,
     key:Record<string, string>,
     ucan:Ucan,
-    rootDid
+    rootDid:string
 }
 
 export const ALGORITHM = SymmAlg.AES_GCM
