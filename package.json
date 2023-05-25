@@ -12,6 +12,11 @@
     "postversion": "git push && git push --tags && npm publish",
     "prepublishOnly": "npm run build"
   },
+  "dependencies": {
+    "@oddjs/odd": "^0.37.1",
+    "@ssc-hermes/util": "^0.6.1",
+    "@ucans/ucans": "^0.11.4"
+  },
   "devDependencies": {
     "@ssc-hermes/node-components": "^0.1.0",
     "@typescript-eslint/parser": "^5.55.0",
@@ -54,9 +59,5 @@
   "bugs": {
     "url": "https://github.com/ssc-hermes/identity/issues"
   },
-  "homepage": "https://github.com/ssc-hermes/identity#readme",
-  "dependencies": {
-    "@ssc-hermes/util": "^0.6.1",
-    "@ucans/ucans": "^0.11.4"
-  }
+  "homepage": "https://github.com/ssc-hermes/identity#readme"
 }
