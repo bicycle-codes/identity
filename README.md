@@ -31,13 +31,12 @@ npm test
 
 ## example
 
+### Create an identity object
 ```js
 import { test } from 'tapzero'
 import { build } from '@ucans/ucans'
 import { writeKeyToDid } from '@ssc-hermes/util'
 import { create } from '@ssc-hermes/identity'
-
-Create an identity object
 
 test('create an identity object', async t => {
     const keypair = await EdKeypair.create()
@@ -67,7 +66,7 @@ test('create an identity object', async t => {
 })
 ```
 
-Use the symmetric key to encrypt and decrypt something
+### Use the symmetric key to encrypt and decrypt something
 
 ```js
 import { test } from 'tapzero'
@@ -98,4 +97,40 @@ test('can use the keys', async t => {
 
     t.equal(decrypted, 'hello', 'can decrypt the original string')
 })
+```
+
+### add a new device to this identity
+This adds a new DID to this identity. You must pass in a valid UCAN that links
+the new DID to the root DID.
+
+```ts
+import { add } from '@ssc-hermes/identity'
+
+// get the DID for this device
+const newDevice = await writeKeyToDid(crypto)
+
+add(identity)
+```
+
+
+---------------------------
+
+A device independent record of identity. This is a record containing all *public* aspects of identity. So the public side of various keypairs.
+
+This pairs with various keystores -- a store that holds the public + private keypair for a given device. `keystore` is device-specific, `identity` is user-specific, and spans multiple devices.
+
+```js
+{
+    rootDid: 'abc123',  // <- DID for the first device using this identity
+    username,  // a DNS friendly, machine-readable username
+    devices: {
+        123xyz: {  // <- this is a generated name based on the device's DID
+            did,  // <- the string version of a public key for this device
+            exchangeKey,  // <- the public key used for encrypting (not signing)
+            name,  // <- a human readable name for the device
+            encryptedSymmKey  // <- the symmetric key for this identity, encrypted
+                              // to the exchange key in this object
+        }
+    }
+}
 ```
