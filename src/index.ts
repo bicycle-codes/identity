@@ -103,8 +103,8 @@ export async function decryptKey (crypto:Crypto.Implementation, encryptedKey:str
 // must call `add` from an existing device
 
 /**
- * Add a DID to this identity. This is performed from a device that is currently
- * registered.
+ * Add a device to this identity. This is performed from a device that is currently
+ * registered. You need to get the exchange key of the new device somehow.
  * @param {Identity} id The `Identity` instance to add to
  * @param {Crypto.Implementation} crypto An instance of Fission's crypto
  * @param {string} newDid The DID of the new device

@@ -61,8 +61,11 @@ test('add a device to the identity', async t => {
     const exchangeKey = await _crypto.keystore.publicExchangeKey()
     const id = await add(identity, crypto, newDid, exchangeKey)
     t.ok(id, 'should return a new identity')
-    const deviceName = await createDeviceName(newDid)
-    t.ok(id.devices[deviceName], 'should add a new device to the identity')
+    const newDeviceName = await createDeviceName(newDid)
+    t.ok(identity.devices[newDeviceName],
+        'new identity should have a new device with the expected name')
+    t.ok(identity.devices[rootDeviceName],
+        'identity should still have the original device')
 })
 
 test('cannot decrypt the symmetric key with the wrong keys', async t => {
