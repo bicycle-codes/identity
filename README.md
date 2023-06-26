@@ -122,15 +122,19 @@ This pairs with various keystores -- a store that holds the public + private key
 ```js
 {
     rootDid: 'abc123',  // <- DID for the first device using this identity
-    username,  // a DNS friendly, machine-readable username
+    username,  // a DNS friendly, machine readable username
     devices: {
         123xyz: {  // <- this is a generated name based on the device's DID
             did,  // <- the string version of a public key for this device
             exchangeKey,  // <- the public key used for encrypting (not signing)
-            name,  // <- a human readable name for the device
+            name,  // <- a machine readable name for the device
             encryptedSymmKey  // <- the symmetric key for this identity, encrypted
                               // to the exchange key in this object
         }
     }
 }
 ```
+
+Sending a private messaesge would be encrypting a message with a new symmetric key. That means encrypting `n` versions of the symmetric key, one for each device in the identity.
+
+So there you can think of it like one conversation = 1 symmetric key. The person initiating the conversation needs to know the exchange keys of the other party.

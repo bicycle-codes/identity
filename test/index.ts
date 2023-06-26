@@ -1,33 +1,33 @@
-import { test } from 'tapzero'
-import { build, EdKeypair } from '@ucans/ucans'
+import { test } from '@socketsupply/tapzero'
 import { writeKeyToDid } from '@ssc-hermes/util'
 import { components, createCryptoComponent } from '@ssc-hermes/node-components'
 import { Crypto } from '@oddjs/odd'
 import { aesEncrypt, aesDecrypt } from
     '@oddjs/odd/components/crypto/implementation/browser'
 import { fromString, toString } from 'uint8arrays'
-import { create, decryptKey, Identity, ALGORITHM } from '../dist/index.js'
+import {
+    create, decryptKey, Identity, ALGORITHM, add,
+    createDeviceName
+} from '../dist/index.js'
 
 let identity:Identity
 let rootDid:string
 let crypto:Crypto.Implementation
+let rootDeviceName:string
 
 test('create an identity', async t => {
-    const keypair = await EdKeypair.create()
     crypto = components.crypto
     rootDid = await writeKeyToDid(crypto)
 
     identity = await create(crypto, {
-        username: 'alice123',
-        ucan: await build({
-            audience: rootDid,
-            issuer: keypair
-        })
+        humanName: 'alice',
     })
 
+    const deviceName = await createDeviceName(rootDid)
+    rootDeviceName = deviceName
     t.ok(identity, 'should return a new identity')
-    t.ok(identity.key[rootDid], 'should map the symmetric key, indexed by device DID')
-    t.ok(identity.ucan, 'should incldue the UCAN')
+    t.ok(identity.devices[deviceName].aes,
+        'should map the symmetric key, indexed by device name')
 })
 
 test('can use the keys', async t => {
@@ -35,7 +35,10 @@ test('can use the keys', async t => {
     //   saved in identity
 
     // first decrypt the key
-    const decryptedKey = await decryptKey(identity.key[rootDid], crypto)
+    // const exchange = identity.devices[rootDeviceName].exchange
+    const aes = identity.devices[rootDeviceName].aes
+    const decryptedKey = await decryptKey(crypto, aes)
+    // const decryptedKey = await decryptKey(crypto, exchange)
     t.ok(decryptedKey instanceof CryptoKey, 'decryptKey should return a CryptoKey')
 
     // now use it to encrypt a string
@@ -52,11 +55,27 @@ test('can use the keys', async t => {
     t.equal(decrypted, 'hello', 'can decrypt the original string')
 })
 
+test('add a device to the identity', async t => {
+    const _crypto = await createCryptoComponent()
+    const newDid = await writeKeyToDid(_crypto)
+    const exchangeKey = await _crypto.keystore.publicExchangeKey()
+    const id = await add(identity, crypto, newDid, exchangeKey)
+    t.ok(id, 'should return a new identity')
+    const deviceName = await createDeviceName(newDid)
+    t.ok(id.devices[deviceName], 'should add a new device to the identity')
+})
+
 test('cannot decrypt the symmetric key with the wrong keys', async t => {
+    // should create a new identity here
+    // and check that you cannot decrypt the aes key from the first ID with the
+    // keys from the second ID
     const crypto = await createCryptoComponent()
 
     try {
-        const readableKey = await decryptKey(identity.key[rootDid], crypto)
+        const readableKey = await decryptKey(
+            crypto,
+            (identity.devices['bad name']).aes
+        )
         t.ok(readableKey)
         t.fail('should throw an error with the wrong keys')
     } catch (err) {
