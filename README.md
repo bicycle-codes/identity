@@ -124,13 +124,16 @@ import { test } from '@socketsupply/tapzero'
 import { writeKeyToDid } from '@ssc-hermes/util'
 
 test('add a device to the identity', async t => {
-    // create a new `crypto`, serving as the new device
+    // create a new `crypto`, the new device
     const _crypto = await createCryptoComponent()
     const newDid = await writeKeyToDid(_crypto)
+
+    // need to get the exchange key of the new device somehow
     const exchangeKey = await _crypto.keystore.publicExchangeKey()
     // must be added with the existing device/crypto instance,
-    // because we need to decrypt the AES key in order to encrypt it to the new
-    //   device
+    //   because we need to decrypt the AES key in order to encrypt it to the
+    //   new device
+
     // pass in the existing `identity` object,
     //   return a new identity
     const id = await add(identity, crypto, newDid, exchangeKey)
