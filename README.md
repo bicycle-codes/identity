@@ -1,6 +1,6 @@
 # identity ![tests](https://github.com/ssc-hermes/identity/actions/workflows/nodejs.yml/badge.svg)
 
-This is a publicly visible object representing a user. An Identity object contains a collection of "devices", where each device has several keypairs. This depends on each device having a [keystore](https://github.com/fission-codes/keystore-idb) that stores the private keys.
+This is an object representing a user. An Identity object contains a collection of "devices", where each device has several keypairs. This depends on each device having a [keystore](https://github.com/fission-codes/keystore-idb) that stores the private keys.
 
 We can do e2e encryption by creating a symmetric key, then encrypting that key *to* each device. So the symmetric key is encrypted with the public key of each device.
 
