@@ -16,9 +16,15 @@ Sending a private messaesge to an identity would mean encrypting a message with 
 
 So there you can think of it like one conversation = 1 symmetric key. The person initiating the conversation needs to know the exchange keys of the other party.
 
-This module is agnostic about storage. You would want to save the identity object to a database or something, which is easy to do because keys are encrypted "at rest".
+## storage
+This module is agnostic about storage. You would want to save the identity object to a database or something, which is easy to do because keys are encrypted "at rest". Any device record pairs with a `keystore` instance on the device.
 
 ---------------------------
+
+## install
+```
+npm i -S @ssc-hermes/identity
+```
 
 ## types
 
@@ -45,12 +51,9 @@ interface Device {
 
 -------
 
-## install
-```
-npm i -S @ssc-hermes/identity
-```
-
 ## test
+Tests run in node because we are using `@ssc-hermes/node-components`.
+
 ```
 npm test
 ```
@@ -65,7 +68,7 @@ import { writeKeyToDid } from '@ssc-hermes/util'
 import { create, createDeviceName } from '@ssc-hermes/identity'
 
 test('create an identity', async t => {
-    // crypto is from odd `program.component.crypto`
+    // crypto is from odd `program.components.crypto`
     crypto = components.crypto
     rootDid = await writeKeyToDid(crypto)
 
@@ -74,7 +77,6 @@ test('create an identity', async t => {
     })
 
     const deviceName = await createDeviceName(rootDid)
-    rootDeviceName = deviceName
     t.ok(identity, 'should return a new identity')
     t.ok(identity.devices[deviceName].aes,
         'should map the symmetric key, indexed by device name')
@@ -139,25 +141,4 @@ test('add a device to the identity', async t => {
     t.ok(identity.devices[rootDeviceName],
         'identity should still have the original device')
 })
-```
-
-
----------------------------
-
-A device independent record of identity. This is a record containing all *public* aspects of identity. So the public side of various keypairs.
-
-```js
-{
-    rootDid: 'abc123',  // <- DID for the first device using this identity
-    username,  // a DNS friendly, machine readable username
-    devices: {
-        123xyz: {  // <- this is a generated name based on the device's DID
-            did,  // <- the string version of a public key for this device
-            exchangeKey,  // <- the public key used for encrypting (not signing)
-            name,  // <- a machine readable name for the device
-            encryptedSymmKey  // <- the symmetric key for this identity, encrypted
-                              // to the exchange key in this object
-        }
-    }
-}
 ```
