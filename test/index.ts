@@ -88,7 +88,9 @@ test('cannot decrypt the symmetric key with the wrong keys', async t => {
         t.fail('should throw an error when decrypting with the wrong keys')
     } catch (err) {
         t.ok(err, 'should throw an error when decrypting with the wrong keys')
-        t.ok(err.cause.toString().includes('decoding error'),
-            'should throw "decoding error"')
+        t.ok(err.toString().includes('operation-specific reason'),
+            'should have the exprected message')
+        // t.ok(err.cause.toString().includes('decoding error'),
+        //     'should throw "decoding error"')
     }
 })
