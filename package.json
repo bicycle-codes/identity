@@ -1,4 +1,6 @@
 {
+  "name": "@ssc-hermes/identity",
+  "description": "An identity record",
   "type": "module",
   "version": "0.0.2",
   "main": "dist/index.js",
@@ -45,8 +47,6 @@
   },
   "author": "nichoth <nichoth@gmail.com> (https://nichoth.com)",
   "license": "AGPL-3.0-or-later",
-  "name": "@ssc-hermes/identity",
-  "description": "An identity record",
   "directories": {
     "test": "test"
   },

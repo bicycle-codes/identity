@@ -109,6 +109,7 @@ export async function decryptKey (crypto:Crypto.Implementation, encryptedKey:str
  * @param {Crypto.Implementation} crypto An instance of Fission's crypto
  * @param {string} newDid The DID of the new device
  * @param {Uint8Array} exchangeKey The exchange key of the new device
+ * @returns {Identity} A new identity object, with the new device
  */
 export async function add (
     id:Identity,

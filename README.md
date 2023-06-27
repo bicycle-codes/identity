@@ -1,23 +1,49 @@
 # identity ![tests](https://github.com/ssc-hermes/identity/actions/workflows/nodejs.yml/badge.svg)
 
-An identity record + types
+This is a publicly visible object representing a user. An Identity object contains a collection of "devices", where each device has several keypairs. This depends on each device having a [keystore](https://github.com/fission-codes/keystore-idb) that stores the private keys.
 
-Track a single identity across multiple devices.
+We can do e2e encryption by creating a symmetric key, then encrypting that key *to* each device. So the symmetric key is encrypted with the public key of each device.
 
-* all devices need to have read & write access to the same documents
-* we want e2e encryption
+Each device has a primary keypair used for signing, which is `did` here, and also an "exchange" keypair, which is used for encrypting & decrypting things. In the `Device` record there is also an index `aes`, which is the symmetrical key that has been encrypted to the device's exchange key.
 
-So a collection of devices forms a single *identity*.
+see also, [keystore as used in crypto component](https://github.com/oddsdk/ts-odd/blob/main/src/components/crypto/implementation/browser.ts#L8) 
 
-Each device has a keypair that never leaves the device, and the private key is not readble at all (it is not-exportable). We can do e2e encryption by creating a symmetric key, then encrypting that key *to* each device. So the symmetric key is encrypted with the public key of each device.
+Devices are indexed by a sufficiently random key, created by calling `createDeviceName` with the primary did for the device.
 
-A device would read the relevant identity document from a DB, and decrypt the symmetric key with its local keypair. Then we use the symmetric key to decrypt or encrypt any document you need to read.
+------------------------
 
-This way we can save the identity document to a DB, while still keeping things e2e encrypted.
+Sending a private messaesge to an identity would mean encrypting a message with a new symmetric key. That means encrypting `n` versions of the symmetric key, one for each device in the other identity.
+
+So there you can think of it like one conversation = 1 symmetric key. The person initiating the conversation needs to know the exchange keys of the other party.
+
+This module is agnostic about storage. You would want to save the identity object to a database or something, which is easy to do because keys are encrypted "at rest".
+
+---------------------------
+
+## types
+
+### Identity
+```ts
+interface Identity {
+    humanName:string,  // a human readble name for the identity
+    username:string,  // the random string for the root device. Not human-readable
+    rootDid:string  // The DID of the first device to use this identity
+    devices:Record<string, Device>  // a map of devices in this identity
+}
+```
+
+### Device
+```ts
+interface Device {
+    name:string,  // the random string for this device
+    did:string,  // primary DID for the device. Used to sign things
+    aes:string,  /* the symmetric key for this account, encrypted to the
+        exchange key for this device */
+    exchange:string  // public key used for encrypting & decrypting
+}
+```
 
 -------
-
-This module is agnostic about storage. You would want to save the identity object to a database or something, which is easy to do because it is encrypted "at rest".
 
 ## install
 ```
@@ -36,33 +62,22 @@ npm test
 import { test } from 'tapzero'
 import { build } from '@ucans/ucans'
 import { writeKeyToDid } from '@ssc-hermes/util'
-import { create } from '@ssc-hermes/identity'
+import { create, createDeviceName } from '@ssc-hermes/identity'
 
-test('create an identity object', async t => {
-    const keypair = await EdKeypair.create()
+test('create an identity', async t => {
+    // crypto is from odd `program.component.crypto`
     crypto = components.crypto
     rootDid = await writeKeyToDid(crypto)
 
     identity = await create(crypto, {
-        username: 'alice123',
-        ucan: await build({
-            audience: rootDid,
-            issuer: keypair
-        })
+        humanName: 'alice',
     })
-    // => interface Identity {
-    //     username:string,
-    //     key:Record<string, string>,
-    //     ucan:Ucan,
-    //     rootDid:string
-    // }
 
-    // `key` is a map from device DID to encrypted key
-
+    const deviceName = await createDeviceName(rootDid)
+    rootDeviceName = deviceName
     t.ok(identity, 'should return a new identity')
-    t.ok(identity.key[rootDid],
-        'should map the symmetric key, indexed by device DID')
-    t.ok(identity.ucan, 'should incldue the UCAN')
+    t.ok(identity.devices[deviceName].aes,
+        'should map the symmetric key, indexed by device name')
 })
 ```
 
@@ -100,24 +115,36 @@ test('can use the keys', async t => {
 ```
 
 ### add a new device to this identity
-This adds a new DID to this identity. You must pass in a valid UCAN that links
-the new DID to the root DID.
+This adds a new DID to this identity.
 
 ```ts
-import { add } from '@ssc-hermes/identity'
+import { test } from '@socketsupply/tapzero'
+import { writeKeyToDid } from '@ssc-hermes/util'
 
-// get the DID for this device
-const newDevice = await writeKeyToDid(crypto)
-
-add(identity)
+test('add a device to the identity', async t => {
+    // create a new `crypto`, serving as the new device
+    const _crypto = await createCryptoComponent()
+    const newDid = await writeKeyToDid(_crypto)
+    const exchangeKey = await _crypto.keystore.publicExchangeKey()
+    // must be added with the existing device/crypto instance,
+    // because we need to decrypt the AES key in order to encrypt it to the new
+    //   device
+    // pass in the existing `identity` object,
+    //   return a new identity
+    const id = await add(identity, crypto, newDid, exchangeKey)
+    t.ok(id, 'should return a new identity')
+    const newDeviceName = await createDeviceName(newDid)
+    t.ok(identity.devices[newDeviceName],
+        'new identity should have a new device with the expected name')
+    t.ok(identity.devices[rootDeviceName],
+        'identity should still have the original device')
+})
 ```
 
 
 ---------------------------
 
 A device independent record of identity. This is a record containing all *public* aspects of identity. So the public side of various keypairs.
-
-This pairs with various keystores -- a store that holds the public + private keypair for a given device. `keystore` is device-specific, `identity` is user-specific, and spans multiple devices.
 
 ```js
 {
@@ -134,7 +161,3 @@ This pairs with various keystores -- a store that holds the public + private key
     }
 }
 ```
-
-Sending a private messaesge would be encrypting a message with a new symmetric key. That means encrypting `n` versions of the symmetric key, one for each device in the identity.
-
-So there you can think of it like one conversation = 1 symmetric key. The person initiating the conversation needs to know the exchange keys of the other party.
