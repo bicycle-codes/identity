@@ -70,11 +70,11 @@ test('add a device to the identity', async t => {
 
 test('cannot decrypt the symmetric key with the wrong keys', async t => {
     // create new keys
-    const crypto = await createCryptoComponent()
+    const newCrypto = await createCryptoComponent()
 
     try {
         await decryptKey(
-            crypto,
+            newCrypto,
             (identity.devices['bad-name']).aes
         )
         t.fail('should throw an error when the device name is invalid')
@@ -84,11 +84,11 @@ test('cannot decrypt the symmetric key with the wrong keys', async t => {
 
     try {
         const deviceKeys = identity.devices[rootDeviceName]
-        await decryptKey(crypto, deviceKeys.aes)
+        await decryptKey(newCrypto, deviceKeys.aes)
         t.fail('should throw an error when decrypting with the wrong keys')
     } catch (err) {
+        t.ok(err, 'should throw an error when decrypting with the wrong keys')
         t.ok(err.cause.toString().includes('decoding error'),
             'should throw "decoding error"')
-        t.ok(err, 'should throw an error when decrypting with the wrong keys')
     }
 })
