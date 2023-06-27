@@ -17,7 +17,7 @@ Sending a private messaesge to an identity would mean encrypting a message with 
 So there you can think of it like one conversation = 1 symmetric key. The person initiating the conversation needs to know the exchange keys of the other party.
 
 ## storage
-This module is agnostic about storage. You would want to save the identity object to a database or something, which is easy to do because keys are encrypted "at rest". Any device record pairs with a `keystore` instance on the device.
+This is storage agnostic. You would want to save the identity object to a database or something, which is easy to do because keys are encrypted "at rest". Any device record pairs with a `keystore` instance on the device.
 
 ---------------------------
 
