@@ -62,8 +62,8 @@ export async function create (
 
     return {
         username: deviceName,
-        rootDid,
         humanName,
+        rootDid,
         devices: initialDevices
     }
 }
