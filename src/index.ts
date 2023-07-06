@@ -1,5 +1,6 @@
+import { webcrypto } from 'one-webcrypto'
 import { fromString, toString } from 'uint8arrays'
-import { aesGenKey, aesExportKey, rsa, importAesKey } from
+import { aesGenKey, aesExportKey, rsa, importAesKey, aesEncrypt } from
     '@oddjs/odd/components/crypto/implementation/browser'
 import * as BrowserCrypto from '@oddjs/odd/components/crypto/implementation/browser'
 import { SymmAlg } from 'keystore-idb/types.js'
@@ -68,13 +69,55 @@ export async function create (
     }
 }
 
+interface EncryptedMessage {
+    payload:string,
+    devices:Record<string, string>  /* devices is a record of
+        { name: <encrypted key> }
+        You would decrypt the encrypted key -- payload.devices[my-device-name]
+        with the device's exchange key
+        */
+}
+
 /**
- * Encrypt a given symmetric key to the given exchange key
+ * Encrypt a given message to the given identity.
+ * @param crypto odd crypto object
+ * @param id The Identity we are encrypting to
+ * @param data The message we want to encrypt
+ */
+export async function encryptTo (
+    id:Identity,
+    data
+):Promise<EncryptedMessage> {
+    // need to encrypt a key to each exchange key
+    // then encrypt the data with the key
+    const key = await aesGenKey(SymmAlg.AES_GCM)
+
+    // so this return an encrypted version of the message passed in
+    // the encrypted message includes a symmetric key that has been encrypted
+    //   to each device of the given identity
+    // to decrypt this message, use your exchange key to decrypt the symm key,
+    //   then use the symm key to decrypt the payload
+
+    const encryptedKeys = Object.keys(id.devices).reduce(async (acc, deviceName) => {
+        const encrypted = toString(await rsa.encrypt(await aesExportKey(key),
+            fromString(id.devices[deviceName].exchange)), 'base64pad')
+
+        acc[deviceName] = encrypted
+        return acc
+    }, {})
+
+    const payload = toString(await aesEncrypt(data, key, SymmAlg.AES_GCM))
+
+    return { payload, devices: encryptedKeys }
+}
+
+/**
+ * Encrypt a given AES key to the given exchange key
  * @param key The symmetric key
  * @param exchangeKey The exchange key to encrypt *to*
  * @returns the encrypted key, encoded as 'base64pad'
  */
-async function encryptKey (key:CryptoKey, exchangeKey:Uint8Array) {
+async function encryptKey (key:CryptoKey, exchangeKey:Uint8Array|CryptoKey) {
     const encryptedKey = toString(
         await rsa.encrypt(await aesExportKey(key), exchangeKey),
         'base64pad'
@@ -99,6 +142,16 @@ export async function decryptKey (crypto:Crypto.Implementation, encryptedKey:str
     return key
 }
 
+function hasProp<K extends PropertyKey> (data: unknown, prop: K):
+data is Record<K, unknown> {
+    return typeof data === 'object' && data != null && prop in data
+}
+
+function isCryptoKey (val:unknown):val is CryptoKey {
+    return (hasProp(val, 'algorithm') &&
+        hasProp(val, 'extractable') && hasProp(val, 'type'))
+}
+
 // the existing devices are the only places that can decrypt the key
 // must call `add` from an existing device
 
@@ -115,12 +168,14 @@ export async function add (
     id:Identity,
     crypto:Crypto.Implementation,
     newDid:string,
-    exchangeKey:Uint8Array,
+    exchangeKey:Uint8Array|CryptoKey,
 ) {
     // need to decrypt the existing AES key, then re-encrypt it to the
     // new did
 
     // this is all happening on a device that is already authed
+
+    // var exportPromise = crypto.subtle.exportKey('raw', aesKey);
 
     const existingDid = await writeKeyToDid(crypto)
     const existingDeviceName = await createDeviceName(existingDid)
@@ -131,11 +186,15 @@ export async function add (
     const encrypted = await encryptKey(secretKey, exchangeKey)
     const newDeviceData:Identity['devices'] = {}
     const name = await createDeviceName(newDid)
+    const _exchangeKey = isCryptoKey(exchangeKey) ?
+        await webcrypto.subtle.exportKey('raw', secretKey) :
+        exchangeKey
+
     newDeviceData[name] = {
         name,
         aes: encrypted,
         did: newDid,
-        exchange: arrToString(exchangeKey)
+        exchange: arrToString(new Uint8Array(_exchangeKey))
     }
 
     const newId:Identity = {

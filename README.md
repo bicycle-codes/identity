@@ -116,6 +116,16 @@ test('can use the keys', async t => {
 })
 ```
 
+### get your device's name
+
+```js
+import { createDeviceName } from '@ssc-hermes/identity'
+// create an odd program...
+const myDid = await program.agentDID()
+const myDeviceName = createDeviceName(myDid)
+// => '4k4z2xpgpmmssbcasqanlaxoxtpppl54'
+```
+
 ### add a new device to this identity
 This adds a new DID to this identity.
 
