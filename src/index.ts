@@ -43,7 +43,7 @@ export async function create (
     const { humanName } = opts
 
     // this is the private aes key for this ID
-    const key = await aesGenKey(SymmAlg.AES_GCM)
+    const key = await aesGenKey(ALGORITHM)
     const exported = await aesExportKey(key)
     const exchangeKey = await crypto.keystore.publicExchangeKey()
 
@@ -70,45 +70,60 @@ export async function create (
 }
 
 interface EncryptedMessage {
-    payload:string,
-    devices:Record<string, string>  /* devices is a record of
-        { name: <encrypted key> }
+    creator:Identity, // the person who started the message
+    payload:string, /* This is the message, encrypted with the symm key for
+        this message */
+    devices:Record<string, string>  /* devices is a record like
+        { deviceName: <encrypted key> }
         You would decrypt the encrypted key -- payload.devices[my-device-name]
         with the device's exchange key
+        Then use the decrypted key to decrypt the payload
         */
 }
 
 /**
- * Encrypt a given message to the given identity.
+ * Encrypt a given message to the given set of identities.
  * @param crypto odd crypto object
- * @param id The Identity we are encrypting to
+ * @param ids The Identities we are encrypting to
  * @param data The message we want to encrypt
  */
 export async function encryptTo (
-    id:Identity,
-    data
-):Promise<EncryptedMessage> {
+    creator:Identity,
+    ids:Identity[],
+    data?:string|Uint8Array
+):Promise<EncryptedMessage | ((data: any) => Promise<EncryptedMessage>)> {
+    if (!data) {
+        return function (data) {
+            return encryptTo(creator, ids, data) as Promise<EncryptedMessage>
+        }
+    }
     // need to encrypt a key to each exchange key
     // then encrypt the data with the key
     const key = await aesGenKey(SymmAlg.AES_GCM)
 
-    // so this return an encrypted version of the message passed in
+    // this returns an encrypted version of the message passed in
     // the encrypted message includes a symmetric key that has been encrypted
     //   to each device of the given identity
     // to decrypt this message, use your exchange key to decrypt the symm key,
     //   then use the symm key to decrypt the payload
 
-    const encryptedKeys = Object.keys(id.devices).reduce(async (acc, deviceName) => {
-        const encrypted = toString(await rsa.encrypt(await aesExportKey(key),
-            fromString(id.devices[deviceName].exchange)), 'base64pad')
+    const encryptedKeys = {}
+    for (const id of ids.concat(creator)) {
+        for await (const deviceName of Object.keys(id.devices)) {
+            encryptedKeys[deviceName] = arrToString(
+                await rsa.encrypt(await aesExportKey(key),
+                    arrFromString(id.devices[deviceName].exchange)),
+            )
+        }
+    }
 
-        acc[deviceName] = encrypted
-        return acc
-    }, {})
+    const payload = arrToString(await aesEncrypt(
+        (typeof data === 'string') ? arrFromString(data) : data,
+        key,
+        ALGORITHM
+    ))
 
-    const payload = toString(await aesEncrypt(data, key, SymmAlg.AES_GCM))
-
-    return { payload, devices: encryptedKeys }
+    return { payload, devices: encryptedKeys, creator }
 }
 
 /**
@@ -136,7 +151,7 @@ async function encryptKey (key:CryptoKey, exchangeKey:Uint8Array|CryptoKey) {
 export async function decryptKey (crypto:Crypto.Implementation, encryptedKey:string)
 :Promise<CryptoKey> {
     const decrypted = await crypto.keystore.decrypt(
-        fromString(encryptedKey, 'base64pad'))
+        arrFromString(encryptedKey))
 
     const key = await importAesKey(decrypted, SymmAlg.AES_GCM)
     return key
@@ -211,6 +226,10 @@ export async function createDeviceName (did:string) {
         new TextEncoder().encode(normalizedDid)
     )
     return toString(hashedUsername, 'base32').slice(0, 32)
+}
+
+function arrFromString (str:string) {
+    return fromString(str, 'base64pad')
 }
 
 function arrToString (arr:Uint8Array) {

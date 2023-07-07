@@ -44,6 +44,7 @@ test('can use the keys', async t => {
     // now use it to encrypt a string
     const encryptedString = await aesEncrypt(
         fromString('hello'), decryptedKey, ALGORITHM)
+
     t.ok(encryptedString instanceof Uint8Array,
         'should return a Uint8Array when you encrypt a string')
 
