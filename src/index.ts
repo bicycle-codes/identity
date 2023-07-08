@@ -121,13 +121,27 @@ export async function encryptTo (
         }
     }
 
-    const payload = arrToString(await aesEncrypt(
-        (typeof data === 'string') ? arrFromString(data) : data,
+    const payload = await encryptContent(key, data)
+    return { payload, devices: encryptedKeys, creator }
+}
+
+/**
+ * Take data in string format, and encrypt it with the given symmetric key.
+ * @param key The symmetric key used to encrypt/decrypt
+ * @param data The text to encrypt
+ * @returns {string}
+ */
+export async function encryptContent (
+    key:CryptoKey,
+    data:string|Uint8Array
+):Promise<string> {
+    const encrypted = arrToString(await aesEncrypt(
+        typeof data === 'string' ? arrFromString(data) : data,
         key,
         ALGORITHM
     ))
 
-    return { payload, devices: encryptedKeys, creator }
+    return encrypted
 }
 
 /**
@@ -136,7 +150,7 @@ export async function encryptTo (
  * @param exchangeKey The exchange key to encrypt *to*
  * @returns the encrypted key, encoded as 'base64pad'
  */
-async function encryptKey (key:CryptoKey, exchangeKey:Uint8Array|CryptoKey) {
+export async function encryptKey (key:CryptoKey, exchangeKey:Uint8Array|CryptoKey) {
     const encryptedKey = toString(
         await rsa.encrypt(await aesExportKey(key), exchangeKey),
         'base64pad'
