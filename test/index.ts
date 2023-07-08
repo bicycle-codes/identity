@@ -7,7 +7,7 @@ import { aesEncrypt, aesDecrypt } from
 import { fromString, toString } from 'uint8arrays'
 import {
     create, decryptKey, Identity, ALGORITHM, add,
-    createDeviceName
+    createDeviceName, encryptTo, CurriedEncrypt
 } from '../dist/index.js'
 
 let identity:Identity
@@ -35,10 +35,8 @@ test('can use the keys', async t => {
     //   saved in identity
 
     // first decrypt the key
-    // const exchange = identity.devices[rootDeviceName].exchange
     const aes = identity.devices[rootDeviceName].aes
     const decryptedKey = await decryptKey(crypto, aes)
-    // const decryptedKey = await decryptKey(crypto, exchange)
     t.ok(decryptedKey instanceof CryptoKey, 'decryptKey should return a CryptoKey')
 
     // now use it to encrypt a string
@@ -91,7 +89,44 @@ test('cannot decrypt the symmetric key with the wrong keys', async t => {
         t.ok(err, 'should throw an error when decrypting with the wrong keys')
         t.ok(err.toString().includes('operation-specific reason'),
             'should have the exprected message')
-        // t.ok(err.cause.toString().includes('decoding error'),
-        //     'should throw "decoding error"')
     }
+})
+
+let alice:Identity, bob:Identity, carol:Identity
+let bobsCrypto:Crypto.Implementation, carolsCrypto:Crypto.Implementation
+let encryptedGroup:CurriedEncrypt
+
+test('can partially apply the `encryptTo` function', async t => {
+    alice = identity
+    bobsCrypto = await createCryptoComponent()
+    bob = await create(bobsCrypto, {
+        humanName: 'bob'
+    })
+    carolsCrypto = await createCryptoComponent()
+    carol = await create(carolsCrypto, {
+        humanName: 'carol'
+    })
+
+    // (msg creator, recipients[])
+    encryptedGroup = await encryptTo(alice, [
+        bob,
+        carol
+    ]) as CurriedEncrypt
+
+    t.equal(typeof encryptedGroup, 'function',
+        "should return a function if you don't pass a message")
+})
+
+test('alice can encrypt a message to several people', async t => {
+    const encryptedMsg = await encryptedGroup('hello group')
+
+    t.ok(encryptedMsg, 'should return an encrypted message')
+    t.equal(encryptedMsg.creator.humanName, 'alice',
+        'should have "alice" as the creator')
+    t.ok(encryptedMsg.devices[bob.username], "should have bob's device")
+    t.ok(encryptedMsg.devices[carol.username], "should have carol's device")
+
+    t.eqaul(ddd(crypto, encryptedMsg), 'hello gorup', 'alice can read the message')
+    t.eqaul(ddd(bobsCrypto, encryptedMsg), 'hello gorup', 'bob can read the message')
+    t.eqaul(ddd(carolsCrypto, encryptedMsg), 'hello gorup', 'carol can read the message')
 })

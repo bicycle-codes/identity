@@ -70,7 +70,7 @@ export async function create (
 }
 
 interface EncryptedMessage {
-    creator:Identity, // the person who started the message
+    creator:Identity, // the person who sent the message
     payload:string, /* This is the message, encrypted with the symm key for
         this message */
     devices:Record<string, string>  /* devices is a record like
@@ -80,6 +80,8 @@ interface EncryptedMessage {
         Then use the decrypted key to decrypt the payload
         */
 }
+
+export type CurriedEncrypt = (data:string|Uint8Array) => Promise<EncryptedMessage>
 
 /**
  * Encrypt a given message to the given set of identities.
@@ -91,11 +93,13 @@ export async function encryptTo (
     creator:Identity,
     ids:Identity[],
     data?:string|Uint8Array
-):Promise<EncryptedMessage | ((data: any) => Promise<EncryptedMessage>)> {
+):Promise<EncryptedMessage | CurriedEncrypt> {
     if (!data) {
-        return function (data) {
+        function group (data:string|Uint8Array) {
             return encryptTo(creator, ids, data) as Promise<EncryptedMessage>
         }
+
+        return group
     }
     // need to encrypt a key to each exchange key
     // then encrypt the data with the key
