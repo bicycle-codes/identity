@@ -72,7 +72,10 @@ import {
     create, decryptKey, Identity, ALGORITHM, add,
     createDeviceName, encryptTo, CurriedEncrypt
 } from '../dist/index.js'
+```
 
+### create an identity
+```ts
 let identity:Identity
 let rootDid:string
 let crypto:Crypto.Implementation
@@ -92,7 +95,10 @@ test('create an identity', async t => {
     t.ok(identity.devices[deviceName].aes,
         'should map the symmetric key, indexed by device name')
 })
+```
 
+### use the keys to encrypt and decrypt
+```ts
 test('can use the keys', async t => {
     // test that you can encrypt & decrypt with the symmetric key
     //   saved in identity
