@@ -36,11 +36,10 @@ export const ALGORITHM = SymmAlg.AES_GCM
  */
 export async function create (
     crypto:Crypto.Implementation,
-    opts:{ humanName:string }
+    { humanName }:{ humanName:string }
 ):Promise<Identity> {
     const rootDid = await writeKeyToDid(crypto)  // this is equal to agentDid()
     const deviceName = await createDeviceName(rootDid)
-    const { humanName } = opts
 
     // this is the private aes key for this ID
     const key = await aesGenKey(ALGORITHM)
@@ -85,6 +84,8 @@ export type CurriedEncrypt = (data:string|Uint8Array) => Promise<EncryptedMessag
 
 /**
  * Encrypt a given message to the given set of identities.
+ * to decrypt this message, use your exchange key to decrypt the symm key,
+ * then use the symm key to decrypt the payload.
  * @param crypto odd crypto object
  * @param ids The Identities we are encrypting to
  * @param data The message we want to encrypt
@@ -99,17 +100,14 @@ export async function encryptTo (
             return encryptTo(creator, ids, data) as Promise<EncryptedMessage>
         }
 
+        group.groupMembers = ids
+
         return group
     }
+
     // need to encrypt a key to each exchange key
     // then encrypt the data with the key
     const key = await aesGenKey(SymmAlg.AES_GCM)
-
-    // this returns an encrypted version of the message passed in
-    // the encrypted message includes a symmetric key that has been encrypted
-    //   to each device of the given identity
-    // to decrypt this message, use your exchange key to decrypt the symm key,
-    //   then use the symm key to decrypt the payload
 
     const encryptedKeys = {}
     for (const id of ids.concat(creator)) {
@@ -123,6 +121,10 @@ export async function encryptTo (
 
     const payload = await encryptContent(key, data)
     return { payload, devices: encryptedKeys, creator }
+}
+
+export function decryptMsg () {
+
 }
 
 /**
