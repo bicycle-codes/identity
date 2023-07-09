@@ -60,15 +60,25 @@ npm test
 
 ## example
 
-### Create an identity object
-```js
-import { test } from 'tapzero'
-import { build } from '@ucans/ucans'
+```ts
+import { test } from '@socketsupply/tapzero'
 import { writeKeyToDid } from '@ssc-hermes/util'
-import { create, createDeviceName } from '@ssc-hermes/identity'
+import { components, createCryptoComponent } from '@ssc-hermes/node-components'
+import { Crypto } from '@oddjs/odd'
+import { aesEncrypt, aesDecrypt } from
+    '@oddjs/odd/components/crypto/implementation/browser'
+import { fromString, toString } from 'uint8arrays'
+import {
+    create, decryptKey, Identity, ALGORITHM, add,
+    createDeviceName, encryptTo, CurriedEncrypt
+} from '../dist/index.js'
+
+let identity:Identity
+let rootDid:string
+let crypto:Crypto.Implementation
+let rootDeviceName:string
 
 test('create an identity', async t => {
-    // crypto is from odd `program.components.crypto`
     crypto = components.crypto
     rootDid = await writeKeyToDid(crypto)
 
@@ -77,27 +87,19 @@ test('create an identity', async t => {
     })
 
     const deviceName = await createDeviceName(rootDid)
+    rootDeviceName = deviceName
     t.ok(identity, 'should return a new identity')
     t.ok(identity.devices[deviceName].aes,
         'should map the symmetric key, indexed by device name')
 })
-```
-
-### Use the symmetric key to encrypt and decrypt something
-
-```js
-import { test } from 'tapzero'
-import { decryptKey, ALGORITHM } from '@ssc-hermes/identity'
-import { aesEncrypt, aesDecrypt } from
-    '@oddjs/odd/components/crypto/implementation/browser'
-import { fromString, toString } from 'uint8arrays'
 
 test('can use the keys', async t => {
     // test that you can encrypt & decrypt with the symmetric key
     //   saved in identity
 
     // first decrypt the key
-    const decryptedKey = await decryptKey(identity.key[rootDid], crypto)
+    const aes = identity.devices[rootDeviceName].aes
+    const decryptedKey = await decryptKey(crypto, aes)
     t.ok(decryptedKey instanceof CryptoKey, 'decryptKey should return a CryptoKey')
 
     // now use it to encrypt a string
@@ -124,34 +126,4 @@ import { createDeviceName } from '@ssc-hermes/identity'
 const myDid = await program.agentDID()
 const myDeviceName = createDeviceName(myDid)
 // => '4k4z2xpgpmmssbcasqanlaxoxtpppl54'
-```
-
-### add a new device to this identity
-This adds a new DID to this identity.
-
-```ts
-import { test } from '@socketsupply/tapzero'
-import { writeKeyToDid } from '@ssc-hermes/util'
-
-test('add a device to the identity', async t => {
-    // create a new `crypto`, the new device
-    const _crypto = await createCryptoComponent()
-    const newDid = await writeKeyToDid(_crypto)
-
-    // need to get the exchange key of the new device somehow
-    const exchangeKey = await _crypto.keystore.publicExchangeKey()
-    // must be added with the existing device/crypto instance,
-    //   because we need to decrypt the AES key in order to encrypt it to the
-    //   new device
-
-    // pass in the existing `identity` object,
-    //   return a new identity
-    const id = await add(identity, crypto, newDid, exchangeKey)
-    t.ok(id, 'should return a new identity')
-    const newDeviceName = await createDeviceName(newDid)
-    t.ok(identity.devices[newDeviceName],
-        'new identity should have a new device with the expected name')
-    t.ok(identity.devices[rootDeviceName],
-        'identity should still have the original device')
-})
 ```

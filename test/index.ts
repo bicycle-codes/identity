@@ -126,6 +126,7 @@ test('alice can encrypt a message to several people', async t => {
     t.ok(encryptedMsg.devices[bob.username], "should have bob's device")
     t.ok(encryptedMsg.devices[carol.username], "should have carol's device")
 
+    // @TODO
     // now decrypt
     t.equal(ddd(crypto, encryptedMsg), 'hello group', 'alice can read the message')
     t.equal(ddd(bobsCrypto, encryptedMsg), 'hello group', 'bob can read the message')
