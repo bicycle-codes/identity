@@ -71,7 +71,7 @@ import { fromString, toString } from 'uint8arrays'
 import {
     create, decryptKey, Identity, ALGORITHM, add,
     createDeviceName, encryptTo, CurriedEncrypt
-} from '../dist/index.js'
+} from '@ssc-hermes/identity'
 ```
 
 ### create an identity
