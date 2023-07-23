@@ -72,12 +72,14 @@ interface EncryptedMessage {
     creator:Identity, // the person who sent the message
     payload:string, /* This is the message, encrypted with the symm key for
         this message */
-    devices:Record<string, string>  /* devices is a record like
-        { deviceName: <encrypted key> }
-        You would decrypt the encrypted key -- payload.devices[my-device-name]
-        with the device's exchange key
-        Then use the decrypted key to decrypt the payload
-        */
+    devices:Record<string, string>
+    /**
+     * devices is a record like
+     *  { deviceName: <encrypted key> }
+     *  You would decrypt the encrypted key -- payload.devices[my-device-name]
+     *  with the device's exchange key
+     *  Then use the decrypted key to decrypt the payload
+     */
 }
 
 export type CurriedEncrypt = (data:string|Uint8Array) => Promise<EncryptedMessage>
@@ -105,7 +107,7 @@ export async function encryptTo (
         return group
     }
 
-    // need to encrypt a key to each exchange key
+    // need to encrypt a key to each exchange key,
     // then encrypt the data with the key
     const key = await aesGenKey(SymmAlg.AES_GCM)
 
@@ -123,8 +125,10 @@ export async function encryptTo (
     return { payload, devices: encryptedKeys, creator }
 }
 
+/**
+ * @TODO
+ */
 export function decryptMsg () {
-
 }
 
 /**
@@ -138,7 +142,7 @@ export async function encryptContent (
     data:string|Uint8Array
 ):Promise<string> {
     const encrypted = arrToString(await aesEncrypt(
-        typeof data === 'string' ? arrFromString(data) : data,
+        (typeof data === 'string' ? arrFromString(data) : data),
         key,
         ALGORITHM
     ))
@@ -193,6 +197,7 @@ function isCryptoKey (val:unknown):val is CryptoKey {
 /**
  * Add a device to this identity. This is performed from a device that is currently
  * registered. You need to get the exchange key of the new device somehow.
+ *
  * @param {Identity} id The `Identity` instance to add to
  * @param {Crypto.Implementation} crypto An instance of Fission's crypto
  * @param {string} newDid The DID of the new device
