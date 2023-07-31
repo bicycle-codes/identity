@@ -78,11 +78,11 @@ export async function create (
 /**
  * devices is a record like
  *  { deviceName: <encrypted key> }
- *  You would decrypt the encrypted key -- payload.devices[my-device-name]
+ *  You would decrypt the encrypted key -- message.devices[my-device-name] --
  *  with the device's exchange key
  *  Then use the decrypted key to decrypt the payload
  */
-interface EncryptedMessage {
+export interface EncryptedMessage {
     creator:Identity, // the person who sent the message
     payload:string, /* This is the message, encrypted with the symm key for
         this message */

@@ -8,23 +8,26 @@ import { fromString, toString } from 'uint8arrays'
 import {
     create, decryptKey, Identity, ALGORITHM, add,
     createDeviceName, encryptTo, CurriedEncrypt,
-    group
+    group,
+    EncryptedMessage
 } from '../dist/index.js'
 
 let identity:Identity
 let rootDid:string
 let crypto:Crypto.Implementation
+let alicesCrytpo:Crypto.Implementation
 let rootDeviceName:string
+let alicesDeviceName:string
 
 test('create an identity', async t => {
-    crypto = components.crypto
+    crypto = alicesCrytpo = components.crypto
     rootDid = await writeKeyToDid(crypto)
 
     identity = await create(crypto, {
         humanName: 'alice',
     })
 
-    const deviceName = await createDeviceName(rootDid)
+    const deviceName = alicesDeviceName = await createDeviceName(rootDid)
     rootDeviceName = deviceName
     t.ok(identity, 'should return a new identity')
     t.ok(identity.devices[deviceName].aes,
@@ -124,8 +127,9 @@ test('can partially apply the `encryptTo` function', async t => {
         "should return a function if you don't pass a message")
 })
 
+let encryptedMsg:EncryptedMessage
 test('alice can encrypt a message to several people', async t => {
-    const encryptedMsg = await encryptedGroup('hello group')
+    encryptedMsg = await encryptedGroup('hello group')
 
     t.ok(encryptedMsg, 'should return an encrypted message')
     t.equal(encryptedMsg.creator.humanName, 'alice',
@@ -140,6 +144,11 @@ test('alice can encrypt a message to several people', async t => {
     // t.equal(ddd(carolsCrypto, encryptedMsg), 'hello group', 'carol can read the message')
 })
 
-// test('create an encrypted group', async t => {
-//     const myGroup = await group(alice, [bob, carol])
-// })
+test('create an encrypted group', async t => {
+    const key = await decryptKey(alicesCrytpo, encryptedMsg.devices[alicesDeviceName])
+    const myGroup = await group(alice, [bob, carol], key)
+    const groupMessage = await myGroup('hello group')
+    t.ok(groupMessage, 'should create an encrypted message')
+    t.equal(typeof groupMessage, 'string',
+        'should return encrypted message as a string')
+})
