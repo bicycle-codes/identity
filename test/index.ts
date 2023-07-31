@@ -7,7 +7,8 @@ import { aesEncrypt, aesDecrypt } from
 import { fromString, toString } from 'uint8arrays'
 import {
     create, decryptKey, Identity, ALGORITHM, add,
-    createDeviceName, encryptTo, CurriedEncrypt
+    createDeviceName, encryptTo, CurriedEncrypt,
+    group
 } from '../dist/index.js'
 
 let identity:Identity
@@ -94,7 +95,7 @@ test('cannot decrypt the symmetric key with the wrong keys', async t => {
     } catch (err) {
         t.ok(err, 'should throw an error when decrypting with the wrong keys')
         t.ok(err.toString().includes('operation-specific reason'),
-            'should have the exprected message')
+            'should have the expected message')
     }
 })
 
@@ -123,18 +124,22 @@ test('can partially apply the `encryptTo` function', async t => {
         "should return a function if you don't pass a message")
 })
 
-// test('alice can encrypt a message to several people', async t => {
-//     const encryptedMsg = await encryptedGroup('hello group')
+test('alice can encrypt a message to several people', async t => {
+    const encryptedMsg = await encryptedGroup('hello group')
 
-//     t.ok(encryptedMsg, 'should return an encrypted message')
-//     t.equal(encryptedMsg.creator.humanName, 'alice',
-//         'should have "alice" as the creator')
-//     t.ok(encryptedMsg.devices[bob.username], "should have bob's device")
-//     t.ok(encryptedMsg.devices[carol.username], "should have carol's device")
+    t.ok(encryptedMsg, 'should return an encrypted message')
+    t.equal(encryptedMsg.creator.humanName, 'alice',
+        'should have "alice" as the creator')
+    t.ok(encryptedMsg.devices[bob.username], "should have bob's device")
+    t.ok(encryptedMsg.devices[carol.username], "should have carol's device")
 
-//     // @TODO
-//     // now decrypt
-//     // t.equal(ddd(crypto, encryptedMsg), 'hello group', 'alice can read the message')
-//     // t.equal(ddd(bobsCrypto, encryptedMsg), 'hello group', 'bob can read the message')
-//     // t.equal(ddd(carolsCrypto, encryptedMsg), 'hello group', 'carol can read the message')
+    // @TODO
+    // now decrypt
+    // t.equal(ddd(crypto, encryptedMsg), 'hello group', 'alice can read the message')
+    // t.equal(ddd(bobsCrypto, encryptedMsg), 'hello group', 'bob can read the message')
+    // t.equal(ddd(carolsCrypto, encryptedMsg), 'hello group', 'carol can read the message')
+})
+
+// test('create an encrypted group', async t => {
+//     const myGroup = await group(alice, [bob, carol])
 // })
