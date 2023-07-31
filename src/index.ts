@@ -141,7 +141,7 @@ export function decryptMsg (encryptedMsg:EncryptedMessage) {
 
 }
 
-type Group = {
+export type Group = {
     groupMembers: Identity[];
     encryptedKeys: Record<string, string>;
     decrypt: (
@@ -153,7 +153,8 @@ type Group = {
 }
 
 /**
- * Create a group with the given AES key.
+ * Create a group with the given AES key. This is different than `encryptTo`
+ * because this takes an existing key, instead of creating one.
  * @param creator The identity that is creating this group
  * @param ids An array of group members
  * @param key The AES key for this group
@@ -195,13 +196,12 @@ export async function group (
     ) {
         // get the right key from the group
         const did = await writeKeyToDid(crypto)
-        const myKey = group.groupMembers[await createDeviceName(did)]
+        const myKey = group.encryptedKeys[await createDeviceName(did)]
 
         const decryptedKey = await decryptKey(crypto, myKey)
-        // const key = await importAesKey(arrFromString(myKey), SymmAlg.AES_GCM)
-        const msgBuf = typeof msg === 'string' ? arrFromString(msg) : msg
+        const msgBuf = typeof msg === 'string' ? fromString(msg, 'base64pad') : msg
         const decryptedMsg = await aesDecrypt(msgBuf, decryptedKey, ALGORITHM)
-        return arrToString(decryptedMsg)
+        return toString(decryptedMsg)
     }
 
     return _group
@@ -217,12 +217,16 @@ export async function encryptContent (
     key:CryptoKey,
     data:string|Uint8Array
 ):Promise<string> {
-    const encrypted = arrToString(await aesEncrypt(
-        (typeof data === 'string' ? fromString(data) : data),
+    const _data = (typeof data === 'string' ? fromString(data) : data)
+    // console.log('____data____', _data)
+
+    const encrypted = toString(await aesEncrypt(
+        _data,
         key,
         ALGORITHM
-    ))
+    ), 'base64pad')
 
+    // console.log('**encyrptoeddd***', encrypted)
     return encrypted
 }
 
@@ -290,8 +294,6 @@ export async function add (
     // new did
 
     // this is all happening on a device that is already authed
-
-    // var exportPromise = crypto.subtle.exportKey('raw', aesKey);
 
     const existingDid = await writeKeyToDid(crypto)
     const existingDeviceName = await createDeviceName(existingDid)

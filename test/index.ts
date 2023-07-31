@@ -9,7 +9,8 @@ import {
     create, decryptKey, Identity, ALGORITHM, add,
     createDeviceName, encryptTo, CurriedEncrypt,
     group,
-    EncryptedMessage
+    EncryptedMessage,
+    Group
 } from '../dist/index.js'
 
 let identity:Identity
@@ -144,11 +145,23 @@ test('alice can encrypt a message to several people', async t => {
     // t.equal(ddd(carolsCrypto, encryptedMsg), 'hello group', 'carol can read the message')
 })
 
+let groupMsg:string
+let myGroup:Group
 test('create an encrypted group', async t => {
     const key = await decryptKey(alicesCrytpo, encryptedMsg.devices[alicesDeviceName])
-    const myGroup = await group(alice, [bob, carol], key)
-    const groupMessage = await myGroup('hello group')
-    t.ok(groupMessage, 'should create an encrypted message')
-    t.equal(typeof groupMessage, 'string',
+    myGroup = await group(alice, [bob, carol], key)
+
+    t.ok(myGroup.encryptedKeys, 'should have encryptedKeys on the group')
+    t.ok(myGroup.encryptedKeys[alicesDeviceName],
+        "should have alice's device in the keys")
+
+    groupMsg = await myGroup('hello group')
+    t.ok(groupMsg, 'should create an encrypted message')
+    t.equal(typeof groupMsg, 'string',
         'should return encrypted message as a string')
+})
+
+test('decrypt the encrypted group message', async t => {
+    const msg = await myGroup.decrypt(alicesCrytpo, myGroup, groupMsg)
+    t.equal(msg, 'hello group', 'can decrypt an encrypted group message')
 })
