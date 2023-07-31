@@ -86,8 +86,10 @@ export type CurriedEncrypt = (data:string|Uint8Array) => Promise<EncryptedMessag
 
 /**
  * Encrypt a given message to the given set of identities.
- * to decrypt this message, use your exchange key to decrypt the symm key,
+ * To decrypt this message, use your exchange key to decrypt the symm key,
  * then use the symm key to decrypt the payload.
+ *
+ * This creates a new AES key each time it is called.
  * @param crypto odd crypto object
  * @param ids The Identities we are encrypting to
  * @param data The message we want to encrypt
@@ -128,7 +130,27 @@ export async function encryptTo (
 /**
  * @TODO
  */
-export function decryptMsg () {
+export function decryptMsg (encryptedMsg:EncryptedMessage) {
+
+}
+
+/**
+ * Create a group with the given AES key.
+ * @returns {(data:string|Uint8Array) => Promise<string>} Return a function
+ * that takes a string of data and returns a string of encrypted data.
+ */
+export function group (
+    creator:Identity,
+    ids:Identity[],
+    key:CryptoKey
+):(data:string|Uint8Array) => Promise<string> {
+    function _group (data:string|Uint8Array) {
+        return encryptContent(key, data)
+    }
+
+    _group.groupMembers = ids.concat([creator])
+
+    return _group
 }
 
 /**
