@@ -68,18 +68,18 @@ export async function create (
     }
 }
 
+/**
+ * devices is a record like
+ *  { deviceName: <encrypted key> }
+ *  You would decrypt the encrypted key -- payload.devices[my-device-name]
+ *  with the device's exchange key
+ *  Then use the decrypted key to decrypt the payload
+ */
 interface EncryptedMessage {
     creator:Identity, // the person who sent the message
     payload:string, /* This is the message, encrypted with the symm key for
         this message */
     devices:Record<string, string>
-    /**
-     * devices is a record like
-     *  { deviceName: <encrypted key> }
-     *  You would decrypt the encrypted key -- payload.devices[my-device-name]
-     *  with the device's exchange key
-     *  Then use the decrypted key to decrypt the payload
-     */
 }
 
 export type CurriedEncrypt = (data:string|Uint8Array) => Promise<EncryptedMessage>
@@ -136,18 +136,35 @@ export function decryptMsg (encryptedMsg:EncryptedMessage) {
 
 /**
  * Create a group with the given AES key.
+ * @param creator The identity that is creating this group
+ * @param ids An array of group members
+ * @param key The AES key for this group
  * @returns {(data:string|Uint8Array) => Promise<string>} Return a function
- * that takes a string of data and returns a string of encrypted data.
+ * that takes a string of data and returns a string of encrypted data. Has keys
+ * `encryptedKeys` and `groupMemebers`. `encryptedKeys` is a map of `deviceName`
+ * to the encrypted AES key for this group. `groupMembers` is an array of all
+ * the Identities in this group.
  */
-export function group (
+export async function group (
     creator:Identity,
     ids:Identity[],
     key:CryptoKey
-):(data:string|Uint8Array) => Promise<string> {
+):Promise<(data:string|Uint8Array) => Promise<string>> {
     function _group (data:string|Uint8Array) {
         return encryptContent(key, data)
     }
 
+    const encryptedKeys = {}
+    for (const id of ids.concat(creator)) {
+        for await (const deviceName of Object.keys(id.devices)) {
+            encryptedKeys[deviceName] = arrToString(
+                await rsa.encrypt(await aesExportKey(key),
+                    arrFromString(id.devices[deviceName].exchange)),
+            )
+        }
+    }
+
+    _group.encryptedKeys = encryptedKeys
     _group.groupMembers = ids.concat([creator])
 
     return _group
