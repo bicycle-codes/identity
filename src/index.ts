@@ -154,7 +154,7 @@ export type Group = {
 
 /**
  * Create a group with the given AES key. This is different than `encryptTo`
- * because this takes an existing key, instead of creating one.
+ * because this takes an existing key, instead of creating a new one.
  * @param creator The identity that is creating this group
  * @param ids An array of group members
  * @param key The AES key for this group
@@ -271,8 +271,13 @@ function isCryptoKey (val:unknown):val is CryptoKey {
         hasProp(val, 'extractable') && hasProp(val, 'type'))
 }
 
-// the existing devices are the only places that can decrypt the key
-// must call `add` from an existing device
+/**
+ * the existing devices are the only places that can decrypt the key
+ * must call `add` from an existing device
+ *
+ * @TODO
+ * Try using the Fission account linking infrastructure
+ */
 
 /**
  * Add a device to this identity. This is performed from a device that is currently
