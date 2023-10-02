@@ -6,9 +6,10 @@
   "main": "dist/index.js",
   "scripts": {
     "lint": "standardx -v \"./**/*.ts\"",
-    "test": "cd test && esbuild ./*.ts --platform=node --format=esm --keep-names | node --input-type=module | tap-arc",
+    "test": "cd test && esbuild ./index.ts --platform=node --format=esm --keep-names | node --input-type=module | tap-arc",
+    "test:browser": "cd test && esbuild ./browser.ts --format=esm --bundle --platform=node --keep-names | tape-run | tap-arc",
     "build-cjs": "esbuild src/*.ts --format=cjs --keep-names --outdir=./dist --out-extension:.js=.cjs",
-    "build": "mkdir -p ./dist && rm -rf ./dist/* && npm run build-cjs && tsc",
+    "build": "mkdir -p ./dist && rm -rf ./dist/* && npm run build-cjs && tsc --project tsconfig.build.json",
     "preversion": "npm run lint",
     "postversion": "git push && git push --tags && npm publish",
     "prepublishOnly": "npm run build"
@@ -22,13 +23,14 @@
     "uint8arrays": "^4.0.4"
   },
   "devDependencies": {
-    "@socketsupply/tapzero": "^0.7.1",
+    "@socketsupply/tapzero": "^0.8.0",
     "@ssc-hermes/node-components": "^0.1.0",
     "@typescript-eslint/parser": "^5.55.0",
     "esbuild": "^0.15.18",
     "standardx": "^7.0.0",
     "tap-arc": "^0.3.5",
-    "typescript": "^5.0.2"
+    "tape-run": "^11.0.0",
+    "typescript": "^5.2.2"
   },
   "exports": {
     ".": {
