@@ -9,7 +9,6 @@
     "allowJs": false,
     "skipLibCheck": true,
     "outDir": "dist",
-    "rootDir": "src",
     "allowSyntheticDefaultImports": true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
@@ -23,5 +22,12 @@
     "declarationDir": "dist",
     "declarationMap": true
   },
-  "include": ["src/**/*"]
+  "include": [
+    "src",
+    "test"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist"
+  ]
 }

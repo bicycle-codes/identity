@@ -1,6 +1,6 @@
 import { test } from '@socketsupply/tapzero'
+import * as odd from '@oddjs/odd'
 import { writeKeyToDid } from '@ssc-hermes/util'
-import { components } from '@ssc-hermes/node-components'
 import { Crypto } from '@oddjs/odd'
 import {
     create, Identity,
@@ -9,22 +9,26 @@ import {
 
 let identity:Identity
 let rootDid:string
-let crypto:Crypto.Implementation
 let alicesCrytpo:Crypto.Implementation
 let rootDeviceName:string
-let alicesDeviceName:string
 
 test('create an identity', async t => {
-    crypto = alicesCrytpo = components.crypto
-    rootDid = await writeKeyToDid(crypto)
+    const program = await odd.program({
+        namespace: { creator: 'test', name: 'testing' },
+        debug: true
+    })
 
-    identity = await create(crypto, {
+    alicesCrytpo = program.components.crypto
+    rootDid = await writeKeyToDid(alicesCrytpo)
+
+    identity = await create(alicesCrytpo, {
         humanName: 'alice',
     })
 
-    const deviceName = alicesDeviceName = await createDeviceName(rootDid)
-    rootDeviceName = deviceName
+    rootDeviceName = await createDeviceName(rootDid)
+    t.ok(alicesCrytpo, "should create Alice's crypto")
+    t.ok(rootDeviceName, 'should create root device name')
     t.ok(identity, 'should return a new identity')
-    t.ok(identity.devices[deviceName].aes,
+    t.ok(identity.devices[rootDeviceName].aes,
         'should map the symmetric key, indexed by device name')
 })
