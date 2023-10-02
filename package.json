@@ -5,6 +5,7 @@
   "version": "0.0.6",
   "main": "dist/index.js",
   "scripts": {
+    "start": "vite",
     "lint": "standardx -v \"./**/*.ts\"",
     "test": "cd test && esbuild ./index.ts --platform=node --format=esm --keep-names | node --input-type=module | tap-arc",
     "build-browser-tests": "esbuild ./test/browser.ts --bundle --keep-names > test/test-bundle.js",
@@ -24,14 +25,18 @@
     "uint8arrays": "^4.0.4"
   },
   "devDependencies": {
+    "@preact/preset-vite": "^2.5.0",
     "@socketsupply/tapzero": "^0.8.0",
     "@ssc-hermes/node-components": "^0.1.0",
     "@typescript-eslint/parser": "^5.55.0",
     "esbuild": "^0.15.18",
+    "postcss-nesting": "^12.0.1",
+    "preact": "^10.18.1",
     "standardx": "^7.0.0",
     "tap-arc": "^0.3.5",
     "tape-run": "^11.0.0",
-    "typescript": "^5.2.2"
+    "typescript": "^5.2.2",
+    "vite": "^4.4.9"
   },
   "exports": {
     ".": {
