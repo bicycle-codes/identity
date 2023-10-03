@@ -134,7 +134,7 @@ const secretKey = await decryptKey(
 )
 ```
 
-We need to call this function from the existing device because we need to decrypt the AES key, then re-encrypt it to the public exchange key of the new device. That means we need to get the `exchangeKey` of the new device somehow.
+We need to call this function from the existing device, because we need to decrypt the AES key. We then re-encrypt the AES key to the public exchange key of the new device. That means we need to get the `exchangeKey` of the new device somehow.
 
 ```js
 test('add a device to the identity', async t => {
