@@ -5,9 +5,9 @@ Thinking about it from a capability point of view — user Alice creates a new k
 
 Encrypting "to" someone means you need to know their exchange key, and encrypt to the exchange key.
 
-Then you write a new message, encrypted with the group's private key, so that way anyone in the group can decrypt it. 
+**how to learn the exchange key?**
 
-I had done similar things in `identity`. But that was about creating multiple devices per username, so I used symmetric keys.
+Then you write a new message, encrypted with the group's private key, so that way anyone in the group can decrypt it. 
 
 ```ts
 import { aesGenKey, aesExportKey, rsa, importAesKey } from '@oddjs/odd/components/crypto/implementation/browser'
