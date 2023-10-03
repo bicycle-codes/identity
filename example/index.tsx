@@ -16,25 +16,21 @@ const identity = await create(program.components.crypto, {
 
 render((<div>
     <p>
-        The rootDid:
+        <strong>The rootDid:</strong>
         <pre>
-            <br />
             <code>{rootDid}</code>
         </pre>
     </p>
 
     <p>
-        Devices:
+        <strong>Devices:</strong>
         <pre>
             <code>{JSON.stringify(identity.devices, null, 2)}</code>
         </pre>
     </p>
 
-    <p>
-        The identity:
-    </p>
+    <strong>The identity:</strong>
     <pre>
-
         <code>{JSON.stringify(identity, null, 2)}</code>
     </pre>
 </div>), document.getElementById('root')!)
