@@ -24,10 +24,19 @@ render(<TheApp />, document.getElementById('root')!)
  */
 
 /**
+ * New device needs to know the 'username' of existing account
+ * Existing device needs to confirm the PIN
+ */
+
+/**
  * Need some out of band communication
  * for example,
- *   - could have the new device go to a unique URL
+ *   - new device writes its device record to a DB. Then we need a way
+ *     to tell the existing device what the new device name is, so it
+ *     can read the record from the DB
  * Existing device needs to read the new device's public exchange key
+ *
+ * Existing device needs a map between device keys and devices
  *
  * Existing device needs to know how to read the new key
  * discovery
