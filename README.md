@@ -124,6 +124,39 @@ test('can use the keys', async t => {
 })
 ```
 
+### add a device
+We need to pass in the `crypto` object from the original identity, because we need to decrypt the secret key, then re-encrypt it to the new device:
+```js
+// decrypt the AES key
+const secretKey = await decryptKey(
+    crypto,
+    id.devices[existingDeviceName].aes
+)
+```
+
+We need to call this function from the existing device because we need to decrypt the AES key, then re-encrypt it to the public exchange key of the new device. That means we need to get the `exchangeKey` of the new device somehow.
+
+```js
+test('add a device to the identity', async t => {
+    const device2Crypto = await createCryptoComponent()
+    const newDid = await writeKeyToDid(device2Crypto)
+    const exchangeKey = await device2Crypto.keystore.publicExchangeKey()
+
+    // add the device. Returns the ID with the new device added
+    // NOTE this takes params from the original keypair -- `crypto`
+    //  and also params from the new keypair -- `exchangeKey`
+    const id = await add(identity, crypto, newDid, exchangeKey)
+
+    t.ok(id, 'should return a new identity')
+    const newDeviceName = await createDeviceName(newDid)
+    t.ok(identity.devices[newDeviceName],
+        'new identity should have a new device with the expected name')
+    t.ok(identity.devices[rootDeviceName],
+        'identity should still have the original device')
+})
+```
+
+
 ### get your device's name
 
 ```js
