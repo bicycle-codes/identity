@@ -19,7 +19,7 @@ render(<TheApp />, document.getElementById('root')!)
 /**
  * We don't need a session from `odd`.
  *
- * We just need a way to get the new devices public exchange key to
+ * We need a way to get the new devices public exchange key to
  * the exisitng device.
  */
 
