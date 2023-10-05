@@ -1,11 +1,11 @@
 {
-  "name": "@ssc-hermes/identity",
+  "name": "@ssc-half-light/identity",
   "description": "An identity record",
   "type": "module",
   "version": "0.0.6",
   "main": "dist/index.js",
   "scripts": {
-    "start": "concurrently --kill-others \" \" \"npx vite\"",
+    "start": "concurrently --kill-others \"npx partykit dev\" \"npx vite\"",
     "lint": "standardx -v \"./**/*.ts\"",
     "test": "cd test && esbuild ./index.ts --platform=node --format=esm --keep-names | node --input-type=module | tap-arc",
     "build-browser-tests": "esbuild ./test/browser.ts --bundle --keep-names > test/test-bundle.js",

@@ -1,5 +1,5 @@
 {
-  "name": "@ssc-hermes/identity-party",
-  "main": "party/index.ts",
+  "name": "@ssc-half-light/identity-party",
+  "main": "example/server/index.ts",
   "compatibilityDate": "2023-10-05"
 }

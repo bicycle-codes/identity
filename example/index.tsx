@@ -2,7 +2,7 @@ import { render } from 'preact'
 import * as odd from '@oddjs/odd'
 import { writeKeyToDid } from '@ssc-hermes/util'
 import PartySocket from 'partysocket'
-import { create } from '../dist/index.js'
+import { create } from '../src/index.js'
 
 const program = await odd.program({
     namespace: { creator: 'test', name: 'testing' },
@@ -22,9 +22,6 @@ const partySocket = new PartySocket({
     host: 'localhost:1999',
     room: 'my-room',
 })
-
-console.log('party', partySocket)
-console.log('party is not so fun', PartySocket)
 
 // send a message to the server
 partySocket.send('Hello everyone')

@@ -1,10 +1,8 @@
 // server.ts
 import type * as Party from 'partykit/server'
 
-// export default class WebSocket implements Party.Server {}
-
 export default class WebSocketServer implements Party.Server {
-    // constructor (readonly party: Party.Party) {}
+    constructor (readonly party: Party.Party) {}
 
     onMessage (message: string, sender: Party.Connection) {
         console.log('message...', message)
