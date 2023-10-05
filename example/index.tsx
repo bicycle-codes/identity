@@ -1,7 +1,8 @@
 import { render } from 'preact'
-import { create } from '../dist/index.js'
 import * as odd from '@oddjs/odd'
 import { writeKeyToDid } from '@ssc-hermes/util'
+import PartySocket from 'partysocket'
+import { create } from '../dist/index.js'
 
 const program = await odd.program({
     namespace: { creator: 'test', name: 'testing' },
@@ -14,10 +15,31 @@ const identity = await create(alicesCrytpo, {
     humanName: 'alice',
 })
 
+// ------------------------------------------------------
+
+// connect to our server
+const partySocket = new PartySocket({
+    host: 'localhost:1999',
+    room: 'my-room',
+})
+
+console.log('party', partySocket)
+console.log('party is not so fun', PartySocket)
+
+// send a message to the server
+partySocket.send('Hello everyone')
+
+// print each incoming message from the server to console
+partySocket.addEventListener('message', (ev) => {
+    console.log(ev.data)
+})
+
+// ------------------------------------------------------
+
 render(<TheApp />, document.getElementById('root')!)
 
 /**
- * We don't need a session from `odd`.
+ * We don't need a session from `odd`, just the `crypto` object.
  *
  * We need a way to get the new devices public exchange key to
  * the exisitng device.
@@ -29,17 +51,7 @@ render(<TheApp />, document.getElementById('root')!)
  */
 
 /**
- * Need some out of band communication
- * for example,
- *   - new device writes its device record to a DB. Then we need a way
- *     to tell the existing device what the new device name is, so it
- *     can read the record from the DB
  * Existing device needs to read the new device's public exchange key
- *
- * Existing device needs a map between device keys and devices
- *
- * Existing device needs to know how to read the new key
- * discovery
  */
 
 /**
@@ -74,16 +86,16 @@ function TheApp () {
     </div>)
 }
 
-/**
- * Link a new device to the existing device
- */
-function Link ({ session }:{ session?:odd.Session }) {
-    if (!session) {
-        // create a new session
-        return (<div>
-            not session
-        </div>)
-    }
+// /**
+//  * Link a new device to the existing device
+//  */
+// function Link ({ session }:{ session?:odd.Session }) {
+//     if (!session) {
+//         // create a new session
+//         return (<div>
+//             not session
+//         </div>)
+//     }
 
-    return <div>Link to an account</div>
-}
+//     return <div>Link to an account</div>
+// }

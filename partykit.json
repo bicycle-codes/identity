@@ -1,0 +1,5 @@
+{
+  "name": "@ssc-hermes/identity-party",
+  "main": "party/index.ts",
+  "compatibilityDate": "2023-10-05"
+}

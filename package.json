@@ -5,7 +5,7 @@
   "version": "0.0.6",
   "main": "dist/index.js",
   "scripts": {
-    "start": "vite",
+    "start": "concurrently --kill-others \" \" \"npx vite\"",
     "lint": "standardx -v \"./**/*.ts\"",
     "test": "cd test && esbuild ./index.ts --platform=node --format=esm --keep-names | node --input-type=module | tap-arc",
     "build-browser-tests": "esbuild ./test/browser.ts --bundle --keep-names > test/test-bundle.js",
@@ -22,14 +22,18 @@
     "@ucans/ucans": "^0.11.4",
     "keystore-idb": "^0.15.5",
     "one-webcrypto": "^1.0.3",
-    "uint8arrays": "^4.0.4"
+    "uint8arrays": "^4.0.4",
+    "partysocket": "0.0.8"
   },
   "devDependencies": {
     "@preact/preset-vite": "^2.5.0",
     "@socketsupply/tapzero": "^0.8.0",
     "@ssc-hermes/node-components": "^0.1.0",
     "@typescript-eslint/parser": "^5.55.0",
+    "concurrently": "^8.2.1",
     "esbuild": "^0.15.18",
+    "partykit": "^0.0.27",
+    "partysocket": "^0.0.8",
     "postcss-nesting": "^12.0.1",
     "preact": "^10.18.1",
     "standardx": "^7.0.0",
