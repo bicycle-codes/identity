@@ -5,6 +5,7 @@
     "requireConfigFile": false
   },
   "rules": {
+    "no-useless-constructor": ["off"],
     "operator-linebreak": ["off"],
     "react/jsx-wrap-multilines": ["error", { "declaration": "parens" }],
     "react/jsx-first-prop-new-line": ["off"],

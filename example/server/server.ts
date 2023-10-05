@@ -7,10 +7,11 @@ export default class WebSocketServer implements Party.Server {
     // constructor (readonly party: Party.Party) {}
 
     onMessage (message: string, sender: Party.Connection) {
+        console.log('message...', message)
         // send the message to all connected clients
         for (const conn of this.party.getConnections()) {
             if (conn.id !== sender.id) {
-                conn.send(`${sender.id} says: ${message}`);
+                conn.send(`${sender.id} says: ${message}`)
             }
         }
     }

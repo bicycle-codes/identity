@@ -5,6 +5,7 @@
     "outDir": "dist",
     "target": "ES2022",
     "esModuleInterop": true,
+    "verbatimModuleSyntax": true,
     "downlevelIteration": true,
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "allowJs": true,
