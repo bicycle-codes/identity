@@ -5,6 +5,7 @@
     "requireConfigFile": false
   },
   "rules": {
+    "dot-notation": ["off"],
     "no-useless-constructor": ["off"],
     "operator-linebreak": ["off"],
     "react/jsx-wrap-multilines": ["error", { "declaration": "parens" }],

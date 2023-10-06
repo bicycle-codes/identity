@@ -3,4 +3,5 @@ bundle.js
 .DS_Store
 dist
 test/test-bundle.js
+.partykit
 
