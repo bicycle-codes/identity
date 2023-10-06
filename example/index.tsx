@@ -8,7 +8,7 @@ import { customAlphabet } from '@nichoth/nanoid'
 import { numbers } from '@nichoth/nanoid-dictionary'
 // @ts-ignore  Don't know why it can't find this
 import { Button } from '@nichoth/components/button'
-import { Identity, create } from '../src/index.js'
+import { Identity, add as addToIdentity, create } from '../src/index.js'
 import '@nichoth/components/button.css'
 import '@nichoth/components/text-input.css'
 import './index.css'
@@ -18,8 +18,8 @@ const program = await odd.program({
     debug: true
 })
 
-const alicesCrytpo = program.components.crypto
-const rootDid = await writeKeyToDid(alicesCrytpo)
+const crypto = program.components.crypto
+const myDid = await writeKeyToDid(crypto)
 
 render(<TheApp />, document.getElementById('root')!)
 
@@ -52,6 +52,11 @@ render(<TheApp />, document.getElementById('root')!)
  *   input matches the 'challenge' event value
  */
 
+type Message = {
+    newDid:`did:key:z${string}`,
+    exchangeKey:string
+}
+
 function TheApp () {
     const code = useSignal<string>('')
     const id = useSignal<Identity|null>(null)
@@ -60,13 +65,15 @@ function TheApp () {
 
     // @ts-ignore
     window.id = id
+    // @ts-ignore
+    window.program = program
 
     console.log('rendering', code.value)
 
     // * create an identity
     useEffect(() => {
         (async () => {
-            const identity = await create(alicesCrytpo, {
+            const identity = await create(crypto, {
                 humanName: 'alice',
             })
 
@@ -89,19 +96,29 @@ function TheApp () {
         const partySocket = new PartySocket({
             host: 'localhost:1999',
             room: code.value,
-            id: rootDid,
+            id: myDid,
             query: {
                 token: 'aaaaa',
             },
         })
 
         partySocket.addEventListener('message', (ev) => {
-            // we should only get one message containing the new DID
-            // of the new device
+            // we should only get one message containing the DID
+            // and exchangeKey of the new device
 
             console.log('from the server:', ev.data)
 
+            let msg:Message
+            try {
+                msg = JSON.parse(ev.data)
+            } catch (err) {
+                console.log('bad json!', err)
+                throw err
+            }
+            const { newDid, exchangeKey } = msg
+
             // add the device here...
+            addToIdentity(id, crypto, myDid)
 
             partySocket.close()
         })
@@ -126,7 +143,7 @@ function TheApp () {
         })
 
         partySocket.send(JSON.stringify({
-            newDid: await writeKeyToDid(alicesCrytpo)
+            newDid: await writeKeyToDid(crypto)
         }))
 
         partySocket.close()
@@ -202,7 +219,7 @@ function TheApp () {
         <div className="identity">
             <strong>The root DID:</strong>
             <pre>
-                <code>{rootDid}</code>
+                <code>{myDid}</code>
             </pre>
 
             <strong>The identity:</strong>

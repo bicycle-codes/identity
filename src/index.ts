@@ -236,7 +236,10 @@ export async function encryptContent (
  * @param exchangeKey The exchange key to encrypt *to*
  * @returns the encrypted key, encoded as 'base64pad'
  */
-export async function encryptKey (key:CryptoKey, exchangeKey:Uint8Array|CryptoKey) {
+export async function encryptKey (
+    key:CryptoKey,
+    exchangeKey:Uint8Array|CryptoKeyPair
+) {
     const encryptedKey = toString(
         await rsa.encrypt(await aesExportKey(key), exchangeKey),
         'base64pad'
@@ -266,7 +269,7 @@ data is Record<K, unknown> {
     return typeof data === 'object' && data != null && prop in data
 }
 
-function isCryptoKey (val:unknown):val is CryptoKey {
+function isCryptoKey (val:unknown):val is CryptoKeyPair {
     return (hasProp(val, 'algorithm') &&
         hasProp(val, 'extractable') && hasProp(val, 'type'))
 }
@@ -274,9 +277,6 @@ function isCryptoKey (val:unknown):val is CryptoKey {
 /**
  * the existing devices are the only places that can decrypt the key
  * must call `add` from an existing device
- *
- * @TODO
- * Try using the Fission account linking infrastructure
  */
 
 /**
@@ -293,7 +293,7 @@ export async function add (
     id:Identity,
     crypto:Crypto.Implementation,
     newDid:string,
-    exchangeKey:Uint8Array|CryptoKey,
+    exchangeKey:Uint8Array|CryptoKey|string,
 ) {
     // need to decrypt the existing AES key, then re-encrypt it to the
     // new did
@@ -305,19 +305,23 @@ export async function add (
     const secretKey = await decryptKey(crypto,
         id.devices[existingDeviceName].aes)
 
-    // ??? how to get the exchange key of the new device ???
-    const encrypted = await encryptKey(secretKey, exchangeKey)
+    let _exchangeKey:Uint8Array|CryptoKeyPair
+    if (typeof exchangeKey === 'string') {
+        _exchangeKey = arrFromString(exchangeKey)
+    }
+    if (isCryptoKey(exchangeKey)) {
+        _exchangeKey = exchangeKey
+    }
+
+    const encrypted = await encryptKey(secretKey, _exchangeKey!)
     const newDeviceData:Identity['devices'] = {}
     const name = await createDeviceName(newDid)
-    const _exchangeKey = isCryptoKey(exchangeKey) ?
-        await webcrypto.subtle.exportKey('raw', secretKey) :
-        exchangeKey
 
     newDeviceData[name] = {
         name,
         aes: encrypted,
         did: newDid,
-        exchange: arrToString(new Uint8Array(_exchangeKey))
+        exchange: arrToString()
     }
 
     const newId:Identity = {
@@ -326,6 +330,14 @@ export async function add (
     }
 
     return newId
+}
+
+async function keyToString (key:Uint8Array|CryptoKeyPair):string {
+    if (isCryptoKey(key)) {
+        const spki = await webcrypto.subtle.exportKey('spki', key.publicKey)
+        return new Uint8Array(spki)
+    }
+    return arrToString(key)
 }
 
 export async function createDeviceName (did:string) {
