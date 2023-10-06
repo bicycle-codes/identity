@@ -96,6 +96,9 @@ function TheApp () {
         })
 
         partySocket.addEventListener('message', (ev) => {
+            // we should only get one message containing the new DID
+            // of the new device
+
             console.log('from the server:', ev.data)
 
             // add the device here...
@@ -143,19 +146,19 @@ function TheApp () {
         status.value = 'join'
     }
 
-    return (<div>
+    return (<div className="content">
         {code.value ?
-            (<>
-                <strong>the PIN</strong>
-                <br />
+            (<div className="the-pin">
+                <div><strong>the PIN</strong></div>
                 <code>
                     {code.value}
                 </code>
-
-                <hr />
-            </>) :
+                <p>Enter this PIN in the new device.</p>
+            </div>) :
             (status.value === 'join' ?
                 <form className="pin-form" onSubmit={join}>
+                    <p>Enter the PIN here from the parent device</p>
+
                     <div>
                         <input name="pin" className="pin" type="number"
                             minLength={6}
@@ -179,40 +182,34 @@ function TheApp () {
                 null)
         }
 
-        <form onSubmit={addDevice}>
-            <Button type="submit">Add a device</Button>
-        </form>
+        {!status.value ?
+            (<div className="add-or-join">
+                <form onSubmit={addDevice}>
+                    <Button type="submit">Add a device</Button>
+                </form>
+
+                <hr />
+
+                <form onSubmit={addToExisting}>
+                    <Button type="submit">Add this device to another identity</Button>
+                </form>
+            </div>) :
+            null
+        }
 
         <hr />
 
-        <form onSubmit={addToExisting}>
-            <Button type="submit">Add this device to an existing identity</Button>
-        </form>
+        <div className="identity">
+            <strong>The root DID:</strong>
+            <pre>
+                <code>{rootDid}</code>
+            </pre>
 
-        <hr />
+            <strong>The identity:</strong>
+            <pre>
+                <code>{JSON.stringify(id.value, null, 2)}</code>
+            </pre>
+        </div>
 
-        <strong>The rootDid:</strong>
-        <pre>
-            <code>{rootDid}</code>
-        </pre>
-
-        <strong>The identity:</strong>
-        <pre>
-            <code>{JSON.stringify(id.value, null, 2)}</code>
-        </pre>
     </div>)
 }
-
-// /**
-//  * Link a new device to the existing device
-//  */
-// function Link ({ session }:{ session?:odd.Session }) {
-//     if (!session) {
-//         // create a new session
-//         return (<div>
-//             not session
-//         </div>)
-//     }
-
-//     return <div>Link to an account</div>
-// }

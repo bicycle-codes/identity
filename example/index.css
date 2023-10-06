@@ -1,6 +1,9 @@
 .pin-form {
     margin-bottom: 1rem;
 
+    border: 1px solid;
+    padding: 1rem;
+
     & > div {
         margin-bottom: 1rem;
     }
@@ -10,6 +13,14 @@ input[type=number]::-webkit-inner-spin-button,
 input[type=number]::-webkit-outer-spin-button { 
     -webkit-appearance: none; 
     margin: 0; 
+}
+
+hr {
+    width: 100%;
+}
+
+.the-pin {
+    margin-bottom: 2rem;
 }
 
 #pin-input {
@@ -25,4 +36,12 @@ input[type=number]::-webkit-outer-spin-button {
     &:hover {
         outline: none;
     }
+}
+
+.content {
+    gap: 1rem;
+    display: flex;
+    justify-content: flex-start;
+    flex-direction: column;
+    min-height: 100vh;
 }
