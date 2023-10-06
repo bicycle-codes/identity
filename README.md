@@ -1,4 +1,4 @@
-# identity ![tests](https://github.com/ssc-hermes/identity/actions/workflows/nodejs.yml/badge.svg)
+# identity ![tests](https://github.com/ssc-half-light/identity/actions/workflows/nodejs.yml/badge.svg)
 
 This is an object representing a user. An Identity object contains a collection of "devices", where each device has several keypairs. This depends on each device having a [keystore](https://github.com/fission-codes/keystore-idb) that stores the private keys.
 
@@ -23,7 +23,7 @@ This is storage agnostic. You would want to save the identity object to a databa
 
 ## install
 ```
-npm i -S @ssc-hermes/identity
+npm i -S @ssc-half-light/identity
 ```
 
 ## types
@@ -62,7 +62,7 @@ npm test
 
 ```ts
 import { test } from '@socketsupply/tapzero'
-import { writeKeyToDid } from '@ssc-hermes/util'
+import { writeKeyToDid } from '@ssc-half-light/util'
 import { components, createCryptoComponent } from '@ssc-hermes/node-components'
 import { Crypto } from '@oddjs/odd'
 import { aesEncrypt, aesDecrypt } from
@@ -71,7 +71,7 @@ import { fromString, toString } from 'uint8arrays'
 import {
     create, decryptKey, Identity, ALGORITHM, add,
     createDeviceName, encryptTo, CurriedEncrypt
-} from '@ssc-hermes/identity'
+} from '@ssc-half-light/identity'
 ```
 
 ### create an identity
@@ -160,7 +160,7 @@ test('add a device to the identity', async t => {
 ### get your device's name
 
 ```js
-import { createDeviceName } from '@ssc-hermes/identity'
+import { createDeviceName } from '@ssc-half-light/identity'
 // create an odd program...
 const myDid = await program.agentDID()
 const myDeviceName = createDeviceName(myDid)
