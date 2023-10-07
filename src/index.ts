@@ -7,11 +7,11 @@ import {
 import * as BrowserCrypto from '@oddjs/odd/components/crypto/implementation/browser'
 import { SymmAlg } from 'keystore-idb/types.js'
 import type { Crypto } from '@oddjs/odd'
-import { writeKeyToDid } from '@ssc-hermes/util'
+import { writeKeyToDid, DID } from '@ssc-half-light/util'
 
 export interface Device {
     name:string,
-    did:string,
+    did:DID,
     aes:string,  /* the symmetric key for this account, encrypted to the
       exchange key for this device */
     exchange:string
@@ -25,7 +25,7 @@ export interface Device {
 export interface Identity {
     humanName:string
     username:string,
-    rootDid:string,
+    rootDid:DID,
     devices:Record<string, Device>
 }
 
@@ -236,7 +236,10 @@ export async function encryptContent (
  * @param exchangeKey The exchange key to encrypt *to*
  * @returns the encrypted key, encoded as 'base64pad'
  */
-export async function encryptKey (key:CryptoKey, exchangeKey:Uint8Array|CryptoKey) {
+export async function encryptKey (
+    key:CryptoKey,
+    exchangeKey:Uint8Array|CryptoKey
+) {
     const encryptedKey = toString(
         await rsa.encrypt(await aesExportKey(key), exchangeKey),
         'base64pad'
@@ -274,9 +277,6 @@ function isCryptoKey (val:unknown):val is CryptoKey {
 /**
  * the existing devices are the only places that can decrypt the key
  * must call `add` from an existing device
- *
- * @TODO
- * Try using the Fission account linking infrastructure
  */
 
 /**
@@ -292,32 +292,48 @@ function isCryptoKey (val:unknown):val is CryptoKey {
 export async function add (
     id:Identity,
     crypto:Crypto.Implementation,
-    newDid:string,
-    exchangeKey:Uint8Array|CryptoKey,
+    newDid:DID,
+    exchangeKey:Uint8Array|CryptoKey|string,
 ) {
     // need to decrypt the existing AES key, then re-encrypt it to the
     // new did
-
-    // this is all happening on a device that is already authed
 
     const existingDid = await writeKeyToDid(crypto)
     const existingDeviceName = await createDeviceName(existingDid)
     const secretKey = await decryptKey(crypto,
         id.devices[existingDeviceName].aes)
 
-    // ??? how to get the exchange key of the new device ???
-    const encrypted = await encryptKey(secretKey, exchangeKey)
+    let encryptedKey:string
+    let exchangeString:string
+
+    if (typeof exchangeKey === 'string') {
+        const key = arrFromString(exchangeKey)
+        encryptedKey = await encryptKey(secretKey, key)
+        exchangeString = exchangeKey
+    } else if (ArrayBuffer.isView(exchangeKey)) {
+        // is uint8array
+        encryptedKey = await encryptKey(secretKey, exchangeKey)
+        exchangeString = arrToString(exchangeKey)
+    } else if (isCryptoKey(exchangeKey)) {
+        // is CryptoKey
+        encryptedKey = await encryptKey(secretKey, exchangeKey)
+        exchangeString = arrToString(
+            new Uint8Array(await webcrypto.subtle.exportKey('raw', exchangeKey))
+        )
+    } else {
+        throw new Error('Exchange key should be string, uint8Array, or CryptoKey')
+    }
+
+    // const encrypted = await encryptKey(secretKey, _exchangeKey!)
+    // const encrypted = await encryptKey(secretKey, _exchangeKey!)
     const newDeviceData:Identity['devices'] = {}
     const name = await createDeviceName(newDid)
-    const _exchangeKey = isCryptoKey(exchangeKey) ?
-        await webcrypto.subtle.exportKey('raw', secretKey) :
-        exchangeKey
 
     newDeviceData[name] = {
         name,
-        aes: encrypted,
+        aes: encryptedKey,
         did: newDid,
-        exchange: arrToString(new Uint8Array(_exchangeKey))
+        exchange: exchangeString
     }
 
     const newId:Identity = {
@@ -328,12 +344,33 @@ export async function add (
     return newId
 }
 
-export async function createDeviceName (did:string) {
+export async function createDeviceName (did:DID):Promise<string> {
     const normalizedDid = did.normalize('NFD')
     const hashedUsername = await BrowserCrypto.sha256(
         new TextEncoder().encode(normalizedDid)
     )
     return toString(hashedUsername, 'base32').slice(0, 32)
+}
+
+/**
+ * Like `createDeviceName`, but can take a `crypto` object in addition to a
+ * DID.
+ * @param {DID|Crypto.Implementation} input DID string or Crypto implementation
+ * @returns The optimally encoded hash of the DID
+ */
+export async function getDeviceName (input:DID|Crypto.Implementation):Promise<string> {
+    if (typeof input === 'string') {
+        return createDeviceName(input)
+    }
+
+    // is crypto object
+    const did = await writeKeyToDid(input)
+    return createDeviceName(did)
+}
+
+export const arrayBuffer = {
+    fromString: arrFromString,
+    toString: arrToString
 }
 
 function arrFromString (str:string) {

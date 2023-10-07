@@ -1,11 +1,11 @@
 {
-  "name": "@ssc-hermes/identity",
+  "name": "@ssc-half-light/identity",
   "description": "An identity record",
   "type": "module",
   "version": "0.0.6",
   "main": "dist/index.js",
   "scripts": {
-    "start": "vite",
+    "start": "concurrently --kill-others \"npx partykit dev\" \"npx vite\"",
     "lint": "standardx -v \"./**/*.ts\"",
     "test": "cd test && esbuild ./index.ts --platform=node --format=esm --keep-names | node --input-type=module | tap-arc",
     "build-browser-tests": "esbuild ./test/browser.ts --bundle --keep-names > test/test-bundle.js",
@@ -17,19 +17,28 @@
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
+    "@nichoth/nanoid": "^5.0.1",
+    "@nichoth/nanoid-dictionary": "^5.0.2",
     "@oddjs/odd": "^0.37.1",
-    "@ssc-hermes/util": "^0.7.7",
+    "@ssc-half-light/util": "^0.10.2",
     "@ucans/ucans": "^0.11.4",
     "keystore-idb": "^0.15.5",
     "one-webcrypto": "^1.0.3",
-    "uint8arrays": "^4.0.4"
+    "partysocket": "0.0.8",
+    "uint8arrays": "^4.0.4",
+    "zod": "^3.22.4"
   },
   "devDependencies": {
+    "@nichoth/components": "^0.4.9",
     "@preact/preset-vite": "^2.5.0",
+    "@preact/signals": "^1.2.1",
     "@socketsupply/tapzero": "^0.8.0",
     "@ssc-hermes/node-components": "^0.1.0",
     "@typescript-eslint/parser": "^5.55.0",
+    "concurrently": "^8.2.1",
     "esbuild": "^0.15.18",
+    "partykit": "^0.0.27",
+    "partysocket": "^0.0.8",
     "postcss-nesting": "^12.0.1",
     "preact": "^10.18.1",
     "standardx": "^7.0.0",

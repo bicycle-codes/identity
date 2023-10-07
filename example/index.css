@@ -1,0 +1,53 @@
+.pin-form {
+    margin-bottom: 1rem;
+
+    border: 1px solid;
+    padding: 1rem;
+
+    & > div {
+        margin-bottom: 1rem;
+    }
+}
+
+input[type=number]::-webkit-inner-spin-button, 
+input[type=number]::-webkit-outer-spin-button { 
+    -webkit-appearance: none; 
+    margin: 0; 
+}
+
+hr {
+    width: 100%;
+}
+
+.the-pin {
+    margin-bottom: 2rem;
+}
+
+#pin-input {
+    font-family: "Courier New", Courier, monospace;
+    font-size: 1.5rem;
+    font-weight: bold;
+    width: 6em;
+    border: 1px solid;
+    border-bottom: 2px solid;
+    padding: 0.4rem;
+    padding-bottom: 0.2rem;
+
+    &:hover {
+        outline: none;
+    }
+}
+
+.content {
+    gap: 1rem;
+    display: flex;
+    justify-content: flex-start;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.success {
+    border: 2px solid green;
+    padding: 1rem;
+    background-color: #0080000f;
+}
