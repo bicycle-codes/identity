@@ -4,4 +4,5 @@ bundle.js
 dist
 test/test-bundle.js
 .partykit
+.env
 
