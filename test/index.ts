@@ -1,5 +1,6 @@
 import { test } from '@socketsupply/tapzero'
-import { writeKeyToDid } from '@ssc-half-light/util'
+// import { webcrypto } from 'one-webcrypto'
+import { writeKeyToDid, DID } from '@ssc-half-light/util'
 import { components, createCryptoComponent } from '@ssc-hermes/node-components'
 import { Crypto } from '@oddjs/odd'
 import { aesEncrypt, aesDecrypt } from
@@ -12,7 +13,7 @@ import {
 } from '../dist/index.js'
 
 let identity:Identity
-let rootDid:string
+let rootDid:DID
 let crypto:Crypto.Implementation
 let alicesCrytpo:Crypto.Implementation
 let rootDeviceName:string
@@ -34,7 +35,7 @@ test('create an identity', async t => {
 })
 
 test('get your device name', async t => {
-    const deviceName = await createDeviceName(rootDeviceName)
+    const deviceName = await createDeviceName(rootDid)
     t.equal(typeof deviceName, 'string', 'should create a device name')
     t.equal(deviceName.length, 32, 'should be 32 characters')
 })

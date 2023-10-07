@@ -21,7 +21,7 @@
     "@nichoth/nanoid": "^5.0.1",
     "@nichoth/nanoid-dictionary": "^5.0.2",
     "@oddjs/odd": "^0.37.1",
-    "@ssc-half-light/util": "^0.10.2",
+    "@ssc-half-light/util": "^0.10.3",
     "@ucans/ucans": "^0.11.4",
     "keystore-idb": "^0.15.5",
     "one-webcrypto": "^1.0.3",
