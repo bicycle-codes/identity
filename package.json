@@ -12,6 +12,7 @@
     "test:browser": "npm run build-browser-tests && cat test/index.html | tape-run --input=html --static=test | tap-arc",
     "build-cjs": "esbuild src/*.ts --format=cjs --keep-names --outdir=./dist --out-extension:.js=.cjs",
     "build": "mkdir -p ./dist && rm -rf ./dist/* && npm run build-cjs && tsc --project tsconfig.build.json",
+    "preinstall": "export $(cat .env | xargs)",
     "preversion": "npm run lint",
     "postversion": "git push && git push --tags && export $(cat .env | xargs) && npm publish && npm publish --@ssc-half-light:registry=https://registry.npmjs.org --access=public",
     "prepublishOnly": "npm run build"
