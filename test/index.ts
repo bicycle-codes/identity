@@ -1,5 +1,4 @@
 import { test } from '@socketsupply/tapzero'
-// import { webcrypto } from 'one-webcrypto'
 import { writeKeyToDid, DID } from '@ssc-half-light/util'
 import { components, createCryptoComponent } from '@ssc-hermes/node-components'
 import { Crypto } from '@oddjs/odd'
@@ -47,7 +46,8 @@ test('can use the keys', async t => {
     // first decrypt the key
     const aes = identity.devices[rootDeviceName].aes
     const decryptedKey = await decryptKey(crypto, aes)
-    t.ok(decryptedKey instanceof CryptoKey, 'decryptKey should return a CryptoKey')
+    t.ok(decryptedKey instanceof CryptoKey,
+        'decryptKey should return a CryptoKey')
 
     // now use it to encrypt a string
     const encryptedString = await aesEncrypt(
