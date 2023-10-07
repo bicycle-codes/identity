@@ -20,12 +20,13 @@
     "@nichoth/nanoid": "^5.0.1",
     "@nichoth/nanoid-dictionary": "^5.0.2",
     "@oddjs/odd": "^0.37.1",
-    "@ssc-hermes/util": "^0.7.7",
+    "@ssc-half-light/util": "^0.10.2",
     "@ucans/ucans": "^0.11.4",
     "keystore-idb": "^0.15.5",
     "one-webcrypto": "^1.0.3",
     "partysocket": "0.0.8",
-    "uint8arrays": "^4.0.4"
+    "uint8arrays": "^4.0.4",
+    "zod": "^3.22.4"
   },
   "devDependencies": {
     "@nichoth/components": "^0.4.9",

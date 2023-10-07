@@ -1,6 +1,6 @@
 import { test } from '@socketsupply/tapzero'
 import * as odd from '@oddjs/odd'
-import { writeKeyToDid } from '@ssc-hermes/util'
+import { writeKeyToDid } from '@ssc-half-light/util'
 import { Crypto } from '@oddjs/odd'
 import {
     create, Identity,

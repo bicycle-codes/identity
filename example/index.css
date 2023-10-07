@@ -45,3 +45,9 @@ hr {
     flex-direction: column;
     min-height: 100vh;
 }
+
+.success {
+    border: 2px solid green;
+    padding: 1rem;
+    background-color: #0080000f;
+}

@@ -1,6 +1,6 @@
 import { render } from 'preact'
 import * as odd from '@oddjs/odd'
-import { writeKeyToDid } from '@ssc-hermes/util'
+import { writeKeyToDid } from '@ssc-half-light/util'
 import { useEffect } from 'preact/hooks'
 import { useSignal } from '@preact/signals'
 import PartySocket from 'partysocket'
@@ -8,7 +8,13 @@ import { customAlphabet } from '@nichoth/nanoid'
 import { numbers } from '@nichoth/nanoid-dictionary'
 // @ts-ignore  Don't know why it can't find this
 import { Button } from '@nichoth/components/button'
-import { Identity, add as addToIdentity, create } from '../src/index.js'
+import {
+    Identity,
+    add as addToIdentity,
+    create,
+    arrayBuffer
+} from '../src/index.js'
+import * as z from '../src/z.js'
 import '@nichoth/components/button.css'
 import '@nichoth/components/text-input.css'
 import './index.css'
@@ -25,31 +31,6 @@ render(<TheApp />, document.getElementById('root')!)
 
 /**
  * We don't need a session from `odd`, just the `crypto` object.
- *
- * We need a way to get the new devices public exchange key to
- * the exisitng device.
- */
-
-/**
- * New device needs to know the 'username' of existing account
- * Existing device needs to confirm the PIN
- */
-
-/**
- * Existing device needs to read the new device's public exchange key
- */
-
-/**
- * __Fission account link process__
- * The new device displays a PIN
- * The existing device gets an event, 'challenge', and checks if the user input
- * matches the value in the 'challenge' event
- *
- *  ```
- *  producer.on('challenge', (challenge) => ...
- *  ```
- * The user should enter a PIN on the existing device, then we check if
- *   input matches the 'challenge' event value
  */
 
 type Message = {
@@ -60,7 +41,7 @@ type Message = {
 function TheApp () {
     const code = useSignal<string>('')
     const id = useSignal<Identity|null>(null)
-    const status = useSignal<'add'|'join'|null>(null)
+    const status = useSignal<'add'|'join'|'success'|null>(null)
     const isValidPin = useSignal<boolean>(false)
 
     // @ts-ignore
@@ -70,7 +51,9 @@ function TheApp () {
 
     console.log('rendering', code.value)
 
-    // * create an identity
+    /**
+     * create an identity
+     */
     useEffect(() => {
         (async () => {
             const identity = await create(crypto, {
@@ -102,7 +85,7 @@ function TheApp () {
             },
         })
 
-        partySocket.addEventListener('message', (ev) => {
+        partySocket.addEventListener('message', async (ev) => {
             // we should only get one message containing the DID
             // and exchangeKey of the new device
 
@@ -116,9 +99,19 @@ function TheApp () {
                 throw err
             }
             const { newDid, exchangeKey } = msg
+            if (!newDid || !exchangeKey) throw new Error('bad message!')
 
             // add the device here...
-            addToIdentity(id, crypto, myDid)
+            const newId = await addToIdentity(
+                id.value as Identity,
+                crypto,
+                newDid,
+                exchangeKey
+            )
+
+            id.value = newId
+
+            partySocket.send(JSON.stringify(newId))
 
             partySocket.close()
         })
@@ -126,6 +119,7 @@ function TheApp () {
 
     /**
      * Merge this with an existing Identity
+     *   - the existing device should have already created a room
      */
     async function join (ev:SubmitEvent) {
         ev.preventDefault()
@@ -133,7 +127,6 @@ function TheApp () {
         const el = (ev.target as HTMLFormElement).elements['pin']
         const pin = el.value
 
-        // now try to connect via partykit
         const partySocket = new PartySocket({
             host: 'localhost:1999',
             room: pin,
@@ -142,11 +135,25 @@ function TheApp () {
             }
         })
 
-        partySocket.send(JSON.stringify({
-            newDid: await writeKeyToDid(crypto)
-        }))
+        partySocket.addEventListener('message', async (ev) => {
+            // we should only get 1 message,
+            // the new identity record, with the AES key encrypted to us
+            try {
+                id.value = z.Identity.parse(JSON.parse(ev.data))
+            } catch (err) {
+                console.log('bad json...', err)
+            }
 
-        partySocket.close()
+            status.value = 'success'
+            partySocket.close()
+        })
+
+        partySocket.send(JSON.stringify({
+            newDid: await writeKeyToDid(crypto),
+            exchangeKey: arrayBuffer.toString(
+                await crypto.keystore.publicExchangeKey()
+            )
+        }))
     }
 
     function pinInput (ev:InputEvent) {
@@ -199,6 +206,18 @@ function TheApp () {
                 null)
         }
 
+        {status.value === 'success' ?
+            (<div className="success">
+                Success! <br /> Added this device to the identity: <code>
+                    {id.value?.username}
+                </code>
+                <div className="human-name">
+                    <em>or </em>"{id.value?.humanName}"
+                </div>
+            </div>) :
+            null
+        }
+
         {!status.value ?
             (<div className="add-or-join">
                 <form onSubmit={addDevice}>
@@ -208,7 +227,9 @@ function TheApp () {
                 <hr />
 
                 <form onSubmit={addToExisting}>
-                    <Button type="submit">Add this device to another identity</Button>
+                    <Button type="submit">
+                        Merge this device with another identity
+                    </Button>
                 </form>
             </div>) :
             null
@@ -217,7 +238,7 @@ function TheApp () {
         <hr />
 
         <div className="identity">
-            <strong>The root DID:</strong>
+            <strong>This device DID:</strong>
             <pre>
                 <code>{myDid}</code>
             </pre>
