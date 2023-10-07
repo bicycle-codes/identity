@@ -2,12 +2,15 @@ import { webcrypto } from 'one-webcrypto'
 import { fromString, toString } from 'uint8arrays'
 import {
     aesGenKey, aesExportKey, rsa, importAesKey, aesEncrypt,
-    aesDecrypt
+    aesDecrypt, sha256
 } from '@oddjs/odd/components/crypto/implementation/browser'
-import * as BrowserCrypto from '@oddjs/odd/components/crypto/implementation/browser'
 import { SymmAlg } from 'keystore-idb/types.js'
 import type { Crypto } from '@oddjs/odd'
 import { writeKeyToDid, DID } from '@ssc-half-light/util'
+export {
+    aesDecrypt,
+    aesEncrypt
+} from '@oddjs/odd/components/crypto/implementation/browser'
 
 export interface Device {
     name:string,
@@ -193,7 +196,7 @@ export async function group (
         crypto:Crypto.Implementation,
         group:Group,
         msg:string|Uint8Array
-    ) {
+    ):Promise<string> {
         // get the right key from the group
         const did = await writeKeyToDid(crypto)
         const myKey = group.encryptedKeys[await createDeviceName(did)]
@@ -239,7 +242,7 @@ export async function encryptContent (
 export async function encryptKey (
     key:CryptoKey,
     exchangeKey:Uint8Array|CryptoKey
-) {
+):Promise<string> {
     const encryptedKey = toString(
         await rsa.encrypt(await aesExportKey(key), exchangeKey),
         'base64pad'
@@ -346,7 +349,7 @@ export async function add (
 
 export async function createDeviceName (did:DID):Promise<string> {
     const normalizedDid = did.normalize('NFD')
-    const hashedUsername = await BrowserCrypto.sha256(
+    const hashedUsername = await sha256(
         new TextEncoder().encode(normalizedDid)
     )
     return toString(hashedUsername, 'base32').slice(0, 32)

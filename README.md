@@ -102,7 +102,9 @@ import {
 } from '@ssc-half-light/identity'
 ```
 
-### create an identity
+### create
+Create an identity
+
 ```ts
 let identity:Identity
 let rootDid:string
@@ -125,8 +127,24 @@ test('create an identity', async t => {
 })
 ```
 
-### use the keys to encrypt and decrypt
+### decryptKey
 ```ts
+async function decryptKey (
+    crypto:Crypto.Implementation,
+    encryptedKey:string
+):Promise<CryptoKey>
+```
+
+Decrypt the AES key
+```js
+const aes = identity.devices[rootDeviceName].aes
+const decryptedKey = await decryptKey(crypto, aes)
+```
+
+Use the decrypted key to read and write
+```ts
+import { aesDecrypt, aesEncrypt } from '@ssc-half-light/identity'
+
 test('can use the keys', async t => {
     // test that you can encrypt & decrypt with the symmetric key
     //   saved in identity
@@ -152,7 +170,23 @@ test('can use the keys', async t => {
 })
 ```
 
-### add a device
+### encryptKey
+```ts
+/**
+ * Encrypt a given AES key to the given exchange key
+ * @param key The symmetric key
+ * @param exchangeKey The exchange key to encrypt *to*
+ * @returns the encrypted key, encoded as 'base64pad'
+ */
+export async function encryptKey (
+    key:CryptoKey,
+    exchangeKey:Uint8Array|CryptoKey
+):Promise<string>
+```
+
+### add
+Add a device to this identity.
+
 We need to pass in the `crypto` object from the original identity, because we need to decrypt the secret key, then re-encrypt it to the new device:
 ```js
 // decrypt the AES key
@@ -184,13 +218,90 @@ test('add a device to the identity', async t => {
 })
 ```
 
+### encryptTo
+```ts
+/**
+ * Encrypt a given message to the given set of identities.
+ * To decrypt this message, use your exchange key to decrypt the symm key,
+ * then use the symm key to decrypt the payload.
+ *
+ * This creates a new AES key each time it is called.
+ * @param crypto odd crypto object
+ * @param ids The Identities we are encrypting to
+ * @param data The message we want to encrypt
+ */
+export async function encryptTo (
+    creator:Identity,
+    ids:Identity[],
+    data?:string|Uint8Array
+):Promise<EncryptedMessage | CurriedEncrypt>
+```
 
-### get your device's name
+### group
+Create a group of identities that share a single AES key.
+
+```ts
+/**
+ * Create a group with the given AES key. This is different than `encryptTo`
+ * because this takes an existing key, instead of creating a new one.
+ * @param creator The identity that is creating this group
+ * @param ids An array of group members
+ * @param key The AES key for this group
+ * @returns {Promise<Group>} Return a function that takes a string of
+ * data and returns a string of encrypted data. Has keys `encryptedKeys` and
+ * `groupMemebers`. `encryptedKeys` is a map of `deviceName` to the
+ * encrypted AES key for this group. `groupMembers` is an array of all
+ * the Identities in this group.
+ */
+export async function group (
+    creator:Identity,
+    ids:Identity[],
+    key:CryptoKey
+):Promise<Group> {
+```
+
+### group.decrypt
+Decrypt a message that has been encrypted to your identity.
+
+```ts
+async function decrypt (
+    crypto:Crypto.Implementation,
+    group:Group,
+    msg:string|Uint8Array
+):Promise<string>
+```
+
+```js
+const myGroup = await group(alice, [bob, carol], key)
+const groupMsg = await myGroup('hello group')
+const msg = await myGroup.decrypt(alicesCrytpo, myGroup, groupMsg)
+// => 'hello group'
+```
+
+### createDeviceName
+Create a URL-friendly string from a DID.
+
+```ts
+async function createDeviceName (did:DID):Promise<string>
+```
 
 ```js
 import { createDeviceName } from '@ssc-half-light/identity'
-// create an odd program...
+// ...create an odd program here...
 const myDid = await program.agentDID()
 const myDeviceName = createDeviceName(myDid)
+// => '4k4z2xpgpmmssbcasqanlaxoxtpppl54'
+```
+
+### getDeviceName
+Pass in a `crypto` instance
+
+```ts
+async function getDeviceName (input:DID|Crypto.Implementation):Promise<string>
+```
+
+```ts
+import { getDeviceName } from '@ssc-half-light/identity'
+const myDeviceName = getDeviceName(program.components.crypto)
 // => '4k4z2xpgpmmssbcasqanlaxoxtpppl54'
 ```

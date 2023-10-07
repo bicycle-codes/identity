@@ -8,9 +8,7 @@ import { fromString, toString } from 'uint8arrays'
 import {
     create, decryptKey, Identity, ALGORITHM, add,
     createDeviceName, encryptTo, CurriedEncrypt,
-    group,
-    EncryptedMessage,
-    Group
+    group, EncryptedMessage, Group
 } from '../dist/index.js'
 
 let identity:Identity
