@@ -49,6 +49,21 @@ interface Device {
 }
 ```
 
+## example
+Start the example. This will start local servers and open a browser.
+```
+npm start
+```
+
+### multiple devices per identity
+See [frontend file](./example/index.tsx)
+
+This uses [partykit](https://www.partykit.io/) to create websocket connections to other devices.
+
+The example opens a websocket connection to our [partykit server](https://www.partykit.io/) in response to DOM events. We generate a random 6 digit number, and use that to connect multiple devices to the same websocket server. The root device (the one that generated the PIN) will get a message from the new device, containing the exchange public key and DID. The root device then encrypts the AES key to the exchange key in the message, and then sends the encrypted AES key back to the new device over the websocket.
+
+After that both machines have the same AES key, so are able to read & write the same data.
+
 -------
 
 ## test
@@ -58,7 +73,20 @@ Tests run in node because we are using `@ssc-hermes/node-components`.
 npm test
 ```
 
-## example
+## API
+
+```js
+import {
+    create,
+    decryptKey,
+    Identity,
+    ALGORITHM,
+    add,
+    createDeviceName,
+    encryptTo,
+    CurriedEncrypt
+} from '@ssc-half-light/identity'
+```
 
 ```ts
 import { test } from '@socketsupply/tapzero'
