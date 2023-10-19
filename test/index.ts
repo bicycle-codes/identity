@@ -1,4 +1,4 @@
-import { test } from '@socketsupply/tapzero'
+import { test } from '@nichoth/tapzero'
 import { writeKeyToDid, DID } from '@ssc-half-light/util'
 import { components, createCryptoComponent } from '@ssc-hermes/node-components'
 import { Crypto } from '@oddjs/odd'
