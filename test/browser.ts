@@ -5,7 +5,7 @@ import { Crypto } from '@oddjs/odd'
 import {
     create, Identity,
     createDeviceName,
-} from '../dist/index.js'
+} from '../src/index.js'
 
 let identity:Identity
 let rootDid:DID
