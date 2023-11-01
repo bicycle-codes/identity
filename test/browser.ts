@@ -1,6 +1,6 @@
-import { test } from '@socketsupply/tapzero'
+import { test } from '@nichoth/tapzero'
 import * as odd from '@oddjs/odd'
-import { writeKeyToDid } from '@ssc-half-light/util'
+import { DID, writeKeyToDid } from '@ssc-half-light/util'
 import { Crypto } from '@oddjs/odd'
 import {
     create, Identity,
@@ -8,7 +8,7 @@ import {
 } from '../dist/index.js'
 
 let identity:Identity
-let rootDid:string
+let rootDid:DID
 let alicesCrytpo:Crypto.Implementation
 let rootDeviceName:string
 
