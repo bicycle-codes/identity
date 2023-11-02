@@ -6,8 +6,8 @@ import { useSignal } from '@preact/signals'
 import PartySocket from 'partysocket'
 import { customAlphabet } from '@nichoth/nanoid'
 import { numbers } from '@nichoth/nanoid-dictionary'
-// @ts-ignore -- don't know why it can't find this
-import { Button } from '@nichoth/components/preact/button'
+// @ts-ignore -- why can't it find this?
+import { Button } from '@nichoth/components/htm/button'
 import {
     Identity,
     add as addToIdentity,
