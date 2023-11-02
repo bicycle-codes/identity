@@ -14,6 +14,8 @@
     "react/jsx-closing-bracket-location": ["off"],
     "react/jsx-curly-newline": ["off"],
     "react/jsx-boolean-value": ["off"],
+    "react/jsx-wrap-multilines": ["off"],
+    "react/jsx-indent": ["off"],
     "jsx-quotes": ["error", "prefer-double"],
     "multiline-ternary": "off",
     "no-multiple-empty-lines": [
