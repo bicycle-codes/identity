@@ -1,4 +1,5 @@
-import { render } from 'preact'
+// eslint-disable-next-line
+import { JSX, render, h } from 'preact'
 import * as odd from '@oddjs/odd'
 import { writeKeyToDid } from '@ssc-half-light/util'
 import { useEffect } from 'preact/hooks'
@@ -6,7 +7,7 @@ import { useSignal } from '@preact/signals'
 import PartySocket from 'partysocket'
 import { customAlphabet } from '@nichoth/nanoid'
 import { numbers } from '@nichoth/nanoid-dictionary'
-// @ts-ignore -- don't know why it can't find this
+// @ts-ignore -- why can't it find this?
 import { Button } from '@nichoth/components/preact/button'
 import {
     Identity,
@@ -121,7 +122,7 @@ function TheApp () {
      * Merge this with an existing Identity
      *   - the existing device should have already created a room
      */
-    async function join (ev:SubmitEvent) {
+    async function join (ev:JSX.TargetedEvent<HTMLFormElement, Event>) {
         ev.preventDefault()
         console.log('merge this device into another ID')
         const el = (ev.target as HTMLFormElement).elements['pin']
@@ -156,7 +157,7 @@ function TheApp () {
         }))
     }
 
-    function pinInput (ev:InputEvent) {
+    function pinInput (ev:JSX.TargetedEvent<HTMLInputElement>) {
         const el = ev.target as HTMLInputElement
         el.value = '' + el.value.slice(0, parseInt(el.getAttribute('maxlength')!))
         const max = parseInt(el.getAttribute('maxlength')!)
@@ -165,7 +166,7 @@ function TheApp () {
         if (valid !== isValidPin.value) isValidPin.value = valid
     }
 
-    function addToExisting (ev:SubmitEvent) {
+    function addToExisting (ev:JSX.TargetedEvent<HTMLFormElement>) {
         ev.preventDefault()
         status.value = 'join'
     }
