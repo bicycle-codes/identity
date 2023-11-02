@@ -9,11 +9,13 @@
     "no-useless-constructor": ["off"],
     "operator-linebreak": ["off"],
     "react/jsx-first-prop-new-line": ["off"],
+    "react/jsx-wrap-multilines": ["off"],
     "react/jsx-indent-props": "off",
     "react/jsx-closing-tag-location": ["off"],
     "react/jsx-closing-bracket-location": ["off"],
     "react/jsx-curly-newline": ["off"],
     "react/jsx-boolean-value": ["off"],
+    "react/jsx-indent": ["off"],
     "jsx-quotes": ["error", "prefer-double"],
     "multiline-ternary": "off",
     "no-multiple-empty-lines": [
