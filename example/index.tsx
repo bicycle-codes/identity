@@ -70,14 +70,26 @@ function TheApp () {
         ev.preventDefault()
         status.value = 'add'
 
+        /**
+         * @TODO 
+         * Use full (lowercase) alphabet, for less chance of collision?
+         */
         const PIN = customAlphabet(numbers, 6)
         code.value = ('' + PIN())
 
-        console.log('add a device...')
+        console.log('add a device...', PIN)
 
-        // connect to our server
+        const serverAddress = (import.meta.env.DEV ?
+            'localhost:1999' :
+            'identity-party.nichoth.partykit.dev')
+
+        /**
+         * connect to our server
+         * @TODO -- server address -- depends on environment
+         * @TODO -- token
+         */
         const partySocket = new PartySocket({
-            host: 'localhost:1999',
+            host: serverAddress,
             room: code.value,
             id: myDid,
             query: {

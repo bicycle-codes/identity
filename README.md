@@ -55,6 +55,11 @@ Start the example. This will start local servers and open a browser.
 npm start
 ```
 
+### party
+[see partykit docs](https://docs.partykit.io/guides/deploying-your-partykit-server#first-deployment)
+
+> your app will be deployed to your `partykit.dev` domain, which will follow the pattern of `[your project's name].[your GitHub username].partykit.dev`
+
 ### multiple devices per identity
 See [frontend file](./example/index.tsx)
 
@@ -64,7 +69,7 @@ The example opens a websocket connection to our [partykit server](https://www.pa
 
 After that both machines have the same AES key, so are able to read & write the same data.
 
--------
+-----------------------------------------------------------
 
 ## test
 Tests run in node because we are using `@ssc-hermes/node-components`.
@@ -72,6 +77,8 @@ Tests run in node because we are using `@ssc-hermes/node-components`.
 ```
 npm test
 ```
+
+---------------------------------------------------
 
 ## API
 
