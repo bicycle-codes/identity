@@ -77,8 +77,6 @@ function TheApp () {
         const PIN = customAlphabet(numbers, 6)
         code.value = ('' + PIN())
 
-        console.log('add a device...', PIN)
-
         const serverAddress = (import.meta.env.DEV ?
             'localhost:1999' :
             'identity-party.nichoth.partykit.dev')
