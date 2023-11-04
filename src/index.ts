@@ -82,7 +82,7 @@ export async function create (
  * devices is a record like
  *  { deviceName: <encrypted key> }
  *  You would decrypt the encrypted key -- message.devices[my-device-name] --
- *  with the device's exchange key
+ *    with the device's exchange key
  *  Then use the decrypted key to decrypt the payload
  */
 export interface EncryptedMessage {

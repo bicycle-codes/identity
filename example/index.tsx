@@ -71,7 +71,7 @@ function TheApp () {
         status.value = 'add'
 
         /**
-         * @TODO 
+         * @TODO
          * Use full (lowercase) alphabet, for less chance of collision?
          */
         const PIN = customAlphabet(numbers, 6)
