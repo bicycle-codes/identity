@@ -49,27 +49,39 @@ interface Device {
 }
 ```
 
+--------------------------------------------------------------------------
+
 ## example
 Start the example. This will start local servers and open a browser.
 ```
 npm start
 ```
 
+### env variables
+We use a random string as an env variable, `PARTY_TOKEN`. You will need to create a random string. I've been using `uuid`:
+```sh
+npx uuid
+```
+
+Then paste the random string in 2 places &mdash; `example/.env`, and `.env`. In `example.env`, use the variable `VITE_PARTY_TOKEN`. In `.env`, use the variable `PARTY_TOKEN`.
+
+If you deploy this to the internet, you will need to deploy the env variable to partykit as well:
+
+```sh
+npx partykit env add PARTY_TOKEN
+```
+
+After entering the random string, deploy:
+```sh
+npx partykit deploy
+```
+
 ### party
-[see partykit docs](https://docs.partykit.io/guides/deploying-your-partykit-server#first-deployment)
-
-> your app will be deployed to your `partykit.dev` domain, which will follow the pattern of `[your project's name].[your GitHub username].partykit.dev`
-
-### multiple devices per identity
-See [frontend file](./example/index.tsx)
-
-This uses [partykit](https://www.partykit.io/) to create websocket connections to other devices.
-
 The example opens a websocket connection to our [partykit server](https://www.partykit.io/) in response to DOM events. We generate a random 6 digit number, and use that to connect multiple devices to the same websocket server. The root device (the one that generated the PIN) will get a message from the new device, containing the exchange public key and DID. The root device then encrypts the AES key to the exchange key in the message, and then sends the encrypted AES key back to the new device over the websocket.
 
 After that both machines have the same AES key, so are able to read & write the same data.
 
------------------------------------------------------------
+-------------------------------------------------------------------------
 
 ## test
 Tests run in node because we are using `@ssc-hermes/node-components`.
@@ -78,7 +90,7 @@ Tests run in node because we are using `@ssc-hermes/node-components`.
 npm test
 ```
 
----------------------------------------------------
+------------------------------------------------------------------------
 
 ## API
 
@@ -135,6 +147,8 @@ test('create an identity', async t => {
 ```
 
 ### decryptKey
+Decrypt the given encrypted AES key.
+
 ```ts
 async function decryptKey (
     crypto:Crypto.Implementation,
@@ -142,13 +156,13 @@ async function decryptKey (
 ):Promise<CryptoKey>
 ```
 
-Decrypt the AES key
 ```js
 const aes = identity.devices[rootDeviceName].aes
 const decryptedKey = await decryptKey(crypto, aes)
 ```
 
 Use the decrypted key to read and write
+
 ```ts
 import { aesDecrypt, aesEncrypt } from '@ssc-half-light/identity'
 
@@ -178,6 +192,7 @@ test('can use the keys', async t => {
 ```
 
 ### encryptKey
+Encrypt a given AES key to a given exchange key. You mostly should not need to use this.
 ```ts
 /**
  * Encrypt a given AES key to the given exchange key
@@ -195,6 +210,7 @@ export async function encryptKey (
 Add a device to this identity.
 
 We need to pass in the `crypto` object from the original identity, because we need to decrypt the secret key, then re-encrypt it to the new device:
+
 ```js
 // decrypt the AES key
 const secretKey = await decryptKey(
@@ -245,7 +261,7 @@ export async function encryptTo (
 ```
 
 ### group
-Create a group of identities that share a single AES key.
+Create a group of identities that share a single AES key. This differs from `encryptTo`, above, because this takes an existing key, instead of creating a new one.
 
 ```ts
 /**

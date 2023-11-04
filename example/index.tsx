@@ -10,7 +10,7 @@ import { numbers } from '@nichoth/nanoid-dictionary'
 import { Button } from '@nichoth/components/htm/button'
 import {
     Identity,
-    add as addToIdentity,
+    add as addDeviceToIdentity,
     create,
     arrayBuffer
 } from '../src/index.js'
@@ -26,6 +26,8 @@ const program = await odd.program({
 
 const crypto = program.components.crypto
 const myDid = await writeKeyToDid(crypto)
+
+if (!import.meta.env.VITE_PARTY_TOKEN) throw new Error('Missing token')
 
 render(<TheApp />, document.getElementById('root')!)
 
@@ -83,21 +85,19 @@ function TheApp () {
 
         /**
          * connect to our server
-         * @TODO -- server address -- depends on environment
-         * @TODO -- token
          */
         const partySocket = new PartySocket({
             host: serverAddress,
             room: code.value,
             id: myDid,
             query: {
-                token: '894b4ec9',
+                token: import.meta.env.VITE_PARTY_TOKEN,
             },
         })
 
         partySocket.addEventListener('message', async (ev) => {
             // we should only get one message containing the DID
-            // and exchangeKey of the new device
+            //   and exchangeKey of the new device
 
             console.log('from the server:', ev.data)
 
@@ -113,7 +113,7 @@ function TheApp () {
             if (!newDid || !exchangeKey) throw new Error('bad message')
 
             // add the device here...
-            const newId = await addToIdentity(
+            const newId = await addDeviceToIdentity(
                 id.value as Identity,
                 crypto,
                 newDid,
@@ -140,7 +140,7 @@ function TheApp () {
             host: 'localhost:1999',
             room: pin,
             query: {
-                token: '894b4ec9',
+                token: import.meta.env.VITE_PARTY_TOKEN
             },
         })
 

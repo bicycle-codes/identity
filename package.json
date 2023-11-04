@@ -47,6 +47,7 @@
     "tap-arc": "^0.3.5",
     "tape-run": "^11.0.0",
     "typescript": "^5.2.2",
+    "uuid": "^9.0.1",
     "vite": "^4.4.9"
   },
   "exports": {
