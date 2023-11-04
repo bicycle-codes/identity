@@ -49,8 +49,6 @@ function TheApp () {
     // @ts-ignore
     window.program = program
 
-    console.log('rendering', code.value)
-
     /**
      * create an identity
      */
@@ -64,8 +62,10 @@ function TheApp () {
         })()
     }, [])
 
-    // Connect to partykit
-    // listen for a message containing the new DID
+    /**
+     * Listen for a message from partykit containing the new device's DID
+     * @param {SubmitEvent} ev
+     */
     function addDevice (ev) {
         ev.preventDefault()
         status.value = 'add'
@@ -76,8 +76,6 @@ function TheApp () {
          */
         const PIN = customAlphabet(numbers, 6)
         code.value = ('' + PIN())
-
-        console.log('add a device...', PIN)
 
         const serverAddress = (import.meta.env.DEV ?
             'localhost:1999' :
@@ -93,7 +91,7 @@ function TheApp () {
             room: code.value,
             id: myDid,
             query: {
-                token: 'aaaaa',
+                token: '894b4ec9',
             },
         })
 
@@ -107,11 +105,12 @@ function TheApp () {
             try {
                 msg = JSON.parse(ev.data)
             } catch (err) {
-                console.log('bad json!', err)
+                console.log('bad json', err)
                 throw err
             }
+
             const { newDid, exchangeKey } = msg
-            if (!newDid || !exchangeKey) throw new Error('bad message!')
+            if (!newDid || !exchangeKey) throw new Error('bad message')
 
             // add the device here...
             const newId = await addToIdentity(
@@ -124,7 +123,6 @@ function TheApp () {
             id.value = newId
 
             partySocket.send(JSON.stringify(newId))
-
             partySocket.close()
         })
     }
@@ -135,7 +133,6 @@ function TheApp () {
      */
     async function join (ev:SubmitEvent) {
         ev.preventDefault()
-        console.log('merge this device into another ID')
         const el = (ev.target as HTMLFormElement).elements['pin']
         const pin = el.value
 
@@ -143,8 +140,8 @@ function TheApp () {
             host: 'localhost:1999',
             room: pin,
             query: {
-                token: 'aaaaa'
-            }
+                token: '894b4ec9',
+            },
         })
 
         partySocket.addEventListener('message', async (ev) => {
@@ -187,7 +184,7 @@ function TheApp () {
             (<div className="the-pin">
                 <div><strong>the PIN</strong></div>
                 <code>
-                    {code.value}
+                    {code}
                 </code>
                 <p>Enter this PIN in the new device.</p>
             </div>) :

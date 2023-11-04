@@ -21,8 +21,7 @@ export default class Server implements Party.Server {
         // as well as broadcast it to all the other connections in the room...
         this.party.broadcast(
             `${sender.id}: ${message}`,
-            // ...except for the connection it came from
-            [sender.id]
+            [sender.id]  // ...except for the connection it came from
         )
     }
 }
