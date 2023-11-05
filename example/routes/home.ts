@@ -23,7 +23,7 @@ export const HomeRoute:FunctionComponent<{
 
             <div className="controls">
                 <p>Link a device to your identity</p>
-                <${ButtonLink} href="/link-device">Add a device<//>
+                <${ButtonLink} href="/link-device">Add another device<//>
             </div>
         </div>`
     }

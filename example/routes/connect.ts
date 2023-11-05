@@ -6,7 +6,7 @@ import { writeKeyToDid } from '@ssc-half-light/util'
 import { Button } from '@nichoth/components/htm/button'
 import * as z from '../../src/z.js'
 import { arrayBuffer } from '../../src/index.js'
-import { State, setId } from '../state.js'
+import { State, linkSuccess } from '../state.js'
 
 export const Connect:FunctionComponent<{
     state:Awaited<ReturnType<typeof State>>
@@ -18,7 +18,7 @@ export const Connect:FunctionComponent<{
     * Merge this with an existing Identity
     *   - the existing device should have already created a room
     */
-    async function connectToId (ev:SubmitEvent) {
+    async function handleSubmit (ev:SubmitEvent) {
         ev.preventDefault()
 
         const el = (ev.target as HTMLFormElement).elements['pin']
@@ -44,7 +44,7 @@ export const Connect:FunctionComponent<{
             // we should only get 1 message, the new identity
             //   (the ID including this device)
             try {
-                setId(state, z.Identity.parse(JSON.parse(ev.data)))
+                linkSuccess(state, z.Identity.parse(JSON.parse(ev.data)))
             } catch (err) {
                 console.log('bad json...', err)
                 throw err
@@ -90,7 +90,7 @@ export const Connect:FunctionComponent<{
         <form
             class="pin-form"
             onKeyDown=${onFormKeydown}
-            onSubmit=${connectToId}
+            onSubmit=${handleSubmit}
         >
             <p>Enter the PIN here from the parent device</p>
 

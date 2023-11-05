@@ -62,12 +62,15 @@ export async function createIdentity (
     const crypto = program.components.crypto
 
     const id = await createId(crypto, { humanName })
+
     state.identity.value = id
 }
 
-export function setId (
+export function linkSuccess (
     state:Awaited<ReturnType<typeof State>>,
     newIdRecord:Identity
 ) {
     state.identity.value = newIdRecord
+    // for gh pages
+    state._setRoute(location.pathname.includes('identity') ? '/dentity/' : '/')
 }

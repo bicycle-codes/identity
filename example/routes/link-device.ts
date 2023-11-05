@@ -92,9 +92,7 @@ export const LinkDevice:FunctionComponent<{
                 <p>Linked a new device</p>
             </div>` :
             html`<div className="the-pin">
-                <code>
-                    ${code}
-                </code>
+                <code>${code}</code>
                 <p>Enter this PIN on the new device.</p>
             </div>`
         }
