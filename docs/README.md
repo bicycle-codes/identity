@@ -52,3 +52,11 @@ Or use [ucan verification](https://github.com/ucan-wg/ts-ucan#verifying-ucan-inv
 ```js
 await ucans.verify(encoded
 ```
+
+
+---------------------------------------------------------
+
+__TODO__
+
+* env vars + deployment
+  - should put `PARTY_TOKEN` in GH secrets. Need it for the vite build.
