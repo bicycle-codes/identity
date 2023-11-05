@@ -5,9 +5,6 @@ export default class WebSocketServer implements Party.Server {
 
     constructor (readonly party: Party.Party) {}
 
-    /**
-     * @TODO
-     */
     onConnect (conn: Party.Connection, ctx: Party.ConnectionContext) {
         console.log(
             `Connected:
@@ -16,18 +13,17 @@ export default class WebSocketServer implements Party.Server {
             url: ${new URL(ctx.request.url).pathname}`
         )
 
-        // we use the DID as the id
         if (!this.existingDevice) {
-            // this is a new room. The first connection should be the
-            //   existing device
-            this.existingDevice = conn.id
+            // That means this is a new room. The first connection should be
+            //   the existing device
+            this.existingDevice = conn.id  // we use the DID as the id
         }
     }
 
     /**
      * @TODO implement this
      *   - Would want to call a DB to check that the given DID is ok if
-     *     this is a new connection. A new room means that this is a
+     *     this is a new room. A new room means that this is a
      *     request from an existing device.
      *   - If this room already exists (if we already have an `existingDevice`),
      *     then the connection should be from a new device.
@@ -56,7 +52,7 @@ export default class WebSocketServer implements Party.Server {
 
         if (!this.existingDevice) {
             // Should not happen.
-            return
+            throw new Error('Got a message before an existing device connected')
         }
 
         this.party.broadcast(

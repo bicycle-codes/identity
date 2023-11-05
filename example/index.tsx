@@ -182,11 +182,10 @@ function TheApp () {
     return (<div className="content">
         {code.value ?
             (<div className="the-pin">
-                <div><strong>the PIN</strong></div>
                 <code>
                     {code}
                 </code>
-                <p>Enter this PIN in the new device.</p>
+                <p>Enter this PIN on the new device.</p>
             </div>) :
             (status.value === 'join' ?
                 <form className="pin-form" onSubmit={join}>
@@ -237,7 +236,7 @@ function TheApp () {
 
                 <form onSubmit={addToExisting}>
                     <Button type="submit">
-                        Merge this device with another identity
+                        Connect this device to another identity
                     </Button>
                 </form>
             </div>) :

@@ -21,6 +21,10 @@ hr {
 
 .the-pin {
     margin-bottom: 2rem;
+
+    & code {
+        font-size: 2rem;
+    }
 }
 
 #pin-input {
