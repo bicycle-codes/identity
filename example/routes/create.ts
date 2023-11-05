@@ -2,13 +2,18 @@ import { html } from 'htm/preact'
 import { TextInput } from '@nichoth/components/htm/text-input'
 import { ReactiveForm } from '@nichoth/components/htm/reactive-form'
 import { FunctionComponent } from 'preact'
+import { State, createIdentity } from '../state'
 import '@nichoth/components/text-input.css'
 
-export const Create:FunctionComponent = function () {
-    function submit (ev:SubmitEvent) {
+export const Create:FunctionComponent<{
+    state:Awaited<ReturnType<typeof State>>
+}> = function ({ state }) {
+    async function submit (ev:SubmitEvent) {
         ev.preventDefault()
-        console.log('create new identity')
-        return Sleep(2000)
+        const humanName = (ev.target as HTMLFormElement)
+            .elements['human-name'].value
+        await createIdentity(state, humanName)
+        state._setRoute('/')
     }
 
     return html`<div class="route create">
@@ -20,10 +25,4 @@ export const Create:FunctionComponent = function () {
             />
         <//>
     </div>`
-}
-
-function Sleep (ms:number) {
-    return new Promise((resolve) => {
-        setTimeout(resolve, ms)
-    })
 }

@@ -4,21 +4,22 @@ import Router from './routes/index.js'
 import { State } from './state'
 import './index.css'
 
-const state = State()
+const state = await State()
 const router = Router()
 
 const TheApp:FunctionComponent = function () {
     const match = router.match(state.route.value)
-    const ChildNode = match.action(match, state.route)
-
     if (!match) {
         return html`<div class="404">
             <h1>404</h1>
         </div>`
     }
 
+    const ChildNode = match.action(match, state.route)
+
     return html`<div class="content">
-        <${ChildNode} />
+        <h1>identity demo</h1>
+        <${ChildNode} state=${state} />
     </div>`
 }
 

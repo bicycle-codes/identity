@@ -8,14 +8,6 @@
     "dot-notation": ["off"],
     "no-useless-constructor": ["off"],
     "operator-linebreak": ["off"],
-    "react/jsx-first-prop-new-line": ["off"],
-    "react/jsx-indent-props": "off",
-    "react/jsx-closing-tag-location": ["off"],
-    "react/jsx-closing-bracket-location": ["off"],
-    "react/jsx-curly-newline": ["off"],
-    "react/jsx-boolean-value": ["off"],
-    "react/jsx-wrap-multilines": ["off"],
-    "react/jsx-indent": ["off"],
     "jsx-quotes": ["error", "prefer-double"],
     "multiline-ternary": "off",
     "no-multiple-empty-lines": [
@@ -26,7 +18,7 @@
       }
     ],
     "no-undef": "off",
-    "indent": [ "error", 4 ],
+    "indent": [ "error", 4, { "ignoredNodes": ["TemplateLiteral > *", "ConditionalExpression"] } ],
     "comma-dangle": "off",
     "no-multi-spaces": ["error", { "ignoreEOLComments": true }]
   }

@@ -2,6 +2,15 @@ body {
     font-family: sans-serif;
 }
 
+h1 {
+    font-size: 1.4rem;
+    border-bottom: 1px solid;
+}
+
+h2 {
+    font-size: 1.2rem;
+}
+
 .pin-form {
     margin-bottom: 1rem;
 
@@ -21,6 +30,10 @@ input[type=number]::-webkit-outer-spin-button {
 
 hr {
     width: 100%;
+}
+
+.pin-input {
+    margin-bottom: 1rem;
 }
 
 .the-pin {
