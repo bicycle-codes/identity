@@ -9,13 +9,15 @@ import * as z from '../../src/z.js'
 import { arrayBuffer } from '../../src/index.js'
 import { State, LinkSuccess } from '../state.js'
 
+/**
+ * Visit this route from a new device.
+ */
 export const Connect:FunctionComponent<{
     state:Awaited<ReturnType<typeof State>>
 }> = function ({ state }) {
     const isValidPin = useSignal<boolean>(false)
     const isNameValid = useSignal<boolean>(false)
     const isFormValid = useComputed(() => {
-        console.log('is valllll', isNameValid.value, isValidPin.value)
         return isValidPin.value && isNameValid.value
     })
     const isSpinning = useSignal<boolean>(false)
@@ -73,10 +75,7 @@ export const Connect:FunctionComponent<{
     }
 
     function onNameInput (ev:InputEvent) {
-        // const { form } = ev.target! as HTMLInputElement
-        // const isValid = form?.checkValidity()
         const isValid = (ev.target as HTMLInputElement).checkValidity()
-        console.log('name input...', isValid)
         if (!!isValid !== isNameValid.value) isNameValid.value = !!isValid
     }
 

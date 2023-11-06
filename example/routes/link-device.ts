@@ -20,8 +20,8 @@ type Message = {
 }
 
 /**
- * Visit this route from an existing device. Create a PIN, and ask the new
- *   device to enter the PIN.
+ * Visit this route from an existing device.
+ * Create a PIN, and ask the new device to enter the PIN.
  * So you have to transmit the PIN out of band.
  */
 

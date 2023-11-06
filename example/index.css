@@ -2,6 +2,11 @@ body {
     font-family: sans-serif;
 }
 
+.identity {
+    overflow: scroll;
+    min-height: 100vh;
+}
+
 h1 {
     font-size: 1.4rem;
     border-bottom: 1px solid;
@@ -81,10 +86,8 @@ hr {
     min-height: 100vh;
 }
 
-.success {
+.toast.success {
     border: 2px solid green;
-    padding: 1rem;
-    background-color: #0080000f;
 }
 
 .control {

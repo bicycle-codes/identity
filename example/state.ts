@@ -105,7 +105,10 @@ export function LinkSuccess (
     state:Awaited<ReturnType<typeof State>>,
     newIdRecord:Identity
 ) {
-    state.identity.value = newIdRecord
+    batch(() => {
+        state.identity.value = newIdRecord
+        state.linkStatus.value = 'success'
+    })
     // for gh pages
     state._setRoute(location.pathname.includes('identity') ? '/identity/' : '/')
 }

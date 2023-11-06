@@ -1,13 +1,21 @@
 import { html } from 'htm/preact'
 import { ButtonLink } from '@nichoth/components/htm/button-link'
 import { FunctionComponent } from 'preact'
-import { State } from '../state.js'
+import { Toaster } from '@nichoth/components/htm/toast'
+import { State, ClearMessage } from '../state.js'
+import '@nichoth/components/toast.css'
+import '@nichoth/components/close-btn.css'
 import '@nichoth/components/button.css'
 
 export const HomeRoute:FunctionComponent<{
     state:Awaited<ReturnType<typeof State>>
 }> = function ({ state }) {
     const devices = state.devices.value
+
+    function closeToast (ev:MouseEvent) {
+        ev.preventDefault()
+        ClearMessage(state)
+    }
 
     if (state.identity.value) {
         /* eslint-disable */
@@ -42,6 +50,13 @@ export const HomeRoute:FunctionComponent<{
                 <p>Link a device to your identity</p>
                 <${ButtonLink} href="/link-device">Link another device<//>
             </div>
+
+            ${state.linkStatus.value ?
+                html`<${Toaster} type="success" onClose=${closeToast}>
+                    Success adding device
+                <//>` :
+                null
+            }
         </div>`
     }
 
