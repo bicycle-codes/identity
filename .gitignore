@@ -5,3 +5,5 @@ dist
 test/test-bundle.js
 .partykit
 .env
+public
+
