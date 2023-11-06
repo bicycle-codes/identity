@@ -12,15 +12,16 @@ export const HomeRoute:FunctionComponent<{
     if (state.identity.value) {
         /* eslint-disable */
         return html`<div className="identity">
-            <strong>This device DID:</strong>
-            <pre>
-                <code>${state.identity.value?.rootDid}</code>
-            </pre>
+            <div class="this-device-did">
+                <strong>This device DID:</strong>
+                <pre>
+                    <code>${state.identity.value?.rootDid}</code>
+                </pre>
+            </div>
 
             <strong>Devices</strong>
             <dl class="device-list">
-                ${Object.keys(devices!).map(k => {
-                    console.log('device', k)
+                ${Object.keys(devices || {}).map(k => {
                     return html`
                         <dt>${k}:</dt>
                         <dd>${devices![k].humanName}</dd>
@@ -39,7 +40,7 @@ export const HomeRoute:FunctionComponent<{
 
             <div className="controls">
                 <p>Link a device to your identity</p>
-                <${ButtonLink} href="/link-device">Add another device<//>
+                <${ButtonLink} href="/link-device">Link another device<//>
             </div>
         </div>`
     }

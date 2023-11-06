@@ -8,7 +8,7 @@ import { fromString, toString } from 'uint8arrays'
 import {
     create, decryptKey, Identity, ALGORITHM, add,
     createDeviceName, encryptTo, CurriedEncrypt,
-    group, EncryptedMessage, Group
+    group, EncryptedMessage, Group, decryptMsg
 } from '../dist/index.js'
 
 let identity:Identity
@@ -137,11 +137,13 @@ test('alice can encrypt a message to several people', async t => {
     t.ok(encryptedMsg.devices[bob.username], "should have bob's device")
     t.ok(encryptedMsg.devices[carol.username], "should have carol's device")
 
-    // @TODO
     // now decrypt
-    // t.equal(ddd(crypto, encryptedMsg), 'hello group', 'alice can read the message')
-    // t.equal(ddd(bobsCrypto, encryptedMsg), 'hello group', 'bob can read the message')
-    // t.equal(ddd(carolsCrypto, encryptedMsg), 'hello group', 'carol can read the message')
+    t.equal(await decryptMsg(crypto, encryptedMsg), 'hello group',
+        'alice can read the message')
+    t.equal(await decryptMsg(bobsCrypto, encryptedMsg),
+        'hello group', 'bob can read the message')
+    t.equal(await decryptMsg(carolsCrypto, encryptedMsg),
+        'hello group', 'carol can read the message')
 })
 
 let groupMsg:string
@@ -163,4 +165,21 @@ test('create an encrypted group', async t => {
 test('decrypt the encrypted group message', async t => {
     const msg = await myGroup.decrypt(alicesCrytpo, myGroup, groupMsg)
     t.equal(msg, 'hello group', 'can decrypt an encrypted group message')
+})
+
+test('encrypt/decrypt a message', async t => {
+    const decrypted = await decryptMsg(alicesCrytpo, encryptedMsg)
+    t.equal(decrypted, 'hello group',
+        'Alice can decrypt a message that she encrypted')
+
+    const newMsg = await encryptTo(alice, [bob], 'hello bob') as EncryptedMessage
+    t.ok(newMsg.payload, 'Encrypted message should have payload')
+
+    const newDecryptedMsg = await decryptMsg(
+        bobsCrypto,
+        newMsg
+    )
+
+    t.equal(newDecryptedMsg, 'hello bob',
+        'Bob can decrypt a message encrypted to bob')
 })

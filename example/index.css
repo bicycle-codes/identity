@@ -5,16 +5,24 @@ body {
 h1 {
     font-size: 1.4rem;
     border-bottom: 1px solid;
+    margin-bottom: 0;
 }
 
 h2 {
     font-size: 1.2rem;
 }
 
+.this-device-did {
+    margin-bottom: 2rem;
+}
+
 .device-list {
     & dt {
+        font-family: monospace;
         text-decoration: underline;
     }
+
+    margin-bottom: 2rem;
 }
 
 .pin-form {

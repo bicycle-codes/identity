@@ -143,12 +143,14 @@ export async function encryptTo (
 export async function decryptMsg (
     crypto:Crypto.Implementation,
     encryptedMsg:EncryptedMessage
-) {
+):Promise<string> {
     const rootDid = await writeKeyToDid(crypto)
     const deviceName = await createDeviceName(rootDid)
-    const key = encryptedMsg.devices[deviceName]
-    await crypto.rsa.decrypt()
-    // await rsa.decrypt(fromString(key), crypto.rsa.)
+    const encryptedKey = encryptedMsg.devices[deviceName]
+    const decryptedKey = await decryptKey(crypto, encryptedKey)
+    const msgBuf = fromString(encryptedMsg.payload, 'base64pad')
+    const decryptedMsg = await aesDecrypt(msgBuf, decryptedKey, ALGORITHM)
+    return toString(decryptedMsg)
 }
 
 export type Group = {
@@ -297,14 +299,14 @@ function isCryptoKey (val:unknown):val is CryptoKey {
  * @param {Crypto.Implementation} crypto An instance of Fission's crypto
  * @param {string} newDid The DID of the new device
  * @param {Uint8Array} exchangeKey The exchange key of the new device
- * @returns {Identity} A new identity object, with the new device
+ * @returns {Promise<Identity>} A new identity object, with the new device
  */
 export async function add (
     id:Identity,
     crypto:Crypto.Implementation,
     newDid:DID,
     exchangeKey:Uint8Array|CryptoKey|string,
-) {
+):Promise<Identity> {
     // need to decrypt the existing AES key, then re-encrypt it to the
     // new did
 

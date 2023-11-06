@@ -1,11 +1,11 @@
-import { Signal, signal } from '@preact/signals'
+import { Signal, batch, signal } from '@preact/signals'
 import Route from 'route-event'
 import { program as createProgram } from '@oddjs/odd'
 import { Implementation } from '@oddjs/odd/components/crypto/implementation'
 import { Identity, create as createId } from '../src/index.js'
 import { DID, writeKeyToDid } from '@ssc-half-light/util'
 
-type AppDevice = {
+type AppDeviceRecord = {
     humanName:string;  // a human-readblae name
     name:string  // the random unique name
 }
@@ -17,7 +17,8 @@ type AppDevice = {
 export async function State ():Promise<{
     route:Signal<string>;
     identity:Signal<Identity|null>;
-    devices:Signal<Record<string, AppDevice>|null>
+    linkStatus:Signal<'success'|null>;
+    devices:Signal<Record<string, AppDeviceRecord>|null>;
     myDid:Signal<DID>;
     _crypto:Implementation;
     _setRoute:(path:string)=>void;
@@ -41,6 +42,7 @@ export async function State ():Promise<{
         },
         _crypto,
         myDid: signal(await writeKeyToDid(_crypto)),
+        linkStatus: signal(null),
         devices: signal(null),
         identity: signal(null),
         route: signal<string>(location.pathname + location.search)
@@ -57,7 +59,28 @@ export async function State ():Promise<{
     return state
 }
 
-export async function createIdentity (
+export function ClearMessage (state:Awaited<ReturnType<typeof State>>) {
+    state.linkStatus.value = null
+}
+
+export function AddDevice (
+    state:Awaited<ReturnType<typeof State>>,
+    newIdentity:Identity,
+    newDevice:AppDeviceRecord
+) {
+    batch(() => {
+        state.identity.value = newIdentity
+        state.devices.value = Object.assign({}, state.devices.value, {
+            [newDevice.name]: newDevice
+        })
+        state.linkStatus.value = 'success'
+    })
+
+    // for gh pages
+    state._setRoute(location.pathname.includes('identity') ? '/identity/' : '/')
+}
+
+export async function CreateIdentity (
     state:Awaited<ReturnType<typeof State>>,
     { humanName, deviceName }:{ humanName:string, deviceName:string },
 ) {
@@ -78,11 +101,11 @@ export async function createIdentity (
     state.identity.value = id
 }
 
-export function linkSuccess (
+export function LinkSuccess (
     state:Awaited<ReturnType<typeof State>>,
     newIdRecord:Identity
 ) {
     state.identity.value = newIdRecord
     // for gh pages
-    state._setRoute(location.pathname.includes('identity') ? '/dentity/' : '/')
+    state._setRoute(location.pathname.includes('identity') ? '/identity/' : '/')
 }

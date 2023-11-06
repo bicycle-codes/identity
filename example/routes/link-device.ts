@@ -3,10 +3,10 @@ import { FunctionComponent } from 'preact'
 import { useEffect } from 'preact/hooks'
 import { useSignal } from '@preact/signals'
 import PartySocket from 'partysocket'
-import { add as addDeviceToIdentity } from '../../src'
+import { add as addDeviceToIdentity, createDeviceName } from '../../src'
 import { customAlphabet } from '@nichoth/nanoid'
 import { numbers } from '@nichoth/nanoid-dictionary'
-import { State } from '../state'
+import { State, AddDevice } from '../state'
 import '@nichoth/components/text-input.css'
 
 const serverAddress = (import.meta.env.DEV ?
@@ -14,12 +14,13 @@ const serverAddress = (import.meta.env.DEV ?
     'identity-party.nichoth.partykit.dev')
 
 type Message = {
-    newDid:`did:key:z${string}`,
-    exchangeKey:string
+    newDid:`did:key:z${string}`;
+    deviceName:string;
+    exchangeKey:string;
 }
 
 /**
- * This is the route where we create a PIN, and ask the new
+ * Visit this route from an existing device. Create a PIN, and ask the new
  *   device to enter the PIN.
  * So you have to transmit the PIN out of band.
  */
@@ -28,7 +29,6 @@ export const LinkDevice:FunctionComponent<{
     state:Awaited<ReturnType<typeof State>>
 }> = function ({ state }) {
     const code = useSignal<string>('')
-    const linkStatus = useSignal<'linked'|'pending'>('pending')
 
     useEffect(() => {
         /**
@@ -52,8 +52,7 @@ export const LinkDevice:FunctionComponent<{
 
         partySocket.addEventListener('message', async (ev) => {
             // we should only get one message containing the DID
-            //   and exchangeKey of the new device
-            console.log('from the server: ', ev.data)
+            //   and exchangeKey and deviceName of the new device
 
             let msg:Message
             try {
@@ -63,8 +62,10 @@ export const LinkDevice:FunctionComponent<{
                 throw new Error('bad json')
             }
 
-            const { newDid, exchangeKey } = msg
-            if (!newDid || !exchangeKey) throw new Error('bad message')
+            const { newDid, exchangeKey, deviceName } = msg
+            if (!newDid || !exchangeKey || !deviceName) {
+                throw new Error('bad message')
+            }
 
             // our own identity should exist at this point
             if (!state.identity.value) throw new Error('not identity')
@@ -76,8 +77,11 @@ export const LinkDevice:FunctionComponent<{
                 exchangeKey
             )
 
+            const name = await createDeviceName(newDid)
+
+            AddDevice(state, newIdentity, { humanName: deviceName, name })
+
             partySocket.send(JSON.stringify(newIdentity))
-            linkStatus.value = 'linked'
             partySocket.close()
         })
 
@@ -87,15 +91,10 @@ export const LinkDevice:FunctionComponent<{
     return html`<div class="route link">
         <h2>Add a new device to this identity</h2>
 
-        ${linkStatus.value === 'linked' ?
-            html`<div className="success">
-                <p>Linked a new device</p>
-            </div>` :
-            html`<div className="the-pin">
-                <code>${code}</code>
-                <p>Enter this PIN on the new device.</p>
-            </div>`
-        }
+        <div className="the-pin">
+            <code>${code}</code>
+            <p>Enter this PIN on the new device.</p>
+        </div>
     </div>`
 }
 

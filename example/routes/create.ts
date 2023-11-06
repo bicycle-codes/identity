@@ -2,7 +2,7 @@ import { html } from 'htm/preact'
 import { FunctionComponent } from 'preact'
 import { TextInput } from '@nichoth/components/htm/text-input'
 import { Button } from '@nichoth/components/htm/button'
-import { State, createIdentity } from '../state'
+import { State, CreateIdentity } from '../state'
 import '@nichoth/components/text-input.css'
 import { useSignal } from '@preact/signals'
 
@@ -19,7 +19,7 @@ export const Create:FunctionComponent<{
         const deviceName = (ev.target as HTMLFormElement)
             .elements['device-name'].value
 
-        await createIdentity(state, { humanName, deviceName })
+        await CreateIdentity(state, { humanName, deviceName })
         state._setRoute('/')
     }
 

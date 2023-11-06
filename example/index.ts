@@ -7,6 +7,9 @@ import './index.css'
 const state = await State()
 const router = Router()
 
+// @ts-ignore
+window.state = state
+
 const TheApp:FunctionComponent = function () {
     const match = router.match(state.route.value)
     if (!match) {

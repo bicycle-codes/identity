@@ -7,7 +7,7 @@ import { Button } from '@nichoth/components/htm/button'
 import { TextInput } from '@nichoth/components/htm/text-input'
 import * as z from '../../src/z.js'
 import { arrayBuffer } from '../../src/index.js'
-import { State, linkSuccess } from '../state.js'
+import { State, LinkSuccess } from '../state.js'
 
 export const Connect:FunctionComponent<{
     state:Awaited<ReturnType<typeof State>>
@@ -15,6 +15,7 @@ export const Connect:FunctionComponent<{
     const isValidPin = useSignal<boolean>(false)
     const isNameValid = useSignal<boolean>(false)
     const isFormValid = useComputed(() => {
+        console.log('is valllll', isNameValid.value, isValidPin.value)
         return isValidPin.value && isNameValid.value
     })
     const isSpinning = useSignal<boolean>(false)
@@ -50,7 +51,7 @@ export const Connect:FunctionComponent<{
             // we should only get 1 message, the new identity
             //   (the ID including this device)
             try {
-                linkSuccess(state, z.Identity.parse(JSON.parse(ev.data)))
+                LinkSuccess(state, z.Identity.parse(JSON.parse(ev.data)))
             } catch (err) {
                 console.log('bad json...', err)
                 throw err
@@ -72,9 +73,11 @@ export const Connect:FunctionComponent<{
     }
 
     function onNameInput (ev:InputEvent) {
-        const { form } = ev.target! as HTMLInputElement
-        const isValid = form?.checkValidity()
-        if (isValid !== isNameValid.value) isNameValid.value = isValid!
+        // const { form } = ev.target! as HTMLInputElement
+        // const isValid = form?.checkValidity()
+        const isValid = (ev.target as HTMLInputElement).checkValidity()
+        console.log('name input...', isValid)
+        if (!!isValid !== isNameValid.value) isNameValid.value = !!isValid
     }
 
     function pinInput (ev:InputEvent) {
@@ -109,6 +112,7 @@ export const Connect:FunctionComponent<{
                 <label>
                     Choose a name for this device
                     <${TextInput}
+                        onChange=${onNameInput}
                         onInput=${onNameInput}
                         displayName="Device name"
                         required=${true}
