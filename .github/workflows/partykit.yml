@@ -17,7 +17,7 @@ jobs:
         with:
           filters: |
             party:
-              - 'party/*'
+              - 'example/server/*'
       - uses: actions/setup-node@v3
         with:
           node-version: 20
@@ -27,5 +27,5 @@ jobs:
       - run: npx partykit deploy
         if: steps.filter.outputs.party == 'true'
         env:
-          GITHUB_TOKEN: ${{ secrets.PARTYKIT_TOKEN }}
-          GITHUB_LOGIN: nichoth
+          PARTYKIT_TOKEN: ${{ secrets.PARTYKIT_TOKEN }}
+          PARTYKIT_LOGIN: nichoth
