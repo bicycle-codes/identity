@@ -7,12 +7,26 @@ import '@nichoth/components/button.css'
 export const HomeRoute:FunctionComponent<{
     state:Awaited<ReturnType<typeof State>>
 }> = function ({ state }) {
+    const devices = state.devices.value
+
     if (state.identity.value) {
+        /* eslint-disable */
         return html`<div className="identity">
             <strong>This device DID:</strong>
             <pre>
                 <code>${state.identity.value?.rootDid}</code>
             </pre>
+
+            <strong>Devices</strong>
+            <dl class="device-list">
+                ${Object.keys(devices!).map(k => {
+                    console.log('device', k)
+                    return html`
+                        <dt>${k}:</dt>
+                        <dd>${devices![k].humanName}</dd>
+                    `
+                })}
+            </dl>
 
             <strong>Your identity:</strong>
             <pre>
@@ -20,6 +34,8 @@ export const HomeRoute:FunctionComponent<{
                     ${JSON.stringify(state.identity.value, null, 2)}
                 </code>
             </pre>
+
+            <hr />
 
             <div className="controls">
                 <p>Link a device to your identity</p>

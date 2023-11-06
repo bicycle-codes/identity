@@ -5,6 +5,11 @@ import { Implementation } from '@oddjs/odd/components/crypto/implementation'
 import { Identity, create as createId } from '../src/index.js'
 import { DID, writeKeyToDid } from '@ssc-half-light/util'
 
+type AppDevice = {
+    humanName:string;  // a human-readblae name
+    name:string  // the random unique name
+}
+
 /**
  * Setup any state
  *   - routes
@@ -12,6 +17,7 @@ import { DID, writeKeyToDid } from '@ssc-half-light/util'
 export async function State ():Promise<{
     route:Signal<string>;
     identity:Signal<Identity|null>;
+    devices:Signal<Record<string, AppDevice>|null>
     myDid:Signal<DID>;
     _crypto:Implementation;
     _setRoute:(path:string)=>void;
@@ -35,6 +41,7 @@ export async function State ():Promise<{
         },
         _crypto,
         myDid: signal(await writeKeyToDid(_crypto)),
+        devices: signal(null),
         identity: signal(null),
         route: signal<string>(location.pathname + location.search)
     }
@@ -52,7 +59,7 @@ export async function State ():Promise<{
 
 export async function createIdentity (
     state:Awaited<ReturnType<typeof State>>,
-    humanName:string
+    { humanName, deviceName }:{ humanName:string, deviceName:string },
 ) {
     const program = await createProgram({
         namespace: { creator: 'identity', name: 'example' },
@@ -62,6 +69,11 @@ export async function createIdentity (
     const crypto = program.components.crypto
 
     const id = await createId(crypto, { humanName })
+
+    state.devices.value = Object.assign({}, state.devices.value, {
+        // record for the first device
+        [id.username]: { name: id.username, humanName: deviceName }
+    })
 
     state.identity.value = id
 }

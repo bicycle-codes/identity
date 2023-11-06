@@ -1,9 +1,10 @@
 import { html } from 'htm/preact'
 import { FunctionComponent } from 'preact'
-import { useSignal } from '@preact/signals'
+import { useComputed, useSignal } from '@preact/signals'
 import PartySocket from 'partysocket'
 import { writeKeyToDid } from '@ssc-half-light/util'
 import { Button } from '@nichoth/components/htm/button'
+import { TextInput } from '@nichoth/components/htm/text-input'
 import * as z from '../../src/z.js'
 import { arrayBuffer } from '../../src/index.js'
 import { State, linkSuccess } from '../state.js'
@@ -12,6 +13,10 @@ export const Connect:FunctionComponent<{
     state:Awaited<ReturnType<typeof State>>
 }> = function ({ state }) {
     const isValidPin = useSignal<boolean>(false)
+    const isNameValid = useSignal<boolean>(false)
+    const isFormValid = useComputed(() => {
+        return isValidPin.value && isNameValid.value
+    })
     const isSpinning = useSignal<boolean>(false)
 
     /**
@@ -21,8 +26,9 @@ export const Connect:FunctionComponent<{
     async function handleSubmit (ev:SubmitEvent) {
         ev.preventDefault()
 
-        const el = (ev.target as HTMLFormElement).elements['pin']
-        const pin = el.value
+        const pin = (ev.target as HTMLFormElement).elements['pin'].value
+        const nameEl = (ev.target as HTMLFormElement).elements['device-name']
+        const deviceName = nameEl.value
 
         const serverAddress = (import.meta.env.DEV ?
             'localhost:1999' :
@@ -57,11 +63,18 @@ export const Connect:FunctionComponent<{
          * Send our DID to the existing device
          */
         partySocket.send(JSON.stringify({
+            deviceName,
             newDid: await writeKeyToDid(state._crypto),
             exchangeKey: arrayBuffer.toString(
                 await state._crypto.keystore.publicExchangeKey()
             )
         }))
+    }
+
+    function onNameInput (ev:InputEvent) {
+        const { form } = ev.target! as HTMLInputElement
+        const isValid = form?.checkValidity()
+        if (isValid !== isNameValid.value) isNameValid.value = isValid!
     }
 
     function pinInput (ev:InputEvent) {
@@ -92,8 +105,20 @@ export const Connect:FunctionComponent<{
             onKeyDown=${onFormKeydown}
             onSubmit=${handleSubmit}
         >
-            <p>Enter the PIN here from the parent device</p>
+            <div>
+                <label>
+                    Choose a name for this device
+                    <${TextInput}
+                        onInput=${onNameInput}
+                        displayName="Device name"
+                        required=${true}
+                        minlength=${3}
+                        name="device-name"
+                    />
+                </label>
+            </div>
 
+            <p>Enter the PIN here from the parent device</p>
             <div class="pin-input">
                 <input name="pin" className="pin" type="number"
                     minlength=${6}
@@ -108,7 +133,7 @@ export const Connect:FunctionComponent<{
 
             <${Button}
                 isSpinning=${isSpinning}
-                disabled=${!isValidPin.value}
+                disabled=${!isFormValid.value}
                 type="submit"
             >
                 Link devices

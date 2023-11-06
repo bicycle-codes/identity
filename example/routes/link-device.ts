@@ -84,7 +84,7 @@ export const LinkDevice:FunctionComponent<{
         return () => partySocket.close()
     }, [])
 
-    return html`<div class="route create">
+    return html`<div class="route link">
         <h2>Add a new device to this identity</h2>
 
         ${linkStatus.value === 'linked' ?
