@@ -31,7 +31,8 @@
     "zod": "^3.22.4"
   },
   "devDependencies": {
-    "@nichoth/components": "^0.9.3",
+    "@nichoth/components": "^0.10.0",
+    "@nichoth/routes": "^3.0.7",
     "@nichoth/tapzero": "^0.8.0",
     "@preact/preset-vite": "^2.5.0",
     "@preact/signals": "^1.2.1",
@@ -43,6 +44,7 @@
     "partysocket": "^0.0.10",
     "postcss-nesting": "^12.0.1",
     "preact": "^10.18.1",
+    "route-event": "^4.1.10",
     "standardx": "^7.0.0",
     "tap-arc": "^0.3.5",
     "tape-run": "^11.0.0",

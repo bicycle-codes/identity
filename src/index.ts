@@ -21,9 +21,9 @@ export interface Device {
 }
 
 /**
- * `devices` is a map of { <deviceName>: Device }, where device.aes is the AES
- * key encrypted to this exchange key. The private side of this exchange key is
- * store only on-device, in a keystore instance.
+ * `devices` is a map of `{ <deviceName>: Device }`, where `device.aes` is the
+ * AES key encrypted to this exchange key. The private side of this exchange
+ * key is stored only on-device, in a keystore instance.
  */
 export interface Identity {
     humanName:string
@@ -36,12 +36,12 @@ export const ALGORITHM = SymmAlg.AES_GCM
 
 /**
  * Create a new `identity`. This tracks a set of exchange keys by device.
- * This depends on the `crypto` interface of `odd`. That is the keystore that
+ * This depends on the `crypto` interface of `odd`, the keystore that
  * holds the keys for your device. This creates a public record, meaning that
  * we can store this anywhere, whereas the private keys are non-exportable,
  * stored only on-device.
  * @param crypto Fission crypto implementation for the current device
- * @param opts { humanName } The human-readable name of this identity
+ * @param {{ humanName:string }} opts The human-readable name of this identity
  * @returns {Identity}
  */
 export async function create (
@@ -79,11 +79,11 @@ export async function create (
 }
 
 /**
- * devices is a record like
- *  { deviceName: <encrypted key> }
- *  You would decrypt the encrypted key -- message.devices[my-device-name] --
- *    with the device's exchange key
- *  Then use the decrypted key to decrypt the payload
+ * A record for an encrypted message. Contains `devices`, a record like
+ *  `{ deviceName: <encrypted key> }`
+ * You would decrypt the encrypted key -- message.devices[my-device-name] --
+ *   with the device's exchange key
+ * Then use the decrypted key to decrypt the payload
  */
 export interface EncryptedMessage {
     creator:Identity, // the person who sent the message
@@ -140,8 +140,17 @@ export async function encryptTo (
 /**
  * @TODO
  */
-export function decryptMsg (encryptedMsg:EncryptedMessage) {
-
+export async function decryptMsg (
+    crypto:Crypto.Implementation,
+    encryptedMsg:EncryptedMessage
+):Promise<string> {
+    const rootDid = await writeKeyToDid(crypto)
+    const deviceName = await createDeviceName(rootDid)
+    const encryptedKey = encryptedMsg.devices[deviceName]
+    const decryptedKey = await decryptKey(crypto, encryptedKey)
+    const msgBuf = fromString(encryptedMsg.payload, 'base64pad')
+    const decryptedMsg = await aesDecrypt(msgBuf, decryptedKey, ALGORITHM)
+    return toString(decryptedMsg)
 }
 
 export type Group = {
@@ -290,14 +299,14 @@ function isCryptoKey (val:unknown):val is CryptoKey {
  * @param {Crypto.Implementation} crypto An instance of Fission's crypto
  * @param {string} newDid The DID of the new device
  * @param {Uint8Array} exchangeKey The exchange key of the new device
- * @returns {Identity} A new identity object, with the new device
+ * @returns {Promise<Identity>} A new identity object, with the new device
  */
 export async function add (
     id:Identity,
     crypto:Crypto.Implementation,
     newDid:DID,
     exchangeKey:Uint8Array|CryptoKey|string,
-) {
+):Promise<Identity> {
     // need to decrypt the existing AES key, then re-encrypt it to the
     // new did
 
