@@ -9,7 +9,7 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - uses: dorny/paths-filter@v2
@@ -20,7 +20,7 @@ jobs:
               - 'example/server/*'
       - uses: actions/setup-node@v3
         with:
-          node-version: 20
+          node-version: 18
           cache: 'npm'
       - run: npm ci
         if: steps.filter.outputs.party == 'true'
