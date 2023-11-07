@@ -45,7 +45,7 @@ export async function State ():Promise<{
         linkStatus: signal(null),
         devices: signal(null),
         identity: signal(null),
-        route: signal<string>(location.pathname + location.search)
+        route: signal<string>(parseRoute(location.pathname + location.search))
     }
 
     /**
@@ -111,4 +111,8 @@ export function LinkSuccess (
     })
     // for gh pages
     state._setRoute(location.pathname.includes('identity') ? '/identity/' : '/')
+}
+
+function parseRoute (route:string) {
+    return route.replace('/identity/', '/')
 }
