@@ -32,6 +32,10 @@ jobs:
         uses: actions/configure-pages@v3
       - name: Install
         run: npm install
+      - name: create env file
+        run: |
+          touch example/.env
+          echo "VITE_PARTY_TOKEN=${{ secrets.VITE_PARTY_TOKEN }}" >> example/.env
       - name: Build
         run: npm run build-example
       - name: Upload artifact
