@@ -9,6 +9,8 @@ import { numbers } from '@nichoth/nanoid-dictionary'
 import { State, AddDevice } from '../state'
 import '@nichoth/components/text-input.css'
 
+// const serverAddress = 'identity-party.nichoth.partykit.dev'
+
 const serverAddress = (import.meta.env.DEV ?
     'localhost:1999' :
     'identity-party.nichoth.partykit.dev')

@@ -12,8 +12,6 @@ window.state = state
 
 const TheApp:FunctionComponent = function () {
     const match = router.match(state.route.value)
-    console.log('match', match)
-    console.log('route...', state.route.value)
     if (!match) {
         return html`<div class="404">
             <h1>404</h1>

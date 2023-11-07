@@ -8,7 +8,7 @@ Each device has a primary keypair used for signing, which is `did` here, and als
 
 see also, [keystore as used in crypto component](https://github.com/oddsdk/ts-odd/blob/main/src/components/crypto/implementation/browser.ts#L8) 
 
-Devices are indexed by a sufficiently random key, created by calling `createDeviceName` with the primary did for the device.
+Devices are indexed by a sufficiently random key, created by calling [createDeviceName](https://github.com/ssc-half-light/identity/blob/ce5bb38cf9370c5f7ae1c5f545985c9ab574747b/src/index.ts#L359) with the primary did for the device.
 
 ------------------------
 
