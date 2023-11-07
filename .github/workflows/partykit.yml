@@ -18,13 +18,17 @@ jobs:
           filters: |
             party:
               - 'example/server/*'
+      - name: create env file
+        run: |
+          touch .env
+          echo "VITE_PARTY_TOKEN=${{ secrets.VITE_PARTY_TOKEN }}" >> .env
       - uses: actions/setup-node@v3
         with:
           node-version: 18
           cache: 'npm'
       - run: npm ci
         if: steps.filter.outputs.party == 'true'
-      - run: npx partykit deploy
+      - run: npx partykit deploy --with-vars
         if: steps.filter.outputs.party == 'true'
         env:
           PARTYKIT_TOKEN: ${{ secrets.PARTYKIT_TOKEN }}
