@@ -59,7 +59,7 @@ interface Device {
 --------------------------------------------------------------------------
 
 ## example
-Start the example. This will start local servers and open a browser.
+Start the [example](./example/). This will start local servers and open a browser.
 ```
 npm start
 ```
@@ -73,7 +73,7 @@ After that both machines have the same AES key, so are able to read & write the 
 This is storage agnostic. You would want to save the identity object to a database or something, which is easy to do because keys are encrypted "at rest". Any device record pairs with a `keystore` instance on the device.
 
 ## env variables
-If you deploy this to the internet, you will need to deploy the env variables to partykit as well:
+Deploy the env variables to partykit:
 
 ```sh
 npx partykit deploy --with-vars
