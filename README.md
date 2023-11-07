@@ -19,12 +19,22 @@ So there you can think of it like one conversation = 1 symmetric key. The person
 ## storage
 This is storage agnostic. You would want to save the identity object to a database or something, which is easy to do because keys are encrypted "at rest". Any device record pairs with a `keystore` instance on the device.
 
----------------------------
+------------------------------------------
 
 ## install
 ```
 npm i -S @ssc-half-light/identity
 ```
+
+------------------------------------------
+
+## demo
+
+See [a live demo](https://nichoth-identity.netlify.app/) of the [example directory](./example/)
+
+This uses websockets to 'link' two devices. That is, a single AES key is encrypted to the exchange key on each device, so both devices are able to use the same key.
+
+------------------------------------------
 
 ## types
 
