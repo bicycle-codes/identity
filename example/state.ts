@@ -52,7 +52,7 @@ export async function State ():Promise<{
      * Listen for route changes
      */
     onRoute((path:string) => {
-        const newPath = path.replace('/identity/', '/')  // for github pages
+        const newPath = parseRoute(path)  // for github pages
         state.route.value = newPath
     })
 
