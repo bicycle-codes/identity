@@ -82,7 +82,7 @@ npx partykit deploy --with-vars
 -------------------------------------------------------------------------
 
 ## test
-Tests run in node because we are using `@ssc-hermes/node-components`.
+Tests run in node because we are using [@ssc-hermes/node-components](https://github.com/ssc-half-light/node-components).
 
 ```
 npm test
