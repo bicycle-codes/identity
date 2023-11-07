@@ -42,13 +42,14 @@ export const LinkDevice:FunctionComponent<{
 
         /**
          * connect to our server
+         * @TODO -- use a real token
          */
         const partySocket = new PartySocket({
             host: serverAddress,
             room: code.value,
             id: state.myDid.value,
             query: {
-                token: import.meta.env.VITE_PARTY_TOKEN,
+                token: '894b4ec9'
             },
         })
 

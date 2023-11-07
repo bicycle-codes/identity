@@ -36,7 +36,7 @@ export default class WebSocketServer implements Party.Server {
             const token = new URL(request.url).searchParams.get('token') ?? ''
             // verify the JWT (in this case using clerk)
             // const session = await verifyToken(token, { issuer })
-            if (token !== lobby.env.VITE_PARTY_TOKEN) throw new Error('bad token')
+            if (token !== '894b4ec9') throw new Error('bad token')
             return request  // forward the request onwards to onConnect
         } catch (err) {
             // authentication failed!

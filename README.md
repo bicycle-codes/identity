@@ -57,23 +57,11 @@ Start the example. This will start local servers and open a browser.
 npm start
 ```
 
-### env variables
-We use a random string as an env variable, `PARTY_TOKEN`. You will need to create a random string. I've been using `uuid`:
-```sh
-npx uuid
-```
-
-Then paste the random string in 2 places &mdash; `example/.env`, and `.env`. In `example.env`, use the variable `VITE_PARTY_TOKEN`. In `.env`, use the variable `PARTY_TOKEN`.
-
-If you deploy this to the internet, you will need to deploy the env variable to partykit as well:
+## env variables
+If you deploy this to the internet, you will need to deploy the env variables to partykit as well:
 
 ```sh
-npx partykit env add PARTY_TOKEN
-```
-
-After entering the random string, deploy:
-```sh
-npx partykit deploy
+npx partykit deploy --with-vars
 ```
 
 ### party
@@ -258,6 +246,27 @@ export async function encryptTo (
     ids:Identity[],
     data?:string|Uint8Array
 ):Promise<EncryptedMessage | CurriedEncrypt>
+```
+
+### decryptMsg
+Decrypt a message. Takes an encrypted message, and returns the decrypted message body.
+
+```js
+async function decryptMsg (
+    crypto:Crypto.Implementation,
+    encryptedMsg:EncryptedMessage
+):Promise<string>
+```
+
+#### example
+```js
+const newMsg = await encryptTo(alice, [bob], 'hello bob') as EncryptedMessage
+t.ok(newMsg.payload, 'Encrypted message should have payload')
+
+const newDecryptedMsg = await decryptMsg(bobsCrypto, newMsg)
+
+t.equal(newDecryptedMsg, 'hello bob',
+    'Bob can decrypt a message encrypted to bob')
 ```
 
 ### group

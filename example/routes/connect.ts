@@ -37,11 +37,14 @@ export const Connect:FunctionComponent<{
             'localhost:1999' :
             'identity-party.nichoth.partykit.dev')
 
+        /**
+         * @TODO Use a real token
+         */
         const partySocket = new PartySocket({
             host: serverAddress,
             room: pin,
             query: {
-                token: import.meta.env.VITE_PARTY_TOKEN
+                token: '894b4ec9'
             },
         })
 

@@ -18,10 +18,6 @@ jobs:
           filters: |
             party:
               - 'example/server/*'
-      - name: create env file
-        run: |
-          touch .env
-          echo "VITE_PARTY_TOKEN=${{ secrets.VITE_PARTY_TOKEN }}" >> .env
       - uses: actions/setup-node@v3
         with:
           node-version: 18

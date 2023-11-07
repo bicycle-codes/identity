@@ -175,10 +175,7 @@ test('encrypt/decrypt a message', async t => {
     const newMsg = await encryptTo(alice, [bob], 'hello bob') as EncryptedMessage
     t.ok(newMsg.payload, 'Encrypted message should have payload')
 
-    const newDecryptedMsg = await decryptMsg(
-        bobsCrypto,
-        newMsg
-    )
+    const newDecryptedMsg = await decryptMsg(bobsCrypto, newMsg)
 
     t.equal(newDecryptedMsg, 'hello bob',
         'Bob can decrypt a message encrypted to bob')
