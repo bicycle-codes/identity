@@ -2,9 +2,9 @@ import { html } from 'htm/preact'
 import { FunctionComponent } from 'preact'
 import { TextInput } from '@nichoth/components/htm/text-input'
 import { Button } from '@nichoth/components/htm/button'
+import { useSignal } from '@preact/signals'
 import { State, CreateIdentity } from '../state'
 import '@nichoth/components/text-input.css'
-import { useSignal } from '@preact/signals'
 
 export const Create:FunctionComponent<{
     state:Awaited<ReturnType<typeof State>>
