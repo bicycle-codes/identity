@@ -8,7 +8,6 @@ export default defineConfig({
         global: 'globalThis'
     },
     root: 'example',
-    base: '/identity/',
     plugins: [
         preact({
             devtoolsInProd: false,
