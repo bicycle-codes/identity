@@ -6,7 +6,7 @@ import { writeKeyToDid } from '@ssc-half-light/util'
 import { Button } from '@nichoth/components/htm/button'
 import { TextInput } from '@nichoth/components/htm/text-input'
 import * as z from '../../src/z.js'
-import { arrayBuffer } from '../../src/index.js'
+import { arrayBuffer, createDeviceName } from '../../src/index.js'
 import { State, LinkSuccess } from '../state.js'
 
 /**
@@ -48,6 +48,9 @@ export const Connect:FunctionComponent<{
             },
         })
 
+        const newDid = await writeKeyToDid(state._crypto)
+        const name = await createDeviceName(newDid)
+
         /**
          * Get a message with the new ID record,
          *   with the AES key encrypted to us
@@ -56,7 +59,11 @@ export const Connect:FunctionComponent<{
             // we should only get 1 message, the new identity
             //   (the ID including this device)
             try {
-                LinkSuccess(state, z.Identity.parse(JSON.parse(ev.data)))
+                LinkSuccess(
+                    state,
+                    z.Identity.parse(JSON.parse(ev.data)),
+                    { humanName: deviceName, name }
+                )
             } catch (err) {
                 console.log('bad json...', err)
                 throw err

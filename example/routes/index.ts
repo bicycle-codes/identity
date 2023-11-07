@@ -15,10 +15,18 @@ export default function _Router ():ReturnType<Router> {
         return Create
     })
 
+    /**
+     * Visit this on a new device that is linking to an existing device
+     */
     router.addRoute('/connect', () => {
         return Connect
     })
 
+    /**
+     * Visit this from an existing device
+     * This creates the websocket room, and will listen for a message
+     * from the new device.
+     */
     router.addRoute('/link-device', () => {
         return LinkDevice
     })

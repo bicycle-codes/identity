@@ -18,6 +18,7 @@ export async function State ():Promise<{
     route:Signal<string>;
     identity:Signal<Identity|null>;
     linkStatus:Signal<'success'|null>;
+    // key is the machine name, value is the human name
     devices:Signal<Record<string, AppDeviceRecord>|null>;
     myDid:Signal<DID>;
     _crypto:Implementation;
@@ -34,26 +35,21 @@ export async function State ():Promise<{
 
     const state = {
         _setRoute: function (newPath) {
-            onRoute.setRoute(
-                location.pathname.includes('identity') ?  // for gh pages
-                    `/identity/${newPath}` :
-                    newPath
-            )
+            onRoute.setRoute(newPath)
         },
         _crypto,
         myDid: signal(await writeKeyToDid(_crypto)),
         linkStatus: signal(null),
         devices: signal(null),
         identity: signal(null),
-        route: signal<string>(parseRoute(location.pathname + location.search))
+        route: signal<string>(location.pathname + location.search)
     }
 
     /**
      * Listen for route changes
      */
     onRoute((path:string) => {
-        const newPath = parseRoute(path)  // for github pages
-        state.route.value = newPath
+        state.route.value = path
     })
 
     return state
@@ -63,6 +59,9 @@ export function ClearMessage (state:Awaited<ReturnType<typeof State>>) {
     state.linkStatus.value = null
 }
 
+/**
+ * Call this from an existing device, to add a new device to this identity.
+ */
 export function AddDevice (
     state:Awaited<ReturnType<typeof State>>,
     newIdentity:Identity,
@@ -77,7 +76,7 @@ export function AddDevice (
     })
 
     // for gh pages
-    state._setRoute(location.pathname.includes('identity') ? '/identity/' : '/')
+    state._setRoute('/')
 }
 
 export async function CreateIdentity (
@@ -101,18 +100,21 @@ export async function CreateIdentity (
     state.identity.value = id
 }
 
+/**
+ * Call this from a new device, to say that it is part of an identity
+ */
 export function LinkSuccess (
     state:Awaited<ReturnType<typeof State>>,
-    newIdRecord:Identity
+    newIdRecord:Identity,
+    newDevice:AppDeviceRecord
 ) {
     batch(() => {
         state.identity.value = newIdRecord
+        state.devices.value = Object.assign({}, state.devices.value, {
+            [newDevice.name]: newDevice
+        })
         state.linkStatus.value = 'success'
     })
     // for gh pages
-    state._setRoute(location.pathname.includes('identity') ? '/identity/' : '/')
-}
-
-function parseRoute (route:string) {
-    return route.replace('/identity/', '/')
+    state._setRoute('/')
 }

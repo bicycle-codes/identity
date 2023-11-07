@@ -20,10 +20,7 @@ export const Create:FunctionComponent<{
             .elements['device-name'].value
 
         await CreateIdentity(state, { humanName, deviceName })
-        state._setRoute(location.pathname.includes('identity') ?
-            '/identity/' :
-            '/'
-        )
+        state._setRoute('/')
     }
 
     function handleInput (ev:InputEvent) {
