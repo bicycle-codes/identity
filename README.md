@@ -16,9 +16,6 @@ Sending a private messaesge to an identity would mean encrypting a message with 
 
 So there you can think of it like one conversation = 1 symmetric key. The person initiating the conversation needs to know the exchange keys of the other party.
 
-## storage
-This is storage agnostic. You would want to save the identity object to a database or something, which is easy to do because keys are encrypted "at rest". Any device record pairs with a `keystore` instance on the device.
-
 ------------------------------------------
 
 ## install
@@ -67,17 +64,20 @@ Start the example. This will start local servers and open a browser.
 npm start
 ```
 
+### party
+The example opens a websocket connection to our [partykit server](https://www.partykit.io/) in response to DOM events. We generate a random 6 digit number, and use that to connect multiple devices to the same websocket server. The root device (the one that generated the PIN) will get a message from the new device, containing the exchange public key and DID. The root device then encrypts the AES key to the exchange key in the message, and then sends the encrypted AES key back to the new device over the websocket.
+
+After that both machines have the same AES key, so are able to read & write the same data.
+
+## storage
+This is storage agnostic. You would want to save the identity object to a database or something, which is easy to do because keys are encrypted "at rest". Any device record pairs with a `keystore` instance on the device.
+
 ## env variables
 If you deploy this to the internet, you will need to deploy the env variables to partykit as well:
 
 ```sh
 npx partykit deploy --with-vars
 ```
-
-### party
-The example opens a websocket connection to our [partykit server](https://www.partykit.io/) in response to DOM events. We generate a random 6 digit number, and use that to connect multiple devices to the same websocket server. The root device (the one that generated the PIN) will get a message from the new device, containing the exchange public key and DID. The root device then encrypts the AES key to the exchange key in the message, and then sends the encrypted AES key back to the new device over the websocket.
-
-After that both machines have the same AES key, so are able to read & write the same data.
 
 -------------------------------------------------------------------------
 
