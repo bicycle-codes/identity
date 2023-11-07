@@ -1,3 +1,9 @@
+[build]
+  command = "npm run build-example"
+  environment = { NODE_VERSION = '20' }
+  functions = "netlify/functions"
+  publish = "public"
+
 [[redirects]]
   from = "/*"
   to = "/index.html"
