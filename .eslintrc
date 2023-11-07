@@ -8,7 +8,6 @@
     "dot-notation": ["off"],
     "no-useless-constructor": ["off"],
     "operator-linebreak": ["off"],
-    "jsx-quotes": ["error", "prefer-double"],
     "multiline-ternary": "off",
     "no-multiple-empty-lines": [
       "error",
