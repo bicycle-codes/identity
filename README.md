@@ -73,11 +73,13 @@ After that both machines have the same AES key, so are able to read & write the 
 This is storage agnostic. You would want to save the identity object to a database or something, which is easy to do because keys are encrypted "at rest". Any device record pairs with a [keystore](https://github.com/fission-codes/keystore-idb) instance on the device.
 
 ## env variables
-Deploy the env variables to partykit:
+We are not using any env variables. If you use an env variable, deploy to partykit like this:
 
 ```sh
 npx partykit deploy --with-vars
 ```
+
+There is an env variable, `PARTYKIT_TOKEN`, on github. This is for deploying partykit automatically on any github push, not for our app.
 
 -------------------------------------------------------------------------
 
