@@ -70,7 +70,7 @@ The example opens a websocket connection to our [partykit server](https://www.pa
 After that both machines have the same AES key, so are able to read & write the same data.
 
 ## storage
-This is storage agnostic. You would want to save the identity object to a database or something, which is easy to do because keys are encrypted "at rest". Any device record pairs with a `keystore` instance on the device.
+This is storage agnostic. You would want to save the identity object to a database or something, which is easy to do because keys are encrypted "at rest". Any device record pairs with a [keystore](https://github.com/fission-codes/keystore-idb) instance on the device.
 
 ## env variables
 Deploy the env variables to partykit:
