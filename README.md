@@ -97,7 +97,7 @@ Import functions and types
 
 ```ts
 import { test } from '@nichoth/tapzero'
-import { writeKeyToDid } from '@ssc-half-light/util'
+import { writeKeyToDid, DID } from '@ssc-half-light/util'
 import {
     components,
     createCryptoComponent
@@ -118,7 +118,7 @@ Create an identity
 
 ```ts
 let identity:Identity
-let rootDid:string
+let rootDid:DID
 let crypto:Crypto.Implementation
 let rootDeviceName:string
 
