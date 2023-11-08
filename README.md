@@ -14,7 +14,7 @@ Devices are indexed by a sufficiently random key, created by calling [createDevi
 
 Sending a private message to an identity would mean encrypting a message with a new symmetric key. That means encrypting `n` versions of the symmetric key, one for each device in the other identity.
 
-So there you can think of it like one conversation = 1 symmetric key. The person initiating the conversation needs to know the exchange keys of the other party.
+You can think of it like one conversation = 1 symmetric key. The person initiating the conversation needs to know the exchange keys of the other party.
 
 ------------------------------------------
 
