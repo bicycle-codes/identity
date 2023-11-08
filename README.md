@@ -93,31 +93,23 @@ npm test
 ------------------------------------------------------------------------
 
 ## API
-
-```js
-import {
-    create,
-    decryptKey,
-    Identity,
-    ALGORITHM,
-    add,
-    createDeviceName,
-    encryptTo,
-    CurriedEncrypt
-} from '@ssc-half-light/identity'
-```
+Import functions and types
 
 ```ts
 import { test } from '@nichoth/tapzero'
 import { writeKeyToDid } from '@ssc-half-light/util'
-import { components, createCryptoComponent } from '@ssc-hermes/node-components'
+import {
+    components,
+    createCryptoComponent
+} from '@ssc-hermes/node-components'
 import { Crypto } from '@oddjs/odd'
 import { aesEncrypt, aesDecrypt } from
     '@oddjs/odd/components/crypto/implementation/browser'
 import { fromString, toString } from 'uint8arrays'
 import {
     create, decryptKey, Identity, ALGORITHM, add,
-    createDeviceName, encryptTo, CurriedEncrypt
+    createDeviceName, encryptTo, CurriedEncrypt,
+    decryptMsg
 } from '@ssc-half-light/identity'
 ```
 
