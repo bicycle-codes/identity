@@ -1,11 +1,11 @@
 # docs
 
-## deploy environments
+## partykit deploy environments
 
-### OP
+### 10/24/2023 11:24 AM
 > what is the recommended setup for dev / staging / prod deployments for partykit server deploy (using npx partykit deploy)? do i need to somehow make a separate app for each?
 
-### jevakallio
+###  10/24/2023 12:03 PM
 > you can deploy with a `--preview` flag, e.g.
 
 ```sh
