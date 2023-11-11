@@ -115,6 +115,6 @@ export function LinkSuccess (
         })
         state.linkStatus.value = 'success'
     })
-    // for gh pages
+
     state._setRoute('/')
 }
