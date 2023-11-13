@@ -84,7 +84,7 @@ We are not using any env variables. If you use an env variable, deploy to partyk
 npx partykit deploy --with-vars
 ```
 
-There is an env variable, `PARTYKIT_TOKEN`, on github. This is for deploying partykit automatically on any github push, not for our app.
+There is an env variable, `PARTYKIT_TOKEN`, on github. This is for deploying partykit automatically on any github push. It's not used by our app.
 
 -------------------------------------------------------------------------
 
