@@ -239,13 +239,12 @@ test('add a device to the identity', async t => {
 ```
 
 ### encryptTo
+Encrypt a message to the given set of identities. To decrypt this message, use your exchange key to decrypt the AES key, then use the AES key to decrypt the payload.
+
 ```ts
 /**
- * Encrypt a given message to the given set of identities.
- * To decrypt this message, use your exchange key to decrypt the symm key,
- * then use the symm key to decrypt the payload.
- *
  * This creates a new AES key each time it is called.
+ * 
  * @param crypto odd crypto object
  * @param ids The Identities we are encrypting to
  * @param data The message we want to encrypt
@@ -255,6 +254,29 @@ export async function encryptTo (
     ids:Identity[],
     data?:string|Uint8Array
 ):Promise<EncryptedMessage | CurriedEncrypt>
+```
+
+#### `encryptTo` example
+```ts
+// a message from alice to bob
+const encryptedMsg = await encryptTo(alice, [bob], 'hello bob')
+
+const alice = await create(alicesCrypto, {
+    humanName: 'alice'
+})
+const bob = await create(bobsCrypto, {
+    humanName: 'bob'
+})
+```
+
+#### curried `encryptTo`
+`encryptTo` can be partially applied by calling without the last argument, the message.
+
+```ts
+const encryptedGroup = await encryptTo(alice, [
+    bob,
+    carol
+]) as CurriedEncrypt
 ```
 
 ### decryptMsg
@@ -267,7 +289,7 @@ async function decryptMsg (
 ):Promise<string>
 ```
 
-#### example
+#### `decryptMsg` example
 ```js
 const newMsg = await encryptTo(alice, [bob], 'hello bob') as EncryptedMessage
 t.ok(newMsg.payload, 'Encrypted message should have payload')
@@ -312,6 +334,7 @@ async function decrypt (
 ):Promise<string>
 ```
 
+#### `group.decrypt` example
 ```js
 const myGroup = await group(alice, [bob, carol], key)
 const groupMsg = await myGroup('hello group')
@@ -319,30 +342,30 @@ const msg = await myGroup.decrypt(alicesCrytpo, myGroup, groupMsg)
 // => 'hello group'
 ```
 
-### createDeviceName
-Create a URL-friendly string from a DID.
-
-```ts
-async function createDeviceName (did:DID):Promise<string>
-```
-
-```js
-import { createDeviceName } from '@ssc-half-light/identity'
-// ...create an odd program here...
-const myDid = await program.agentDID()
-const myDeviceName = createDeviceName(myDid)
-// => '4k4z2xpgpmmssbcasqanlaxoxtpppl54'
-```
-
 ### getDeviceName
-Pass in a `crypto` instance
+Create a URL-friendly hash string for a device. This is 32 characters of a hash
+for a given device's DID. It will always return the same string for the
+same DID/device.
 
+Pass in a `crypto` instance or DID string
 ```ts
 async function getDeviceName (input:DID|Crypto.Implementation):Promise<string>
 ```
 
+#### `getDeviceName` example
+
+Pass in a `crypto` instance
 ```ts
 import { getDeviceName } from '@ssc-half-light/identity'
+
 const myDeviceName = getDeviceName(program.components.crypto)
+// => '4k4z2xpgpmmssbcasqanlaxoxtpppl54'
+```
+
+Pass in a DID as a string
+```ts
+import { getDeviceName } from '@ssc-half-light/identity'
+
+const deviceName = getDeviceName( 'did:key:z13V3Sog2Y...')
 // => '4k4z2xpgpmmssbcasqanlaxoxtpppl54'
 ```

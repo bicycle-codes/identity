@@ -356,7 +356,13 @@ export async function add (
     return newId
 }
 
-export async function createDeviceName (did:DID):Promise<string> {
+/**
+ * Create a 32 character, DNS-friendly hash of the given DID.
+ *
+ * @param {DID} did String representation of the DID for the device
+ * @returns {string} The 32 character, DNS friendly hash
+ */
+async function createDeviceName (did:DID):Promise<string> {
     const normalizedDid = did.normalize('NFD')
     const hashedUsername = await sha256(
         new TextEncoder().encode(normalizedDid)
@@ -365,10 +371,10 @@ export async function createDeviceName (did:DID):Promise<string> {
 }
 
 /**
- * Like `createDeviceName`, but can take a `crypto` object in addition to a
- * DID.
+ * Create a 32-character, DNS-friendly hash for a device. Takes either the DID
+ * string or a crypto instance.
  * @param {DID|Crypto.Implementation} input DID string or Crypto implementation
- * @returns The optimally encoded hash of the DID
+ * @returns {string} The 32-character hash string of the DID
  */
 export async function getDeviceName (input:DID|Crypto.Implementation):Promise<string> {
     if (typeof input === 'string') {

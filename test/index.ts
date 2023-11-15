@@ -7,7 +7,7 @@ import { aesEncrypt, aesDecrypt } from
 import { fromString, toString } from 'uint8arrays'
 import {
     create, decryptKey, Identity, ALGORITHM, add,
-    createDeviceName, encryptTo, CurriedEncrypt,
+    getDeviceName, encryptTo, CurriedEncrypt,
     group, EncryptedMessage, Group, decryptMsg
 } from '../dist/index.js'
 
@@ -26,7 +26,8 @@ test('create an identity', async t => {
         humanName: 'alice',
     })
 
-    const deviceName = alicesDeviceName = await createDeviceName(rootDid)
+    const deviceName = alicesDeviceName = await getDeviceName(rootDid)
+    console.log('**root did**', rootDid)
     rootDeviceName = deviceName
     t.ok(identity, 'should return a new identity')
     t.ok(identity.devices[deviceName].aes,
@@ -34,7 +35,7 @@ test('create an identity', async t => {
 })
 
 test('get your device name', async t => {
-    const deviceName = await createDeviceName(rootDid)
+    const deviceName = await getDeviceName(rootDid)
     t.equal(typeof deviceName, 'string', 'should create a device name')
     t.equal(deviceName.length, 32, 'should be 32 characters')
 })
@@ -70,7 +71,7 @@ test('add a device to the identity', async t => {
     const exchangeKey = await _crypto.keystore.publicExchangeKey()
     const id = await add(identity, crypto, newDid, exchangeKey)
     t.ok(id, 'should return a new identity')
-    const newDeviceName = await createDeviceName(newDid)
+    const newDeviceName = await getDeviceName(newDid)
     t.ok(identity.devices[newDeviceName],
         'new identity should have a new device with the expected name')
     t.ok(identity.devices[rootDeviceName],
@@ -125,6 +126,10 @@ test('can partially apply the `encryptTo` function', async t => {
 
     t.equal(typeof encryptedGroup, 'function',
         "should return a function if you don't pass a message")
+
+    const encrypted = await encryptedGroup('hello curry')
+    const decrypted = await decryptMsg(crypto, encrypted)
+    t.equal(decrypted, 'hello curry', 'can partially apply the function')
 })
 
 let encryptedMsg:EncryptedMessage
