@@ -20,7 +20,7 @@
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
-    "@nichoth/nanoid": "^5.0.1",
+    "@nichoth/nanoid": "^5.0.3",
     "@nichoth/nanoid-dictionary": "^5.0.2",
     "@oddjs/odd": "^0.37.1",
     "@ssc-half-light/util": "^0.10.4",
