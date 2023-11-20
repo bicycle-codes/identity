@@ -5,8 +5,8 @@ import { useSignal } from '@preact/signals'
 import PartySocket from 'partysocket'
 import { customAlphabet } from '@nichoth/nanoid'
 import { numbers } from '@nichoth/nanoid-dictionary'
-import { State, AddDevice } from '../state'
-import { add as addDeviceToIdentity, createDeviceName } from '../../src'
+import { State, AddDevice } from '../state.js'
+import { add as addDeviceToIdentity, createDeviceName } from '../../src/index.js'
 import '@nichoth/components/text-input.css'
 
 const serverAddress = (import.meta.env.DEV ?

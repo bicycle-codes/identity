@@ -362,7 +362,7 @@ export async function add (
  * @param {DID} did String representation of the DID for the device
  * @returns {string} The 32 character, DNS friendly hash
  */
-async function createDeviceName (did:DID):Promise<string> {
+export async function createDeviceName (did:DID):Promise<string> {
     const normalizedDid = did.normalize('NFD')
     const hashedUsername = await sha256(
         new TextEncoder().encode(normalizedDid)
