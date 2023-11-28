@@ -367,6 +367,6 @@ Pass in a DID as a string
 ```ts
 import { getDeviceName } from '@ssc-half-light/identity'
 
-const deviceName = getDeviceName( 'did:key:z13V3Sog2Y...')
+const deviceName = getDeviceName('did:key:z13V3Sog2Y...')
 // => '4k4z2xpgpmmssbcasqanlaxoxtpppl54'
 ```
