@@ -15,7 +15,7 @@
     "build-example": "vite build",
     "build:min:esm": "mkdir -p ./dist && esbuild ./src/*.ts --sourcemap=inline --outdir=./dist --format=esm --minify --keep-names --bundle --out-extension:.js=.min.js",
     "preversion": "npm run lint",
-    "postversion": "git push && git push --tags && export $(cat .env | xargs) && npm publish",
+    "postversion": "git push && git push --tags && export $(cat .env | xargs) && npm publish && npm publish --@ssc-half-light:registry=https://registry.npmjs.org",
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
