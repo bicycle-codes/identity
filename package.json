@@ -2,7 +2,7 @@
   "name": "@ssc-half-light/identity",
   "description": "An identity record",
   "type": "module",
-  "version": "0.1.13",
+  "version": "0.1.14",
   "main": "dist/index.js",
   "scripts": {
     "start": "concurrently --kill-others \"npx partykit dev\" \"npx vite\"",
