@@ -23,8 +23,8 @@ export default class WebSocketServer implements Party.Server {
     /**
      * @TODO implement this
      *   - If this is a new room, Would want to call a DB to check that the
-     *     given DID is ok if this is a new room. A new room means that this is
-     *     a request from an existing device.
+     *     given DID is ok. A new room means that this is a request from an
+     *     existing device.
      *   - If this room already exists (if we already have an `existingDevice`),
      *     then the connection should be from a new device.
      */
@@ -56,7 +56,7 @@ export default class WebSocketServer implements Party.Server {
 
         this.party.broadcast(
             message,
-            [sender.id]
+            [sender.id]  // don't send to sender's ID
         )
     }
 }
