@@ -45,8 +45,10 @@ This uses websockets to 'link' two devices. That is, a single AES key is encrypt
 ```ts
 interface Identity {
     humanName:string,  // a human readble name for the identity
-    username:string,  // the random string for the root device. Not human-readable
-    rootDid:string  // The DID of the first device to use this identity
+    // the random string for the root device. Not human-readable
+    username:string,
+    // The DID of the first device to use this identity 
+    rootDid:DID  // `did:key:z${string}`
     devices:Record<string, Device>  // a map of devices in this identity
 }
 ```
@@ -55,14 +57,15 @@ interface Identity {
 ```ts
 interface Device {
     name:string,  // the random string for this device
-    did:string,  // primary DID for the device. Used to sign things
+    did:DID,  // `did:key:z${string}`
     aes:string,  /* the symmetric key for this account, encrypted to the
-        exchange key for this device */
+      exchange key for this device */
     exchange:string  // public key used for encrypting & decrypting
 }
 ```
 
 --------------------------------------------------------------------------
+
 
 ## example
 Start the [example](./example/). This will start local servers and open a browser.
