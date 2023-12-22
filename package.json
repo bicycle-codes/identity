@@ -15,7 +15,8 @@
     "build-example": "vite build",
     "build:min:esm": "mkdir -p ./dist && esbuild ./src/*.ts --sourcemap=inline --outdir=./dist --format=esm --minify --keep-names --bundle --out-extension:.js=.min.js",
     "preversion": "npm run lint",
-    "postversion": "git push && git push --tags && export $(cat .env | xargs) && npm publish && npm publish --@ssc-half-light:registry=https://registry.npmjs.org",
+    "changelog": "auto-changelog --template keepachangelog --breaking-pattern 'BREAKING CHANGE' && git add CHANGELOG.md && git commit -m 'changelog'",
+    "postversion": "npm run changelog && git push --follow-tags && npm publish",
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
@@ -36,6 +37,7 @@
     "@preact/signals": "^1.2.1",
     "@ssc-hermes/node-components": "^0.1.12",
     "@typescript-eslint/parser": "^5.55.0",
+    "auto-changelog": "^2.4.0",
     "concurrently": "^8.2.2",
     "esbuild": "^0.19.8",
     "partykit": "^0.0.39",
