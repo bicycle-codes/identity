@@ -34,7 +34,7 @@
     "@nichoth/routes": "^3.0.7",
     "@nichoth/tapzero": "^0.8.4",
     "@preact/preset-vite": "^2.7.0",
-    "@preact/signals": "^1.2.1",
+    "@preact/signals": "^1.2.2",
     "@ssc-hermes/node-components": "^0.1.12",
     "@typescript-eslint/parser": "^6.15.0",
     "auto-changelog": "^2.4.0",
