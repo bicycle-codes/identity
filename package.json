@@ -30,7 +30,7 @@
     "zod": "^3.22.4"
   },
   "devDependencies": {
-    "@nichoth/components": "^0.15.1",
+    "@nichoth/components": "^0.15.2",
     "@nichoth/routes": "^3.0.7",
     "@nichoth/tapzero": "^0.8.4",
     "@preact/preset-vite": "^2.7.0",
