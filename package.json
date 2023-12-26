@@ -15,7 +15,7 @@
     "build-example": "vite build",
     "build:min:esm": "mkdir -p ./dist && esbuild ./src/*.ts --sourcemap=inline --outdir=./dist --format=esm --minify --keep-names --bundle --out-extension:.js=.min.js",
     "preversion": "npm run lint",
-    "version": "auto-changelog -p --template keepachangelog auto-changelog --breaking-pattern 'BREAKING CHANGE:' && git add CHANGELOG.md",
+    "version": "auto-changelog -p --template keepachangelog --breaking-pattern 'BREAKING CHANGE:' && git add CHANGELOG.md",
     "postversion": "git push --follow-tags && export $(cat .env | grep -v \"#\" | xargs) && npm publish && npm publish --@ssc-half-light:registry=https://registry.npmjs.org",
     "prepublishOnly": "npm run build"
   },
