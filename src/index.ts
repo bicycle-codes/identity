@@ -7,10 +7,13 @@ import {
 import { SymmAlg } from 'keystore-idb/types.js'
 import type { Crypto } from '@oddjs/odd'
 import { writeKeyToDid, DID } from '@ssc-half-light/util'
+import Debug from '@nichoth/debug'
 export {
     aesDecrypt,
     aesEncrypt
 } from '@oddjs/odd/components/crypto/implementation/browser'
+
+const debug = Debug()
 
 export interface Device {
     name:string,
@@ -230,7 +233,7 @@ export async function encryptContent (
     data:string|Uint8Array
 ):Promise<string> {
     const _data = (typeof data === 'string' ? fromString(data) : data)
-    // console.log('____data____', _data)
+    debug('data', _data)
 
     const encrypted = toString(await aesEncrypt(
         _data,
@@ -238,7 +241,7 @@ export async function encryptContent (
         ALGORITHM
     ), 'base64pad')
 
-    // console.log('**encyrptoeddd***', encrypted)
+    debug('encrypted', encrypted)
     return encrypted
 }
 

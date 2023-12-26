@@ -59,7 +59,7 @@ export const LinkDevice:FunctionComponent<{
             try {
                 msg = JSON.parse(ev.data)
             } catch (err) {
-                console.log('errr', err)
+                console.error(err)
                 throw new Error('bad json')
             }
 
