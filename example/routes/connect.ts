@@ -65,7 +65,7 @@ export const Connect:FunctionComponent<{
                     { humanName: deviceName, name }
                 )
             } catch (err) {
-                console.log('bad json...', err)
+                console.error(err)
                 throw err
             }
 
