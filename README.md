@@ -44,12 +44,12 @@ This uses websockets to 'link' two devices. That is, a single AES key is encrypt
 ### Identity
 ```ts
 interface Identity {
-    humanName:string,  // a human readble name for the identity
-    // the random string for the root device. Not human-readable
-    username:string,
-    // The DID of the first device to use this identity 
-    rootDid:DID  // `did:key:z${string}`
-    devices:Record<string, Device>  // a map of devices in this identity
+    humanName:string,  /* a human readble name for the identity */
+    username:string,  /* the random string for the root device.
+      Not human-readable */
+    rootDid:DID  /* `did:key:z${string}`
+      The DID of the first device to use this identity */
+    devices:Record<string, Device>  /* a map of devices in this identity */
 }
 ```
 
