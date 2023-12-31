@@ -6,9 +6,10 @@ import { aesEncrypt, aesDecrypt } from
     '@oddjs/odd/components/crypto/implementation/browser'
 import { fromString, toString } from 'uint8arrays'
 import {
-    create, decryptKey, Identity, ALGORITHM, add,
+    create, decryptKey, Identity, ALGORITHM, addDevice,
     getDeviceName, encryptTo, CurriedEncrypt,
-    group, EncryptedMessage, Group, decryptMsg
+    group, EncryptedMessage, Group, decryptMsg,
+    AddToGroup
 } from '../dist/index.js'
 
 let identity:Identity
@@ -27,7 +28,6 @@ test('create an identity', async t => {
     })
 
     const deviceName = alicesDeviceName = await getDeviceName(rootDid)
-    console.log('**root did**', rootDid)
     rootDeviceName = deviceName
     t.ok(identity, 'should return a new identity')
     t.ok(identity.devices[deviceName].aes,
@@ -69,8 +69,9 @@ test('add a device to the identity', async t => {
     const _crypto = await createCryptoComponent()
     const newDid = await writeKeyToDid(_crypto)
     const exchangeKey = await _crypto.keystore.publicExchangeKey()
-    const id = await add(identity, crypto, newDid, exchangeKey)
+    const id = await addDevice(identity, crypto, newDid, exchangeKey)
     t.ok(id, 'should return a new identity')
+    t.ok(id !== identity, 'should return a new object, not the same one')
     const newDeviceName = await getDeviceName(newDid)
     t.ok(identity.devices[newDeviceName],
         'new identity should have a new device with the expected name')
@@ -168,8 +169,26 @@ test('create an encrypted group', async t => {
 })
 
 test('decrypt the encrypted group message', async t => {
-    const msg = await myGroup.decrypt(alicesCrytpo, myGroup, groupMsg)
+    const msg = await group.Decrypt(myGroup, alicesCrytpo, groupMsg)
     t.equal(msg, 'hello group', 'can decrypt an encrypted group message')
+})
+
+test('add a new member to the group', async t => {
+    t.plan(2)
+    const _crypto = await createCryptoComponent()
+    const fran = await create(_crypto, {
+        humanName: 'fran',
+    })
+
+    const newGroup = await AddToGroup(myGroup, alicesCrytpo, fran)
+
+    const foundFran = newGroup.groupMembers.find(person => {
+        return person.username === fran.username
+    })
+
+    t.ok(foundFran, 'Fran should be in the group members list')
+    t.ok(newGroup.encryptedKeys[fran.username],
+        "Fran's device should be in the group")
 })
 
 test('encrypt/decrypt a message', async t => {

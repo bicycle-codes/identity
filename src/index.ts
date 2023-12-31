@@ -5,15 +5,12 @@ import {
     aesDecrypt, sha256
 } from '@oddjs/odd/components/crypto/implementation/browser'
 import { SymmAlg } from 'keystore-idb/types.js'
-import type { Crypto } from '@oddjs/odd'
 import { writeKeyToDid, DID } from '@ssc-half-light/util'
-import Debug from '@nichoth/debug'
+import type { Implementation } from '@oddjs/odd/components/crypto/implementation'
 export {
     aesDecrypt,
     aesEncrypt
 } from '@oddjs/odd/components/crypto/implementation/browser'
-
-const debug = Debug()
 
 export interface Device {
     name:string,
@@ -48,7 +45,7 @@ export const ALGORITHM = SymmAlg.AES_GCM
  * @returns {Identity}
  */
 export async function create (
-    crypto:Crypto.Implementation,
+    crypto:Implementation,
     { humanName }:{ humanName:string }
 ):Promise<Identity> {
     const rootDid = await writeKeyToDid(crypto)  // this is equal to agentDid()
@@ -141,10 +138,14 @@ export async function encryptTo (
 }
 
 /**
- * @TODO
+ * Decrypt the given encrypted message.
+ *
+ * @param {Implementation} crypto The crypto instance with the right keypair.
+ * @param {EncryptedMessage} encryptedMsg The message to decrypt
+ * @returns {string} The decrypted message.
  */
 export async function decryptMsg (
-    crypto:Crypto.Implementation,
+    crypto:Implementation,
     encryptedMsg:EncryptedMessage
 ):Promise<string> {
     const rootDid = await writeKeyToDid(crypto)
@@ -157,27 +158,24 @@ export async function decryptMsg (
 }
 
 export type Group = {
-    groupMembers: Identity[];
-    encryptedKeys: Record<string, string>;
-    decrypt: (
-        crypto:Crypto.Implementation,
-        group:Group,
-        msg:string|Uint8Array
-    ) => Promise<string>;
-    (data:string|Uint8Array): Promise<string>
+    groupMembers:Identity[];
+    // A map from deviceName to encrypted key string
+    encryptedKeys:Record<string, string>;
+    (data:string|Uint8Array):Promise<string>;
 }
 
 /**
  * Create a group with the given AES key. This is different than `encryptTo`
  * because this takes an existing key, instead of creating a new one.
- * @param creator The identity that is creating this group
- * @param ids An array of group members
- * @param key The AES key for this group
- * @returns {Promise<Group>} Return a function
- * that takes a string of data and returns a string of encrypted data. Has keys
- * `encryptedKeys` and `groupMemebers`. `encryptedKeys` is a map of `deviceName`
- * to the encrypted AES key for this group. `groupMembers` is an array of all
- * the Identities in this group.
+ *
+ * @param {Identity} creator The identity that is creating this group
+ * @param {Identity[]} ids An array of group members
+ * @param {CryptoKey} key The AES key for this group
+ * @returns {Promise<Group>} Return a function that takes a string of data, and
+ * returns a string of encrypted data. Has keys `encryptedKeys` and
+ * `groupMemebers`. `encryptedKeys` is a map of `deviceName` to the encrypted
+ * AES key for this group. `groupMembers` is an array of all the Identities
+ * in this group.
  */
 export async function group (
     creator:Identity,
@@ -201,25 +199,91 @@ export async function group (
     _group.encryptedKeys = encryptedKeys
     _group.groupMembers = ids.concat([creator])
 
-    /**
-     * Decrypt a given message encrypted to this group
-     */
-    _group.decrypt = async function decrypt (
-        crypto:Crypto.Implementation,
-        group:Group,
-        msg:string|Uint8Array
-    ):Promise<string> {
-        // get the right key from the group
-        const did = await writeKeyToDid(crypto)
-        const myKey = group.encryptedKeys[await createDeviceName(did)]
+    return _group
+}
 
-        const decryptedKey = await decryptKey(crypto, myKey)
-        const msgBuf = typeof msg === 'string' ? fromString(msg, 'base64pad') : msg
-        const decryptedMsg = await aesDecrypt(msgBuf, decryptedKey, ALGORITHM)
-        return toString(decryptedMsg)
+group.AddToGroup = AddToGroup
+group.Decrypt = Decrypt
+
+/**
+ * Add an identity to the group. Pass in either a CryptoKey or an odd crypto
+ * object. If you pass in a Crypto.Implementation, then this will use it to
+ * decrypt the group's AES key, then encrypt the key to the new identity.
+ *
+ * If you pass in a `CryptoKey`, then we simply encrypt it to the new identity.
+ *
+ * @param {Group} group The group you are adding to
+ * @param {CryptoKey|Implementation} keyOrCrypto The key or instance of
+ * @param {Identity} identity The identity you are adding to the group
+ * odd crypto.
+ */
+export async function AddToGroup (
+    group:Group,
+    keyOrCrypto:CryptoKey|Implementation,
+    identity:Identity,
+):Promise<Group> {
+    const newEncryptedKeys = {}
+    const newGroupMembers:Identity[] =
+        ([] as Identity[]).concat(group.groupMembers)
+
+    if (keyOrCrypto instanceof CryptoKey) {
+        // we have been passed the decrypted AES key
+
+        for (const deviceName of Object.keys(identity.devices)) {
+            // group.encryptedKeys[deviceName] = arrToString(
+            newEncryptedKeys[deviceName] = arrToString(
+                await rsa.encrypt(await aesExportKey(keyOrCrypto),
+                    arrFromString(identity.devices[deviceName].exchange))
+            )
+        }
+    } else {
+        // `keyOrCrypto` is a Crypto instance
+        // need to decrypt the AES key, then re-encrypt it to the new devices
+        const myDID = await writeKeyToDid(keyOrCrypto)
+        const theKey = group.encryptedKeys[await createDeviceName(myDID)]
+        const decryptedKey = await decryptKey(keyOrCrypto, theKey)
+        for (const deviceName of Object.keys(identity.devices)) {
+            // now encrypt it to each new device
+            const device = identity.devices[deviceName]
+            const newEncryptedKey = arrToString(
+                await rsa.encrypt(
+                    await aesExportKey(decryptedKey),
+                    arrFromString(device.exchange)
+                )
+            )
+
+            newEncryptedKeys[device.name] = newEncryptedKey
+        }
     }
 
-    return _group
+    newGroupMembers.push(identity)
+
+    return Object.assign({}, group, {
+        encryptedKeys: newEncryptedKeys,
+        groupMembers: newGroupMembers
+    })
+}
+
+/**
+ * Decrypt a message encrypted to a given group.
+ * @param {Group} group The group containing the key
+ * @param {Implementation} crypto An odd crypto instance
+ * @param {string|Uint8Array} msg The message to decrypt
+ * @returns {Promise<string>} The decrypted message
+ */
+export async function Decrypt (
+    group:Group,
+    crypto:Implementation,
+    msg:string|Uint8Array
+):Promise<string> {
+    // get the right key from the group
+    const did = await writeKeyToDid(crypto)
+    const myKey = group.encryptedKeys[await createDeviceName(did)]
+
+    const decryptedKey = await decryptKey(crypto, myKey)
+    const msgBuf = typeof msg === 'string' ? fromString(msg, 'base64pad') : msg
+    const decryptedMsg = await aesDecrypt(msgBuf, decryptedKey, ALGORITHM)
+    return toString(decryptedMsg)
 }
 
 /**
@@ -233,7 +297,6 @@ export async function encryptContent (
     data:string|Uint8Array
 ):Promise<string> {
     const _data = (typeof data === 'string' ? fromString(data) : data)
-    debug('data', _data)
 
     const encrypted = toString(await aesEncrypt(
         _data,
@@ -241,7 +304,6 @@ export async function encryptContent (
         ALGORITHM
     ), 'base64pad')
 
-    debug('encrypted', encrypted)
     return encrypted
 }
 
@@ -265,12 +327,13 @@ export async function encryptKey (
 
 /**
  * Decrypt the given encrypted key
- * @param {string} encryptedKey The encrypted key, returned by `create`
- * -- identity.devices[name].aes
- * @param {Crypto.Implementation} crypto An instance of ODD crypto
+ *
+ * @param {string} encryptedKey The encrypted key, returned by `create`:
+ * `identity.devices[name].aes`
+ * @param {Implementation} crypto An instance of ODD crypto
  * @returns {Promise<CryptoKey>} The symmetric key
  */
-export async function decryptKey (crypto:Crypto.Implementation, encryptedKey:string)
+export async function decryptKey (crypto:Implementation, encryptedKey:string)
 :Promise<CryptoKey> {
     const decrypted = await crypto.keystore.decrypt(
         arrFromString(encryptedKey))
@@ -290,23 +353,18 @@ function isCryptoKey (val:unknown):val is CryptoKey {
 }
 
 /**
- * the existing devices are the only places that can decrypt the key
- * must call `add` from an existing device
- */
-
-/**
  * Add a device to this identity. This is performed from a device that is currently
  * registered. You need to get the exchange key of the new device somehow.
  *
  * @param {Identity} id The `Identity` instance to add to
- * @param {Crypto.Implementation} crypto An instance of Fission's crypto
+ * @param {Implementation} crypto An instance of Fission's crypto
  * @param {string} newDid The DID of the new device
  * @param {Uint8Array} exchangeKey The exchange key of the new device
  * @returns {Promise<Identity>} A new identity object, with the new device
  */
-export async function add (
+export async function addDevice (
     id:Identity,
-    crypto:Crypto.Implementation,
+    crypto:Implementation,
     newDid:DID,
     exchangeKey:Uint8Array|CryptoKey|string,
 ):Promise<Identity> {
@@ -339,8 +397,6 @@ export async function add (
         throw new Error('Exchange key should be string, uint8Array, or CryptoKey')
     }
 
-    // const encrypted = await encryptKey(secretKey, _exchangeKey!)
-    // const encrypted = await encryptKey(secretKey, _exchangeKey!)
     const newDeviceData:Identity['devices'] = {}
     const name = await createDeviceName(newDid)
 
@@ -376,10 +432,10 @@ export async function createDeviceName (did:DID):Promise<string> {
 /**
  * Create a 32-character, DNS-friendly hash for a device. Takes either the DID
  * string or a crypto instance.
- * @param {DID|Crypto.Implementation} input DID string or Crypto implementation
+ * @param {DID|Implementation} input DID string or Crypto implementation
  * @returns {string} The 32-character hash string of the DID
  */
-export async function getDeviceName (input:DID|Crypto.Implementation):Promise<string> {
+export async function getDeviceName (input:DID|Implementation):Promise<string> {
     if (typeof input === 'string') {
         return createDeviceName(input)
     }

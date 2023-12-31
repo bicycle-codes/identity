@@ -64,6 +64,22 @@ interface Device {
 }
 ```
 
+## group
+A function from data to an encrypted string.
+
+```ts
+type Group = {
+    groupMembers: Identity[];
+    encryptedKeys: Record<string, string>;
+    decrypt: (
+        crypto:Implementation,
+        group:Group,
+        msg:string|Uint8Array
+    ) => Promise<string>;
+    (data:string|Uint8Array): Promise<string>
+}
+```
+
 --------------------------------------------------------------------------
 
 
@@ -120,6 +136,14 @@ import {
     createDeviceName, encryptTo, CurriedEncrypt,
     decryptMsg
 } from '@ssc-half-light/identity'
+```
+
+### strings
+Convenient helpers that will encode and decode strings with `base64pad` format.
+
+```js
+import { arrayBuffer } from '@ssc-half-light/identity'
+const { fromString, toString } = arrayBuffer
 ```
 
 ### create
@@ -305,12 +329,29 @@ t.equal(newDecryptedMsg, 'hello bob',
 ```
 
 ### group
-Create a group of identities that share a single AES key. This differs from `encryptTo`, above, because this takes an existing key, instead of creating a new one.
+Create a group of identities that share a single AES key.
+
+This will return a new function that encrypts data with the given key.
+
+This differs from `encryptTo`, above, because this takes an existing key, instead of creating a new one.
+
+```ts
+export type Group = {
+    groupMembers: Identity[];
+    encryptedKeys: Record<string, string>;
+    decrypt: (
+        crypto:Crypto.Implementation,
+        group:Group,
+        msg:string|Uint8Array
+    ) => Promise<string>;
+    (data:string|Uint8Array): Promise<string>
+}
+```
 
 ```ts
 /**
- * Create a group with the given AES key. This is different than `encryptTo`
- * because this takes an existing key, instead of creating a new one.
+ * Create a group with the given AES key.
+ *
  * @param creator The identity that is creating this group
  * @param ids An array of group members
  * @param key The AES key for this group
@@ -324,11 +365,11 @@ export async function group (
     creator:Identity,
     ids:Identity[],
     key:CryptoKey
-):Promise<Group> {
+):Promise<Group>
 ```
 
 ### group.decrypt
-Decrypt a message that has been encrypted to your identity.
+Decrypt a message that has been encrypted to the group.
 
 ```ts
 async function decrypt (
