@@ -368,23 +368,59 @@ export async function group (
 ):Promise<Group>
 ```
 
-### group.decrypt
+#### `group` example
+```js
+import { group } from '@ssc-half-light/identity'
+
+// bob and carol are instances of Identity
+const myGroup = await group(alice, [bob, carol], key)
+```
+
+### group.Decrypt
 Decrypt a message that has been encrypted to the group.
 
 ```ts
-async function decrypt (
-    crypto:Crypto.Implementation,
+async function Decrypt (
     group:Group,
+    crypto:Crypto.Implementation,
     msg:string|Uint8Array
 ):Promise<string>
 ```
 
-#### `group.decrypt` example
+#### `group.Decrypt` example
 ```js
+import { group } from '@ssc-half-light/identity'
+
 const myGroup = await group(alice, [bob, carol], key)
 const groupMsg = await myGroup('hello group')
-const msg = await myGroup.decrypt(alicesCrytpo, myGroup, groupMsg)
+const msg = await group.Decrypt(alicesCrytpo, myGroup, groupMsg)
 // => 'hello group'
+```
+
+### AddToGroup
+Add another identity to a group, and return a new group (not the same instance).
+
+If you pass in a `Crypto.Implementation` instance, then we will use that to decrypt the key of the given group.
+
+If you pass in an AES `CryptoKey`, it will be encrypted to the new user. It should be the same AES key that is used by the group.
+
+```ts
+async function AddToGroup (
+    group:Group,
+    keyOrCrypto:CryptoKey|Implementation,
+    newGroupMember:Identity,
+):Promise<Group>
+```
+
+#### `AddToGroup` example
+```js
+import { AddToGroup, create } from '@ssc-half-light/identity'
+
+const fran = await create(_crypto, {
+    humanName: 'fran'
+})
+
+const newGroup = await AddToGroup(myGroup, alicesCrytpo, fran)
 ```
 
 ### getDeviceName
