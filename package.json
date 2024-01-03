@@ -25,7 +25,6 @@
     "@oddjs/odd": "^0.37.2",
     "@ssc-half-light/util": "^0.11.3",
     "one-webcrypto": "^1.0.3",
-    "partysocket": "0.0.18",
     "uint8arrays": "^5.0.1",
     "zod": "^3.22.4"
   },
@@ -41,8 +40,8 @@
     "auto-changelog": "^2.4.0",
     "concurrently": "^8.2.2",
     "esbuild": "^0.19.11",
-    "partykit": "^0.0.61",
-    "partysocket": "^0.0.18",
+    "partykit": "^0.0.63",
+    "partysocket": "0.0.19",
     "postcss-nesting": "^12.0.2",
     "preact": "^10.19.3",
     "route-event": "^4.1.10",
