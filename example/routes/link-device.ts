@@ -6,7 +6,7 @@ import PartySocket from 'partysocket'
 import { customAlphabet } from '@nichoth/nanoid'
 import { numbers } from '@nichoth/nanoid-dictionary'
 import { State, AddDevice } from '../state.js'
-import { add as addDeviceToIdentity, createDeviceName } from '../../src/index.js'
+import { addDevice, createDeviceName } from '../../src/index.js'
 import '@nichoth/components/text-input.css'
 
 const serverAddress = (import.meta.env.DEV ?
@@ -71,7 +71,7 @@ export const LinkDevice:FunctionComponent<{
             // our own identity should exist at this point
             if (!state.identity.value) throw new Error('not identity')
 
-            const newIdentity = await addDeviceToIdentity(
+            const newIdentity = await addDevice(
                 state.identity.value,
                 state._crypto,
                 newDid,
