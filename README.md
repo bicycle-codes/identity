@@ -156,7 +156,8 @@ let crypto:Crypto.Implementation
 let rootDeviceName:string
 
 test('create an identity', async t => {
-    crypto = components.crypto
+    // ...get an odd program somehow
+    crypto = program.components.crypto
     rootDid = await writeKeyToDid(crypto)
 
     identity = await create(crypto, {
