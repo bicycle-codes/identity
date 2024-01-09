@@ -36,7 +36,7 @@
     "@preact/preset-vite": "^2.7.0",
     "@preact/signals": "^1.2.2",
     "@ssc-hermes/node-components": "^0.1.12",
-    "@typescript-eslint/parser": "^6.18.0",
+    "@typescript-eslint/parser": "^6.18.1",
     "auto-changelog": "^2.4.0",
     "concurrently": "^8.2.2",
     "esbuild": "^0.19.11",
