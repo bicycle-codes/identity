@@ -326,11 +326,11 @@ export async function encryptKey (
 }
 
 /**
- * Decrypt the given encrypted key
+ * Decrypt the given encrypted key.
  *
- * @param {string} encryptedKey The encrypted key, returned by `create`:
- * `identity.devices[name].aes`
  * @param {Implementation} crypto An instance of ODD crypto
+ * @param {string} encryptedKey The encrypted key, returned by `create`:
+ *   `identity.devices[name].aes`
  * @returns {Promise<CryptoKey>} The symmetric key
  */
 export async function decryptKey (crypto:Implementation, encryptedKey:string)
