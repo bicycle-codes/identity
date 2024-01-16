@@ -28,7 +28,7 @@ export interface Device {
 export interface Identity {
     humanName:string
     username:string,
-    rootDid:DID,
+    rootDID:DID,
     devices:Record<string, Device>
 }
 
@@ -48,8 +48,8 @@ export async function create (
     crypto:Implementation,
     { humanName }:{ humanName:string }
 ):Promise<Identity> {
-    const rootDid = await writeKeyToDid(crypto)  // this is equal to agentDid()
-    const deviceName = await createDeviceName(rootDid)
+    const rootDID = await writeKeyToDid(crypto)  // this is equal to agentDid()
+    const deviceName = await createDeviceName(rootDID)
 
     // this is the private aes key for this ID
     const key = await aesGenKey(ALGORITHM)
@@ -66,14 +66,14 @@ export async function create (
     initialDevices[deviceName] = {
         aes: encryptedKey,
         name: deviceName,
-        did: rootDid,
+        did: rootDID,
         exchange: arrToString(exchangeKey)
     }
 
     return {
         username: deviceName,
         humanName,
-        rootDid,
+        rootDID,
         devices: initialDevices
     }
 }
@@ -148,8 +148,8 @@ export async function decryptMsg (
     crypto:Implementation,
     encryptedMsg:EncryptedMessage
 ):Promise<string> {
-    const rootDid = await writeKeyToDid(crypto)
-    const deviceName = await createDeviceName(rootDid)
+    const rootDID = await writeKeyToDid(crypto)
+    const deviceName = await createDeviceName(rootDID)
     const encryptedKey = encryptedMsg.devices[deviceName]
     const decryptedKey = await decryptKey(crypto, encryptedKey)
     const msgBuf = fromString(encryptedMsg.payload, 'base64pad')
