@@ -13,7 +13,7 @@ import {
 } from '../dist/index.js'
 
 let identity:Identity
-let rootDid:DID
+let rootDID:DID
 let crypto:Crypto.Implementation
 let alicesCrytpo:Crypto.Implementation
 let rootDeviceName:string
@@ -21,13 +21,13 @@ let alicesDeviceName:string
 
 test('create an identity', async t => {
     crypto = alicesCrytpo = components.crypto
-    rootDid = await writeKeyToDid(crypto)
+    rootDID = await writeKeyToDid(crypto)
 
     identity = await create(crypto, {
         humanName: 'alice',
     })
 
-    const deviceName = alicesDeviceName = await getDeviceName(rootDid)
+    const deviceName = alicesDeviceName = await getDeviceName(rootDID)
     rootDeviceName = deviceName
     t.ok(identity, 'should return a new identity')
     t.ok(identity.devices[deviceName].aes,
@@ -35,7 +35,7 @@ test('create an identity', async t => {
 })
 
 test('get your device name', async t => {
-    const deviceName = await getDeviceName(rootDid)
+    const deviceName = await getDeviceName(rootDID)
     t.equal(typeof deviceName, 'string', 'should create a device name')
     t.equal(deviceName.length, 32, 'should be 32 characters')
 })
