@@ -128,10 +128,9 @@ import {
     createCryptoComponent
 } from '@ssc-hermes/node-components'
 import { Crypto } from '@oddjs/odd'
-import { aesEncrypt, aesDecrypt } from
-    '@oddjs/odd/components/crypto/implementation/browser'
 import { fromString, toString } from 'uint8arrays'
 import {
+    aesEncrypt, aesDecrypt,
     create, decryptKey, Identity, ALGORITHM, add,
     createDeviceName, encryptTo, CurriedEncrypt,
     decryptMsg
