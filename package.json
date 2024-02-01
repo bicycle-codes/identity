@@ -40,7 +40,7 @@
     "auto-changelog": "^2.4.0",
     "concurrently": "^8.2.2",
     "esbuild": "^0.19.12",
-    "partykit": "^0.0.80",
+    "partykit": "^0.0.81",
     "partysocket": "0.0.21",
     "postcss-nesting": "^12.0.2",
     "preact": "^10.19.3",
