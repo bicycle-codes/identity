@@ -3,7 +3,7 @@
 [![Socket Badge](https://socket.dev/api/badge/npm/package/@ssc-half-light/identity)](https://socket.dev/npm/package/@ssc-half-light/identity)
 [![module](https://img.shields.io/badge/module-ESM-blue)](README.md)
 [![types](https://img.shields.io/npm/types/@ssc-half-light/identity)](README.md)
-[![license](https://img.shields.io/badge/license-PolyForm%20Shield-fc9662)](LICENSE)
+[![license](https://nichoth.github.io/badge/license-polyform-shield.svg)](LICENSE)
 
 This is an object representing a user. An Identity object contains a collection of "devices", where each device has several keypairs. This depends on each device having a [keystore](https://github.com/fission-codes/keystore-idb) that stores the private keys.
 
