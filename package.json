@@ -43,7 +43,7 @@
     "partykit": "^0.0.84",
     "partysocket": "0.0.21",
     "postcss-nesting": "^12.0.2",
-    "preact": "^10.19.3",
+    "preact": "^10.19.4",
     "route-event": "^4.2.17",
     "standardx": "^7.0.0",
     "tap-arc": "^1.2.2",
