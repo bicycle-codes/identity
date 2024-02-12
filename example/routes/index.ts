@@ -5,7 +5,7 @@ import { LinkDevice } from './link-device.js'
 import { Connect } from './connect.js'
 
 export default function _Router ():ReturnType<Router> {
-    const router = Router()
+    const router = new Router()
 
     router.addRoute('/', () => {
         return HomeRoute
