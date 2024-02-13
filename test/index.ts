@@ -10,7 +10,7 @@ import {
     getDeviceName, encryptTo, CurriedEncrypt,
     group, EncryptedMessage, Group, decryptMsg,
     AddToGroup
-} from '../src/index.js'
+} from '../dist/index.js'
 
 let identity:Identity
 let rootDID:DID
