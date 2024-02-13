@@ -1,16 +1,46 @@
 import { webcrypto } from 'one-webcrypto'
-import { fromString, toString } from 'uint8arrays'
+import type { Crypto } from '@oddjs/odd'
+import { concat, fromString, toString } from 'uint8arrays'
 import {
     aesGenKey, aesExportKey, rsa, importAesKey, aesEncrypt,
     aesDecrypt, sha256
 } from '@oddjs/odd/components/crypto/implementation/browser'
 import { SymmAlg } from 'keystore-idb/types.js'
-import { writeKeyToDid, DID } from '@ssc-half-light/util'
+import { DID } from '@ssc-half-light/util'
 import type { Implementation } from '@oddjs/odd/components/crypto/implementation'
 export {
     aesDecrypt,
     aesEncrypt
 } from '@oddjs/odd/components/crypto/implementation/browser'
+
+const BASE58_DID_PREFIX = 'did:key:z'
+
+export function publicKeyToDid (
+    crypto: Implementation,
+    publicKey: Uint8Array,
+    keyType: string
+):DID {
+    // Prefix public-write key
+    const prefix = crypto.did.keyTypes[keyType]?.magicBytes
+    if (prefix === null) {
+        throw new Error(`Key type '${keyType}' not supported, ` +
+            `available types: ${Object.keys(crypto.did.keyTypes).join(', ')}`)
+    }
+
+    const prefixedBuf = concat([prefix, publicKey])
+
+    // Encode prefixed
+    return (BASE58_DID_PREFIX + toString(prefixedBuf, 'base58btc')) as DID
+}
+
+async function writeKeyToDid (crypto: Crypto.Implementation)
+:Promise<DID> {
+    const [pubKey, ksAlg] = await Promise.all([
+        crypto.keystore.publicWriteKey(),
+        crypto.keystore.getAlgorithm()
+    ])
+    return publicKeyToDid(crypto, pubKey, ksAlg)
+}
 
 export interface Device {
     name:string,
