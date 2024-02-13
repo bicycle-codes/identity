@@ -6,13 +6,13 @@ import {
     aesDecrypt, sha256
 } from '@oddjs/odd/components/crypto/implementation/browser'
 import { SymmAlg } from 'keystore-idb/types.js'
-import { DID } from '@ssc-half-light/util'
 import type { Implementation } from '@oddjs/odd/components/crypto/implementation'
 export {
     aesDecrypt,
     aesEncrypt
 } from '@oddjs/odd/components/crypto/implementation/browser'
 
+export type DID = `did:key:z${string}`
 const BASE58_DID_PREFIX = 'did:key:z'
 
 export function publicKeyToDid (
@@ -33,7 +33,7 @@ export function publicKeyToDid (
     return (BASE58_DID_PREFIX + toString(prefixedBuf, 'base58btc')) as DID
 }
 
-async function writeKeyToDid (crypto: Crypto.Implementation)
+export async function writeKeyToDid (crypto: Crypto.Implementation)
 :Promise<DID> {
     const [pubKey, ksAlg] = await Promise.all([
         crypto.keystore.publicWriteKey(),

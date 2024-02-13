@@ -2,8 +2,12 @@ import { Signal, batch, signal } from '@preact/signals'
 import Route from 'route-event'
 import { program as createProgram } from '@oddjs/odd'
 import { Implementation } from '@oddjs/odd/components/crypto/implementation'
-import { Identity, create as createId } from '../src/index.js'
-import { DID, writeKeyToDid } from '@ssc-half-light/util'
+import {
+    DID,
+    writeKeyToDid,
+    Identity,
+    create as createId
+} from '../src/index.js'
 
 type AppDeviceRecord = {
     humanName:string;  // a human-readblae name

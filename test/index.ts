@@ -1,16 +1,16 @@
 import { test } from '@nichoth/tapzero'
-import { writeKeyToDid, DID } from '@ssc-half-light/util'
-import { components, createCryptoComponent } from '@ssc-hermes/node-components'
+import { createCryptoComponent } from '@ssc-hermes/node-components'
 import { Crypto } from '@oddjs/odd'
 import { aesEncrypt, aesDecrypt } from
     '@oddjs/odd/components/crypto/implementation/browser'
 import { fromString, toString } from 'uint8arrays'
 import {
+    writeKeyToDid, DID,
     create, decryptKey, Identity, ALGORITHM, addDevice,
     getDeviceName, encryptTo, CurriedEncrypt,
     group, EncryptedMessage, Group, decryptMsg,
     AddToGroup
-} from '../dist/index.js'
+} from '../src/index.js'
 
 let identity:Identity
 let rootDID:DID
@@ -20,7 +20,7 @@ let rootDeviceName:string
 let alicesDeviceName:string
 
 test('create an identity', async t => {
-    crypto = alicesCrytpo = components.crypto
+    crypto = alicesCrytpo = await createCryptoComponent()
     rootDID = await writeKeyToDid(crypto)
 
     identity = await create(crypto, {
