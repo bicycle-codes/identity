@@ -38,7 +38,7 @@
     "@typescript-eslint/parser": "^6.21.0",
     "auto-changelog": "^2.4.0",
     "concurrently": "^8.2.2",
-    "esbuild": "^0.19.12",
+    "esbuild": "^0.20.1",
     "partykit": "^0.0.89",
     "partysocket": "0.0.21",
     "postcss-nesting": "^12.0.2",
