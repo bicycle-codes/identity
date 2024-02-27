@@ -8,7 +8,7 @@ export const did = z.custom<`did:key:z${string}`>(val => {
 
 export const device = z.object({
     aes: z.string(),
-    did: did,
+    did,
     exchange: z.string(),
     name: z.string()
 })
@@ -18,6 +18,6 @@ export const devices = z.record(z.string(), device)
 export const Identity = z.object({
     username: z.string(),
     humanName: z.string(),
-    rootDid: did,
+    rootDID: did,
     devices
 })

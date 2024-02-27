@@ -4,9 +4,16 @@
   "parserOptions": {
     "requireConfigFile": false
   },
+  "extends": [
+    "standard",
+    "plugin:@typescript-eslint/recommended"
+  ],
+  "plugins": [
+    "@typescript-eslint"
+  ],
   "rules": {
-    "dot-notation": ["off"],
-    "no-useless-constructor": ["off"],
+    "dot-notation": "off",
+    "@typescript-eslint/no-explicit-any": "off",
     "operator-linebreak": ["off"],
     "multiline-ternary": "off",
     "no-multiple-empty-lines": [
@@ -17,7 +24,10 @@
       }
     ],
     "no-undef": "off",
-    "indent": [ "error", 4, { "ignoredNodes": ["TemplateLiteral > *", "ConditionalExpression"] } ],
+    "indent": ["error", 4, {
+      "SwitchCase": 1,
+      "ignoredNodes": ["TemplateLiteral *"]
+    }],
     "comma-dangle": "off",
     "no-multi-spaces": ["error", { "ignoreEOLComments": true }]
   }
