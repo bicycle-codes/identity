@@ -1,9 +1,12 @@
 import type * as Party from 'partykit/server'
 
 export default class WebSocketServer implements Party.Server {
+    party:Party.Room
     existingDevice:string = ''
 
-    constructor (readonly party: Party.Party) {}
+    constructor (party:Party.Room) {
+        this.party = party
+    }
 
     onConnect (conn: Party.Connection, ctx: Party.ConnectionContext) {
         console.log(
@@ -28,7 +31,7 @@ export default class WebSocketServer implements Party.Server {
      *   - If this room already exists (if we already have an `existingDevice`),
      *     then the connection should be from a new device.
      */
-    static async onBeforeConnect (request:Party.Request, lobby:Party.Lobby) {
+    static async onBeforeConnect (request:Party.Request) {
         try {
             // get authentication server url from environment variables (optional)
             // const issuer = lobby.env.CLERK_ENDPOINT || DEFAULT_CLERK_ENDPOINT

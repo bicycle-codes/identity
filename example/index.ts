@@ -7,7 +7,7 @@ import './index.css'
 const state = await State()
 const router = Router()
 
-// @ts-ignore
+// @ts-expect-error For dev env
 window.state = state
 
 const TheApp:FunctionComponent = function () {
