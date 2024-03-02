@@ -1,8 +1,9 @@
 # identity 
-![tests](https://github.com/ssc-half-light/identity/actions/workflows/nodejs.yml/badge.svg)
-[![Socket Badge](https://socket.dev/api/badge/npm/package/@ssc-half-light/identity)](https://socket.dev/npm/package/@ssc-half-light/identity)
+![tests](https://github.com/bicycle-codes/identity/actions/workflows/nodejs.yml/badge.svg)
+[![Socket Badge](https://socket.dev/api/badge/npm/package/@bicycle-codes/identity)](https://socket.dev/npm/package/@ssc-bicycle-codes/identity)
 [![module](https://img.shields.io/badge/module-ESM-blue?style=flat-square)](README.md)
-[![types](https://img.shields.io/npm/types/@ssc-half-light/identity?style=flat-square)](README.md)
+[![types](https://img.shields.io/npm/types/@bicycle-codes/identity?style=flat-square)](README.md)
+[![semantic versioning](https://img.shields.io/badge/semver-2.0.0-blue?logo=semver&style=flat-square)](https://semver.org/)
 [![license](https://nichoth.github.io/badge/license-polyform-shield.svg)](LICENSE)
 
 This is an object representing a user. An Identity object contains a collection of "devices", where each device has several keypairs. This depends on each device having a [keystore](https://github.com/fission-codes/keystore-idb) that stores the private keys.
@@ -13,7 +14,7 @@ Each device has a primary keypair used for signing, which is `did` here, and als
 
 see also, [keystore as used in crypto component](https://github.com/oddsdk/ts-odd/blob/main/src/components/crypto/implementation/browser.ts#L8) 
 
-Devices are indexed by a sufficiently random key, created by calling [createDeviceName](https://github.com/ssc-half-light/identity/blob/ce5bb38cf9370c5f7ae1c5f545985c9ab574747b/src/index.ts#L359) with the primary did for the device.
+Devices are indexed by a sufficiently random key, created by calling [createDeviceName](https://github.com/bicycle-codes/identity/blob/ce5bb38cf9370c5f7ae1c5f545985c9ab574747b/src/index.ts#L359) with the primary did for the device.
 
 ------------------------
 
@@ -26,7 +27,7 @@ You can think of it like one conversation = 1 symmetric key. The person initiati
 
 ## install
 ```
-npm i -S @ssc-half-light/identity
+npm i -S @bicycle-codes/identity
 ```
 
 ------------------------------------------
@@ -121,27 +122,27 @@ npm test
 Import functions and types
 
 ```ts
-import { test } from '@nichoth/tapzero'
-import { writeKeyToDid, DID } from '@ssc-half-light/util'
+import { test } from '@bicycle-codes/tapzero'
 import {
     components,
     createCryptoComponent
 } from '@ssc-hermes/node-components'
 import { Crypto } from '@oddjs/odd'
-import { fromString, toString } from 'uint8arrays'
 import {
-    aesEncrypt, aesDecrypt,
+    fromString, toString, arrayBuffer,
+    writeKeyToDid, aesEncrypt, aesDecrypt,
     create, decryptKey, Identity, ALGORITHM, add,
     createDeviceName, encryptTo, CurriedEncrypt,
-    decryptMsg
-} from '@ssc-half-light/identity'
+    decryptMsg, DID
+} from '@bicycle-codes/identity'
+const { fromString, toString } = arrayBuffer
 ```
 
 ### strings
 Convenient helpers that will encode and decode strings with `base64pad` format.
 
 ```js
-import { arrayBuffer } from '@ssc-half-light/identity'
+import { arrayBuffer } from '@bicycle-codes/identity'
 const { fromString, toString } = arrayBuffer
 ```
 
@@ -197,7 +198,7 @@ const decryptedKey = await decryptKey(crypto, aes)
 Use the decrypted key to read and write
 
 ```ts
-import { aesDecrypt, aesEncrypt } from '@ssc-half-light/identity'
+import { aesDecrypt, aesEncrypt } from '@bicycle-codes/identity'
 
 test('can use the keys', async t => {
     // test that you can encrypt & decrypt with the symmetric key
@@ -378,7 +379,7 @@ export async function group (
 
 #### `group` example
 ```js
-import { group } from '@ssc-half-light/identity'
+import { group } from '@bicycle-codes/identity'
 
 // bob and carol are instances of Identity
 const myGroup = await group(alice, [bob, carol], key)
@@ -397,7 +398,7 @@ async function Decrypt (
 
 #### `group.Decrypt` example
 ```js
-import { group } from '@ssc-half-light/identity'
+import { group } from '@bicycle-codes/identity'
 
 const myGroup = await group(alice, [bob, carol], key)
 const groupMsg = await myGroup('hello group')
@@ -422,7 +423,7 @@ async function AddToGroup (
 
 #### `AddToGroup` example
 ```js
-import { AddToGroup, create } from '@ssc-half-light/identity'
+import { AddToGroup, create } from '@bicycle-codes/identity'
 
 const fran = await create(_crypto, {
     humanName: 'fran'
@@ -445,7 +446,7 @@ async function getDeviceName (input:DID|Crypto.Implementation):Promise<string>
 
 Pass in a `crypto` instance
 ```ts
-import { getDeviceName } from '@ssc-half-light/identity'
+import { getDeviceName } from '@bicycle-codes/identity'
 
 const myDeviceName = getDeviceName(program.components.crypto)
 // => '4k4z2xpgpmmssbcasqanlaxoxtpppl54'
@@ -453,7 +454,7 @@ const myDeviceName = getDeviceName(program.components.crypto)
 
 Pass in a DID as a string
 ```ts
-import { getDeviceName } from '@ssc-half-light/identity'
+import { getDeviceName } from '@bicycle-codes/identity'
 
 const deviceName = getDeviceName('did:key:z13V3Sog2Y...')
 // => '4k4z2xpgpmmssbcasqanlaxoxtpppl54'
