@@ -31,7 +31,7 @@ test('create an identity', async t => {
     rootDeviceName = deviceName
     t.ok(identity, 'should return a new identity')
     t.ok(identity.devices[deviceName].aes,
-        'should map the symmetric key, indexed by device name')
+        'should index the symmetric key by device name')
 })
 
 test('get your device name', async t => {

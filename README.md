@@ -149,25 +149,33 @@ const { fromString, toString } = arrayBuffer
 Create an identity
 
 ```ts
+import {
+    create,
+    writeKeyToDid,
+    getDeviceName
+} from '@bicycle-codes/identity'
+
 let identity:Identity
 let rootDid:DID
 let crypto:Crypto.Implementation
 let rootDeviceName:string
 
 test('create an identity', async t => {
-    // ...get an odd program somehow
+
+    // ...get an ODD program somehow...
     crypto = program.components.crypto
+
     rootDid = await writeKeyToDid(crypto)
 
     identity = await create(crypto, {
         humanName: 'alice',
     })
 
-    const deviceName = await createDeviceName(rootDid)
+    const deviceName = await getDeviceName(rootDid)
     rootDeviceName = deviceName
     t.ok(identity, 'should return a new identity')
     t.ok(identity.devices[deviceName].aes,
-        'should map the symmetric key, indexed by device name')
+        'should index the symmetric key by device name')
 })
 ```
 
