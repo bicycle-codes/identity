@@ -23,7 +23,7 @@ export const HomeRoute:FunctionComponent<{
             <div class="this-device-did">
                 <strong>This device DID:</strong>
                 <pre>
-                    <code>${state.identity.value?.rootDid}</code>
+                    <code>${state.identity.value?.rootDID}</code>
                 </pre>
             </div>
 
