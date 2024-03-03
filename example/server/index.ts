@@ -1,5 +1,10 @@
 import type * as Party from 'partykit/server'
 
+/**
+ * 1 room per device link session
+ *
+ * Existing device creates a room, then new device connects to the same room.
+ */
 export default class WebSocketServer implements Party.Server {
     party:Party.Room
     existingDevice:string = ''
