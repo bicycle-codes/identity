@@ -29,7 +29,7 @@
   },
   "devDependencies": {
     "@nichoth/components": "^0.16.5",
-    "@nichoth/debug": "^0.6.5",
+    "@nichoth/debug": "^0.6.6",
     "@nichoth/routes": "^4.0.4",
     "@nichoth/tapzero": "^0.8.4",
     "@preact/preset-vite": "^2.7.0",
