@@ -51,7 +51,7 @@
     "standardx": "^7.0.0",
     "tap-arc": "^1.2.2",
     "tape-run": "^11.0.0",
-    "typescript": "^5.3.3",
+    "typescript": "^5.4.2",
     "uuid": "^9.0.1",
     "vite": "^5.1.5"
   },
