@@ -43,7 +43,7 @@
     "esbuild": "^0.20.1",
     "partykit": "^0.0.96",
     "partysocket": "1.0.1",
-    "postcss-nesting": "^12.0.4",
+    "postcss-nesting": "^12.1.0",
     "preact": "^10.19.6",
     "route-event": "^4.2.20",
     "eslint": "^8.56.0",
