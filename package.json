@@ -24,7 +24,7 @@
     "@nichoth/nanoid-dictionary": "^5.0.2",
     "@oddjs/odd": "^0.37.2",
     "one-webcrypto": "^1.0.3",
-    "uint8arrays": "^5.0.2",
+    "uint8arrays": "^5.0.3",
     "zod": "^3.22.4"
   },
   "devDependencies": {
