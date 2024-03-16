@@ -133,7 +133,7 @@ import {
     writeKeyToDid, aesEncrypt, aesDecrypt,
     create, decryptKey, Identity, ALGORITHM, add,
     createDeviceName, encryptTo, CurriedEncrypt,
-    decryptMsg, DID
+    decryptMsg, DID, sign, signAsString, verifyFromString
 } from '@bicycle-codes/identity'
 const { fromString, toString } = arrayBuffer
 ```
@@ -178,6 +178,24 @@ test('create an identity', async t => {
     t.ok(identity.devices[deviceName].aes,
         'should index the symmetric key by device name')
 })
+```
+
+### sign and verify
+Sign a given string, and verify the signature.
+
+```ts
+// ... get an odd crypto instance ...
+// eg, const { crypto } = program.components
+const { keystore } = crypto
+const sig = await sign(keystore, 'hello')
+t.ok(sig instanceof Uint8Array, 'should return a Uint8Array')
+const sigStr = await signAsString(keystore, 'hello')
+const isValid = await verifyFromString(
+    'hello',
+    sigStr,
+    await writeKeyToDid(crypto)
+)
+t.equal(isValid, true, 'should validate a valid signature')
 ```
 
 ### decryptKey
