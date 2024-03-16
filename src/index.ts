@@ -3,7 +3,7 @@ import type { Crypto } from '@oddjs/odd'
 import { concat, fromString, toString } from 'uint8arrays'
 import {
     aesGenKey, aesExportKey, rsa, importAesKey, aesEncrypt,
-    aesDecrypt, sha256
+    aesDecrypt, sha256, did as didLib
 } from '@oddjs/odd/components/crypto/implementation/browser'
 import { SymmAlg } from 'keystore-idb/types.js'
 import type { Implementation } from '@oddjs/odd/components/crypto/implementation'
@@ -11,6 +11,7 @@ export {
     aesDecrypt,
     aesEncrypt
 } from '@oddjs/odd/components/crypto/implementation/browser'
+type KeyStore = Implementation['keystore']
 
 export type DID = `did:key:z${string}`
 const BASE58_DID_PREFIX = 'did:key:z'
@@ -33,7 +34,7 @@ export function publicKeyToDid (
     return (BASE58_DID_PREFIX + toString(prefixedBuf, 'base58btc')) as DID
 }
 
-export async function writeKeyToDid (crypto: Crypto.Implementation)
+export async function writeKeyToDid (crypto:Crypto.Implementation)
 :Promise<DID> {
     const [pubKey, ksAlg] = await Promise.all([
         crypto.keystore.publicWriteKey(),
@@ -460,6 +461,46 @@ export async function createDeviceName (did:DID):Promise<string> {
 }
 
 /**
+ * Sign a string. Return the signature as Uint8Array.
+ * @param keystore Local keystore instance
+ * @param msg The message to sign
+ * @returns {Promise<Uint8Array>} The signature
+ */
+export function sign (keystore:KeyStore, msg:string):Promise<Uint8Array> {
+    return keystore.sign(fromString(msg))
+}
+
+/**
+ * Sign a string; return the signature as `base64pad` encoded string.
+ */
+export async function signAsString (
+    keystore:KeyStore,
+    msg:string
+):Promise<string> {
+    return arrToString(await keystore.sign(fromString(msg)))
+}
+
+/**
+ * Check that the given signature is valid with the given message.
+ */
+export async function verifyFromString (
+    msg:string,
+    sig:string,
+    signingDid:DID
+):Promise<boolean> {
+    const { publicKey, type } = didToPublicKey(signingDid)
+    const keyType = didLib.keyTypes[type]
+
+    const isValid = await keyType.verify({
+        message: fromString(msg),
+        publicKey,
+        signature: fromString(sig, 'base64pad')
+    })
+
+    return isValid
+}
+
+/**
  * Create a 32-character, DNS-friendly hash for a device. Takes either the DID
  * string or a crypto instance.
  * @param {DID|Implementation} input DID string or Crypto implementation
@@ -486,4 +527,77 @@ function arrFromString (str:string) {
 
 function arrToString (arr:Uint8Array) {
     return toString(arr, 'base64pad')
+}
+
+const EDWARDS_DID_PREFIX = new Uint8Array([0xed, 0x01])
+const BLS_DID_PREFIX = new Uint8Array([0xea, 0x01])
+const RSA_DID_PREFIX = new Uint8Array([0x00, 0xf5, 0x02])
+
+const KEY_TYPE = {
+    RSA: 'rsa',
+    Edwards: 'ed25519',
+    BLS: 'bls12-381'
+} as const
+
+const arrBufs = {
+    equal: (aBuf, bBuf) => {
+        const a = new Uint8Array(aBuf)
+        const b = new Uint8Array(bBuf)
+        if (a.length !== b.length) return false
+        for (let i = 0; i < a.length; i++) {
+            if (a[i] !== b[i]) return false
+        }
+        return true
+    }
+}
+
+export function didToPublicKey (did:string):({
+    publicKey:Uint8Array,
+    type:'rsa' | 'ed25519' | 'bls12-381'
+}) {
+    if (!did.startsWith(BASE58_DID_PREFIX)) {
+        throw new Error(
+            'Please use a base58-encoded DID formatted `did:key:z...`')
+    }
+
+    const didWithoutPrefix = ('' + did.substring(BASE58_DID_PREFIX.length))
+    const magicalBuf = fromString(didWithoutPrefix, 'base58btc')
+    const { keyBuffer, type } = parseMagicBytes(magicalBuf)
+
+    return {
+        publicKey: keyBuffer,
+        type
+    }
+}
+
+/**
+ * Parse magic bytes on prefixed key-buffer
+ * to determine cryptosystem & the unprefixed key-buffer.
+ */
+function parseMagicBytes (prefixedKey) {
+    // RSA
+    if (hasPrefix(prefixedKey, RSA_DID_PREFIX)) {
+        return {
+            keyBuffer: prefixedKey.slice(RSA_DID_PREFIX.byteLength),
+            type: KEY_TYPE.RSA
+        }
+    // EDWARDS
+    } else if (hasPrefix(prefixedKey, EDWARDS_DID_PREFIX)) {
+        return {
+            keyBuffer: prefixedKey.slice(EDWARDS_DID_PREFIX.byteLength),
+            type: KEY_TYPE.Edwards
+        }
+    // BLS
+    } else if (hasPrefix(prefixedKey, BLS_DID_PREFIX)) {
+        return {
+            keyBuffer: prefixedKey.slice(BLS_DID_PREFIX.byteLength),
+            type: KEY_TYPE.BLS
+        }
+    }
+
+    throw new Error('Unsupported key algorithm. Try using RSA.')
+}
+
+function hasPrefix (prefixedKey, prefix) {
+    return arrBufs.equal(prefix, prefixedKey.slice(0, prefix.byteLength))
 }

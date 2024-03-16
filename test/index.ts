@@ -9,7 +9,7 @@ import {
     create, decryptKey, Identity, ALGORITHM, addDevice,
     getDeviceName, encryptTo, CurriedEncrypt,
     group, EncryptedMessage, Group, decryptMsg,
-    AddToGroup
+    AddToGroup, sign, signAsString, verifyFromString
 } from '../dist/index.js'
 
 let identity:Identity
@@ -203,4 +203,17 @@ test('encrypt/decrypt a message', async t => {
 
     t.equal(newDecryptedMsg, 'hello bob',
         'Bob can decrypt a message encrypted to bob')
+})
+
+test('sign and verify', async t => {
+    const { keystore } = crypto
+    const sig = await sign(keystore, 'hello')
+    t.ok(sig instanceof Uint8Array, 'should return a Uint8Array')
+    const sigStr = await signAsString(keystore, 'hello')
+    const isValid = await verifyFromString(
+        'hello',
+        sigStr,
+        await writeKeyToDid(crypto)
+    )
+    t.equal(isValid, true, 'should validate a valid signature')
 })
