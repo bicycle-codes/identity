@@ -47,9 +47,8 @@
     "postcss-nesting": "^12.1.0",
     "preact": "^10.19.6",
     "route-event": "^4.2.20",
-    "eslint": "^8.56.0",
+    "eslint": "^8.57.0",
     "eslint-config-standard": "^17.1.0",
-    "standardx": "^7.0.0",
     "tap-arc": "^1.2.2",
     "tape-run": "^11.0.0",
     "typescript": "^5.4.2",
@@ -80,20 +79,20 @@
   "files": [
     "dist/*"
   ],
-  "author": "nichoth <nichoth@gmail.com> (https://nichoth.com)",
+  "author": "nichoth <nichoth@nichoth.com> (https://nichoth.com)",
   "license": "SEE LICENSE IN LICENSE",
   "directories": {
     "test": "test"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ssc-hermes/identity.git"
+    "url": "git+https://github.com/bicycle-codes/identity.git"
   },
   "keywords": [
     "identity"
   ],
   "bugs": {
-    "url": "https://github.com/ssc-hermes/identity/issues"
+    "url": "https://github.com/bicycle-codes/identity/issues"
   },
-  "homepage": "https://github.com/ssc-hermes/identity#readme"
+  "homepage": "https://github.com/bicycle-codes/identity#readme"
 }

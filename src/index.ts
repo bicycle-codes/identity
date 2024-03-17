@@ -384,11 +384,12 @@ function isCryptoKey (val:unknown):val is CryptoKey {
 }
 
 /**
- * Add a device to this identity. This is performed from a device that is currently
- * registered. You need to get the exchange key of the new device somehow.
+ * Add a device to this identity. This is performed from a device that is
+ * currently registered. You need to get the exchange key of the new
+ * device somehow.
  *
  * @param {Identity} id The `Identity` instance to add to
- * @param {Implementation} crypto An instance of Fission's crypto
+ * @param {Implementation} crypto An instance of ODD crypto
  * @param {string} newDid The DID of the new device
  * @param {Uint8Array} exchangeKey The exchange key of the new device
  * @returns {Promise<Identity>} A new identity object, with the new device
