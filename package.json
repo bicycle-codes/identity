@@ -31,7 +31,7 @@
   "devDependencies": {
     "@nichoth/components": "^0.16.5",
     "@nichoth/debug": "^0.6.7",
-    "@nichoth/routes": "^4.0.5",
+    "@nichoth/routes": "^4.0.7",
     "@nichoth/tapzero": "^0.8.4",
     "@preact/preset-vite": "^2.8.2",
     "@preact/signals": "^1.2.2",
