@@ -45,7 +45,7 @@
     "partykit": "^0.0.99",
     "partysocket": "1.0.1",
     "postcss-nesting": "^12.1.0",
-    "preact": "^10.19.6",
+    "preact": "^10.19.7",
     "route-event": "^4.2.20",
     "eslint": "^8.57.0",
     "eslint-config-standard": "^17.1.0",
