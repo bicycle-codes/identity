@@ -19,10 +19,10 @@
     "jsxFactory": "h",
     "jsxFragmentFactory": "Fragment",
     "noImplicitAny": false,
-    "sourceMap": true,
     "declaration": true,
     "declarationDir": "dist",
-    "declarationMap": true
+    "declarationMap": true,
+    "inlineSourceMap": true
   },
   "include": [
     "example",
