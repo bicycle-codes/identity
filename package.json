@@ -2,7 +2,7 @@
   "name": "@bicycle-codes/identity",
   "description": "An identity record",
   "type": "module",
-  "version": "0.4.4",
+  "version": "0.4.3",
   "main": "dist/index.js",
   "scripts": {
     "start": "concurrently --kill-others \"npx partykit dev\" \"npx vite\"",
@@ -17,7 +17,7 @@
     "build:min:esm": "mkdir -p ./dist && esbuild ./src/*.ts --sourcemap=inline --outdir=./dist --format=esm --minify --keep-names --bundle --out-extension:.js=.min.js",
     "preversion": "npm run lint",
     "version": "auto-changelog -p --template keepachangelog --breaking-pattern 'BREAKING CHANGE:' && git add CHANGELOG.md",
-    "postversion": "git push --follow-tags && npm publish",
+    "postversion": "git push --follow-tags && npm publish && npm publish --@bicycle-codes:registry=https://registry.npmjs.org",
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
