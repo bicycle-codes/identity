@@ -129,21 +129,19 @@ import {
 } from '@ssc-hermes/node-components'
 import { Crypto } from '@oddjs/odd'
 import {
-    fromString, toString, arrayBuffer,
+    fromString, toString, toString, fromString,
     writeKeyToDid, aesEncrypt, aesDecrypt,
     create, decryptKey, Identity, ALGORITHM, add,
     createDeviceName, encryptTo, CurriedEncrypt,
     decryptMsg, DID, sign, signAsString, verifyFromString
 } from '@bicycle-codes/identity'
-const { fromString, toString } = arrayBuffer
 ```
 
 ### strings
 Convenient helpers that will encode and decode strings with `base64pad` format.
 
 ```js
-import { arrayBuffer } from '@bicycle-codes/identity'
-const { fromString, toString } = arrayBuffer
+import { fromString, toString } from '@bicycle-codes/identity'
 ```
 
 ### create

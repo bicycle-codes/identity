@@ -1,6 +1,10 @@
 import { webcrypto } from 'one-webcrypto'
 import type { Crypto } from '@oddjs/odd'
-import { concat, fromString, toString } from 'uint8arrays'
+import {
+    concat,
+    fromString as uFromString,
+    toString as uToString
+} from 'uint8arrays'
 import {
     aesGenKey, aesExportKey, rsa, importAesKey, aesEncrypt,
     aesDecrypt, sha256, did as didLib
@@ -31,7 +35,7 @@ export function publicKeyToDid (
     const prefixedBuf = concat([prefix, publicKey])
 
     // Encode prefixed
-    return (BASE58_DID_PREFIX + toString(prefixedBuf, 'base58btc')) as DID
+    return (BASE58_DID_PREFIX + uToString(prefixedBuf, 'base58btc')) as DID
 }
 
 export async function writeKeyToDid (crypto:Crypto.Implementation)
@@ -88,7 +92,7 @@ export async function create (
     const exchangeKey = await crypto.keystore.publicExchangeKey()
 
     // i think only RSA is supported currently
-    const encryptedKey = toString(
+    const encryptedKey = uToString(
         await rsa.encrypt(exported, exchangeKey),
         'base64pad'
     )
@@ -98,7 +102,7 @@ export async function create (
         aes: encryptedKey,
         name: deviceName,
         did: rootDID,
-        exchange: arrToString(exchangeKey)
+        exchange: toString(exchangeKey)
     }
 
     return {
@@ -157,9 +161,9 @@ export async function encryptTo (
     const encryptedKeys = {}
     for (const id of ids.concat(creator)) {
         for await (const deviceName of Object.keys(id.devices)) {
-            encryptedKeys[deviceName] = arrToString(
+            encryptedKeys[deviceName] = toString(
                 await rsa.encrypt(await aesExportKey(key),
-                    arrFromString(id.devices[deviceName].exchange)),
+                    fromString(id.devices[deviceName].exchange)),
             )
         }
     }
@@ -183,7 +187,7 @@ export async function decryptMsg (
     const deviceName = await createDeviceName(rootDID)
     const encryptedKey = encryptedMsg.devices[deviceName]
     const decryptedKey = await decryptKey(crypto, encryptedKey)
-    const msgBuf = fromString(encryptedMsg.payload, 'base64pad')
+    const msgBuf = uFromString(encryptedMsg.payload, 'base64pad')
     const decryptedMsg = await aesDecrypt(msgBuf, decryptedKey, ALGORITHM)
     return toString(decryptedMsg)
 }
@@ -220,9 +224,9 @@ export async function group (
     const encryptedKeys = {}
     for (const id of ids.concat(creator)) {
         for await (const deviceName of Object.keys(id.devices)) {
-            encryptedKeys[deviceName] = arrToString(
+            encryptedKeys[deviceName] = toString(
                 await rsa.encrypt(await aesExportKey(key),
-                    arrFromString(id.devices[deviceName].exchange)),
+                    fromString(id.devices[deviceName].exchange)),
             )
         }
     }
@@ -262,9 +266,9 @@ export async function AddToGroup (
 
         for (const deviceName of Object.keys(identity.devices)) {
             // group.encryptedKeys[deviceName] = arrToString(
-            newEncryptedKeys[deviceName] = arrToString(
+            newEncryptedKeys[deviceName] = toString(
                 await rsa.encrypt(await aesExportKey(keyOrCrypto),
-                    arrFromString(identity.devices[deviceName].exchange))
+                    fromString(identity.devices[deviceName].exchange))
             )
         }
     } else {
@@ -276,10 +280,10 @@ export async function AddToGroup (
         for (const deviceName of Object.keys(identity.devices)) {
             // now encrypt it to each new device
             const device = identity.devices[deviceName]
-            const newEncryptedKey = arrToString(
+            const newEncryptedKey = toString(
                 await rsa.encrypt(
                     await aesExportKey(decryptedKey),
-                    arrFromString(device.exchange)
+                    fromString(device.exchange)
                 )
             )
 
@@ -312,7 +316,7 @@ export async function Decrypt (
     const myKey = group.encryptedKeys[await createDeviceName(did)]
 
     const decryptedKey = await decryptKey(crypto, myKey)
-    const msgBuf = typeof msg === 'string' ? fromString(msg, 'base64pad') : msg
+    const msgBuf = typeof msg === 'string' ? uFromString(msg, 'base64pad') : msg
     const decryptedMsg = await aesDecrypt(msgBuf, decryptedKey, ALGORITHM)
     return toString(decryptedMsg)
 }
@@ -329,7 +333,7 @@ export async function encryptContent (
 ):Promise<string> {
     const _data = (typeof data === 'string' ? fromString(data) : data)
 
-    const encrypted = toString(await aesEncrypt(
+    const encrypted = uToString(await aesEncrypt(
         _data,
         key,
         ALGORITHM
@@ -348,7 +352,7 @@ export async function encryptKey (
     key:CryptoKey,
     exchangeKey:Uint8Array|CryptoKey
 ):Promise<string> {
-    const encryptedKey = toString(
+    const encryptedKey = uToString(
         await rsa.encrypt(await aesExportKey(key), exchangeKey),
         'base64pad'
     )
@@ -367,7 +371,7 @@ export async function encryptKey (
 export async function decryptKey (crypto:Implementation, encryptedKey:string)
 :Promise<CryptoKey> {
     const decrypted = await crypto.keystore.decrypt(
-        arrFromString(encryptedKey))
+        fromString(encryptedKey))
 
     const key = await importAesKey(decrypted, SymmAlg.AES_GCM)
     return key
@@ -412,17 +416,17 @@ export async function addDevice (
     let exchangeString:string
 
     if (typeof exchangeKey === 'string') {
-        const key = arrFromString(exchangeKey)
+        const key = fromString(exchangeKey)
         encryptedKey = await encryptKey(secretKey, key)
         exchangeString = exchangeKey
     } else if (ArrayBuffer.isView(exchangeKey)) {
         // is uint8array
         encryptedKey = await encryptKey(secretKey, exchangeKey)
-        exchangeString = arrToString(exchangeKey)
+        exchangeString = toString(exchangeKey)
     } else if (isCryptoKey(exchangeKey)) {
         // is CryptoKey
         encryptedKey = await encryptKey(secretKey, exchangeKey)
-        exchangeString = arrToString(
+        exchangeString = toString(
             new Uint8Array(await webcrypto.subtle.exportKey('raw', exchangeKey))
         )
     } else {
@@ -458,7 +462,7 @@ export async function createDeviceName (did:DID):Promise<string> {
     const hashedUsername = await sha256(
         new TextEncoder().encode(normalizedDid)
     )
-    return toString(hashedUsername, 'base32').slice(0, 32)
+    return uToString(hashedUsername, 'base32').slice(0, 32)
 }
 
 /**
@@ -468,7 +472,7 @@ export async function createDeviceName (did:DID):Promise<string> {
  * @returns {Promise<Uint8Array>} The signature
  */
 export function sign (keystore:KeyStore, msg:string):Promise<Uint8Array> {
-    return keystore.sign(fromString(msg))
+    return keystore.sign(uFromString(msg))
 }
 
 /**
@@ -478,7 +482,7 @@ export async function signAsString (
     keystore:KeyStore,
     msg:string
 ):Promise<string> {
-    return arrToString(await keystore.sign(fromString(msg)))
+    return toString(await keystore.sign(uFromString(msg)))
 }
 
 /**
@@ -493,9 +497,9 @@ export async function verifyFromString (
     const keyType = didLib.keyTypes[type]
 
     const isValid = await keyType.verify({
-        message: fromString(msg),
+        message: uFromString(msg),
         publicKey,
-        signature: fromString(sig, 'base64pad')
+        signature: uFromString(sig, 'base64pad')
     })
 
     return isValid
@@ -517,17 +521,24 @@ export async function getDeviceName (input:DID|Implementation):Promise<string> {
     return createDeviceName(did)
 }
 
-export const arrayBuffer = {
-    fromString: arrFromString,
-    toString: arrToString
+/**
+ * Create a `Uint8Array` from a given `base64pad` encoded string.
+ *
+ * @param str `base64pad` encoded string
+ * @returns {Uint8Array}
+ */
+export function fromString (str:string) {
+    return uFromString(str, 'base64pad')
 }
 
-function arrFromString (str:string) {
-    return fromString(str, 'base64pad')
-}
-
-function arrToString (arr:Uint8Array) {
-    return toString(arr, 'base64pad')
+/**
+ * Convert a Uin8Array to `base64pad` encoded string.
+ *
+ * @param {Uint8Array} arr Binary data
+ * @returns {string} String encoded as `base64pad`
+ */
+export function toString (arr:Uint8Array) {
+    return uToString(arr, 'base64pad')
 }
 
 const EDWARDS_DID_PREFIX = new Uint8Array([0xed, 0x01])
@@ -562,7 +573,7 @@ export function didToPublicKey (did:string):({
     }
 
     const didWithoutPrefix = ('' + did.substring(BASE58_DID_PREFIX.length))
-    const magicalBuf = fromString(didWithoutPrefix, 'base58btc')
+    const magicalBuf = uFromString(didWithoutPrefix, 'base58btc')
     const { keyBuffer, type } = parseMagicBytes(magicalBuf)
 
     return {

@@ -6,7 +6,7 @@ import { writeKeyToDid } from '@ssc-half-light/util'
 import { Button } from '@nichoth/components/htm/button'
 import { TextInput } from '@nichoth/components/htm/text-input'
 import * as z from '../../src/z.js'
-import { arrayBuffer, createDeviceName } from '../../src/index.js'
+import { toString, createDeviceName } from '../../src/index.js'
 import { State, LinkSuccess } from '../state.js'
 
 /**
@@ -78,7 +78,7 @@ export const Connect:FunctionComponent<{
         partySocket.send(JSON.stringify({
             deviceName,
             newDid: await writeKeyToDid(state._crypto),
-            exchangeKey: arrayBuffer.toString(
+            exchangeKey: toString(
                 await state._crypto.keystore.publicExchangeKey()
             )
         }))
