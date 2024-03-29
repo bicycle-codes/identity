@@ -30,6 +30,30 @@ You can think of it like one conversation = 1 symmetric key. The person initiati
 npm i -S @bicycle-codes/identity
 ```
 
+## use
+This uses [@oddjs/odd](https://www.npmjs.com/package/@oddjs/odd) to store the local keys.
+
+```js
+import { program as createProgram } from '@oddjs/odd'
+import { create } from '@bicycle-codes/identity'
+
+// ...get an ODD program somehow...
+
+const program = await createProgram({
+    namespace: {
+        name: 'my-app',
+        creator: 'my-company'
+    }
+})
+crypto = program.components.crypto
+
+// ...
+
+identity = await create(crypto, {
+    humanName: 'alice',
+})
+```
+
 ------------------------------------------
 
 ## demo
