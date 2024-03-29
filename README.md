@@ -148,6 +148,7 @@ import { fromString, toString } from '@bicycle-codes/identity'
 Create an identity
 
 ```ts
+import { program as createProgram } from '@oddjs/odd'
 import {
     create,
     writeKeyToDid,
@@ -162,7 +163,18 @@ let rootDeviceName:string
 test('create an identity', async t => {
 
     // ...get an ODD program somehow...
+    const program = await createProgram({
+        namespace: {
+            name: 'my-app',
+            creator: 'my-company'
+        },
+        debug: true,
+        fileSystem: {
+            loadImmediately: false
+        }
+    })
     crypto = program.components.crypto
+    // ...
 
     rootDid = await writeKeyToDid(crypto)
 
