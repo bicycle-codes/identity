@@ -51,7 +51,7 @@
     "eslint-config-standard": "^17.1.0",
     "tap-arc": "^1.2.2",
     "tape-run": "^11.0.0",
-    "typescript": "^5.4.3",
+    "typescript": "^5.4.4",
     "uuid": "^9.0.1",
     "vite": "^5.2.8"
   },
