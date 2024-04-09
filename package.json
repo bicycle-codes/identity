@@ -37,7 +37,7 @@
     "@preact/signals": "^1.2.3",
     "@ssc-half-light/util": "^0.11.5",
     "@ssc-hermes/node-components": "^0.1.12",
-    "@typescript-eslint/eslint-plugin": "^7.5.0",
+    "@typescript-eslint/eslint-plugin": "^7.6.0",
     "@typescript-eslint/parser": "^7.6.0",
     "auto-changelog": "^2.4.0",
     "concurrently": "^8.2.2",
