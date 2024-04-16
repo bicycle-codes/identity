@@ -44,6 +44,7 @@ export async function writeKeyToDid (crypto:Crypto.Implementation)
         crypto.keystore.publicWriteKey(),
         crypto.keystore.getAlgorithm()
     ])
+
     return publicKeyToDid(crypto, pubKey, ksAlg)
 }
 
@@ -134,14 +135,20 @@ export type CurriedEncrypt = (data:string|Uint8Array) => Promise<EncryptedMessag
  * To decrypt this message, use your exchange key to decrypt the symm key,
  * then use the symm key to decrypt the payload.
  *
+ * Omit `ids` to encrypt a message to yourself.
+ *
+ * If you do not pass in an argument for `data`, then this will return
+ * a partially applied function.
+ *
  * This creates a new AES key each time it is called.
- * @param crypto odd crypto object
- * @param ids The Identities we are encrypting to
- * @param data The message we want to encrypt
+ *
+ * @param {Implementation} crypto odd crypto object
+ * @param {Identity[]} [ids] The Identities we are encrypting to
+ * @param {string|Uint8Array} data The message we want to encrypt
  */
 export async function encryptTo (
     creator:Identity,
-    ids:Identity[],
+    ids?:Identity[],
     data?:string|Uint8Array
 ):Promise<EncryptedMessage | CurriedEncrypt> {
     if (!data) {
@@ -159,7 +166,7 @@ export async function encryptTo (
     const key = await aesGenKey(SymmAlg.AES_GCM)
 
     const encryptedKeys = {}
-    for (const id of ids.concat(creator)) {
+    for (const id of (ids || []).concat(creator)) {
         for await (const deviceName of Object.keys(id.devices)) {
             encryptedKeys[deviceName] = toString(
                 await rsa.encrypt(await aesExportKey(key),
