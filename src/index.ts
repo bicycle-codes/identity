@@ -11,10 +11,9 @@ import {
 } from '@oddjs/odd/components/crypto/implementation/browser'
 import { SymmAlg } from 'keystore-idb/types.js'
 import type { Implementation } from '@oddjs/odd/components/crypto/implementation'
-export {
-    aesDecrypt,
-    aesEncrypt
-} from '@oddjs/odd/components/crypto/implementation/browser'
+
+export { aesDecrypt, aesEncrypt }
+
 type KeyStore = Implementation['keystore']
 
 export type DID = `did:key:z${string}`
@@ -166,7 +165,7 @@ export async function encryptTo (
     const key = await aesGenKey(SymmAlg.AES_GCM)
 
     const encryptedKeys = {}
-    for (const id of (ids || []).concat(creator)) {
+    for (const id of (ids || []).concat([creator])) {
         for await (const deviceName of Object.keys(id.devices)) {
             encryptedKeys[deviceName] = toString(
                 await rsa.encrypt(await aesExportKey(key),
@@ -196,7 +195,7 @@ export async function decryptMsg (
     const decryptedKey = await decryptKey(crypto, encryptedKey)
     const msgBuf = uFromString(encryptedMsg.payload, 'base64pad')
     const decryptedMsg = await aesDecrypt(msgBuf, decryptedKey, ALGORITHM)
-    return toString(decryptedMsg)
+    return uToString(decryptedMsg)
 }
 
 export type Group = {
@@ -229,11 +228,13 @@ export async function group (
     }
 
     const encryptedKeys = {}
-    for (const id of ids.concat(creator)) {
+    for (const id of ids.concat([creator])) {
         for await (const deviceName of Object.keys(id.devices)) {
             encryptedKeys[deviceName] = toString(
-                await rsa.encrypt(await aesExportKey(key),
-                    fromString(id.devices[deviceName].exchange)),
+                await rsa.encrypt(
+                    await aesExportKey(key),
+                    fromString(id.devices[deviceName].exchange)
+                ),
             )
         }
     }
@@ -322,8 +323,10 @@ export async function Decrypt (
     const did = await writeKeyToDid(crypto)
     const myKey = group.encryptedKeys[await createDeviceName(did)]
 
+    console.log('**my key**', myKey)
+
     const decryptedKey = await decryptKey(crypto, myKey)
-    const msgBuf = typeof msg === 'string' ? uFromString(msg, 'base64pad') : msg
+    const msgBuf = typeof msg === 'string' ? uFromString(msg) : msg
     const decryptedMsg = await aesDecrypt(msgBuf, decryptedKey, ALGORITHM)
     return toString(decryptedMsg)
 }
@@ -338,13 +341,13 @@ export async function encryptContent (
     key:CryptoKey,
     data:string|Uint8Array
 ):Promise<string> {
-    const _data = (typeof data === 'string' ? fromString(data) : data)
+    const _data = (typeof data === 'string' ? uFromString(data) : data)
 
-    const encrypted = uToString(await aesEncrypt(
+    const encrypted = toString(await aesEncrypt(
         _data,
         key,
         ALGORITHM
-    ), 'base64pad')
+    ))
 
     return encrypted
 }
@@ -375,10 +378,12 @@ export async function encryptKey (
  *   `identity.devices[name].aes`
  * @returns {Promise<CryptoKey>} The symmetric key
  */
-export async function decryptKey (crypto:Implementation, encryptedKey:string)
-:Promise<CryptoKey> {
-    const decrypted = await crypto.keystore.decrypt(
-        fromString(encryptedKey))
+export async function decryptKey (
+    crypto:Implementation,
+    encryptedKey:string
+):Promise<CryptoKey> {
+    const decrypted = await crypto.keystore.decrypt(fromString(encryptedKey))
+    console.log('**decrypted**', decrypted)
 
     const key = await importAesKey(decrypted, SymmAlg.AES_GCM)
     return key
