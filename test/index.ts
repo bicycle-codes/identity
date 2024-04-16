@@ -166,6 +166,7 @@ test('create an encrypted group', async t => {
     t.ok(groupMsg, 'should create an encrypted message')
     t.equal(typeof groupMsg, 'string',
         'should return encrypted message as a string')
+    console.log('**group message**', groupMsg)
 })
 
 test('decrypt the encrypted group message', async t => {
