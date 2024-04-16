@@ -325,9 +325,14 @@ export async function Decrypt (
 
     console.log('**my key**', myKey)
 
+    console.log('**the message**', msg)
+
     const decryptedKey = await decryptKey(crypto, myKey)
-    const msgBuf = typeof msg === 'string' ? uFromString(msg) : msg
+    console.log('**decrypted key**', decryptedKey)
+    const msgBuf = typeof msg === 'string' ? uFromString(msg, 'base64pad') : msg
+    console.log('**bufferr**', msgBuf)
     const decryptedMsg = await aesDecrypt(msgBuf, decryptedKey, ALGORITHM)
+    console.log('**the decrypted message**', decryptedMsg)
     return toString(decryptedMsg)
 }
 
@@ -335,7 +340,7 @@ export async function Decrypt (
  * Take data in string format, and encrypt it with the given symmetric key.
  * @param key The symmetric key used to encrypt/decrypt
  * @param data The text to encrypt
- * @returns {string}
+ * @returns {string} Encrypted data encoded as `base64pad` string.
  */
 export async function encryptContent (
     key:CryptoKey,
@@ -383,7 +388,6 @@ export async function decryptKey (
     encryptedKey:string
 ):Promise<CryptoKey> {
     const decrypted = await crypto.keystore.decrypt(fromString(encryptedKey))
-    console.log('**decrypted**', decrypted)
 
     const key = await importAesKey(decrypted, SymmAlg.AES_GCM)
     return key
