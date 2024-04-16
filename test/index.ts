@@ -169,6 +169,7 @@ test('create an encrypted group', async t => {
 })
 
 test('decrypt the encrypted group message', async t => {
+    t.plan(1)
     const msg = await group.Decrypt(myGroup, alicesCrytpo, groupMsg)
     t.equal(msg, 'hello group', 'can decrypt an encrypted group message')
 })
