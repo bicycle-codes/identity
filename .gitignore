@@ -7,3 +7,4 @@ test/test-bundle.js
 .env
 public
 test/*.js
+src/*.js

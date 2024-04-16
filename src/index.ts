@@ -310,30 +310,29 @@ export async function AddToGroup (
 /**
  * Decrypt a message encrypted to a given group.
  * @param {Group} group The group containing the key
- * @param {Implementation} crypto An odd crypto instance
+ * @param {Implementation} oddCrypto An odd crypto instance
  * @param {string|Uint8Array} msg The message to decrypt
  * @returns {Promise<string>} The decrypted message
  */
 export async function Decrypt (
     group:Group,
-    crypto:Implementation,
+    oddCrypto:Implementation,
     msg:string|Uint8Array
 ):Promise<string> {
     // get the right key from the group
-    const did = await writeKeyToDid(crypto)
+    const did = await writeKeyToDid(oddCrypto)
     const myKey = group.encryptedKeys[await createDeviceName(did)]
 
-    console.log('**my key**', myKey)
+    const decryptedKey = await decryptKey(oddCrypto, myKey)
 
-    console.log('**the message**', msg)
+    const decryptedMsg = await aesDecrypt(
+        ((typeof msg === 'string') ? uFromString(msg, 'base64pad') : msg),
+        decryptedKey,
+        ALGORITHM
+    )
 
-    const decryptedKey = await decryptKey(crypto, myKey)
-    console.log('**decrypted key**', decryptedKey)
-    const msgBuf = typeof msg === 'string' ? uFromString(msg, 'base64pad') : msg
-    console.log('**bufferr**', msgBuf)
-    const decryptedMsg = await aesDecrypt(msgBuf, decryptedKey, ALGORITHM)
-    console.log('**the decrypted message**', decryptedMsg)
-    return toString(decryptedMsg)
+    const string = uToString(decryptedMsg)
+    return string
 }
 
 /**

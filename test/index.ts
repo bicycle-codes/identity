@@ -10,7 +10,7 @@ import {
     getDeviceName, encryptTo, CurriedEncrypt,
     group, EncryptedMessage, Group, decryptMsg,
     AddToGroup, sign, signAsString, verifyFromString
-} from '../dist/index.js'
+} from '../src/index.js'
 
 let identity:Identity
 let rootDID:DID
@@ -165,14 +165,31 @@ test('create an encrypted group', async t => {
     groupMsg = await myGroup('hello group')
     t.ok(groupMsg, 'should create an encrypted message')
     t.equal(typeof groupMsg, 'string',
-        'should return encrypted message as a string')
-    console.log('**group message**', groupMsg)
+        'should return the encrypted message as a string')
 })
 
 test('decrypt the encrypted group message', async t => {
-    t.plan(1)
-    const msg = await group.Decrypt(myGroup, alicesCrytpo, groupMsg)
-    t.equal(msg, 'hello group', 'can decrypt an encrypted group message')
+    t.plan(5)
+
+    const myKey = myGroup.encryptedKeys[alicesDeviceName]
+    t.equal(typeof myKey, 'string', 'got a key')
+    const decKey = await decryptKey(alicesCrytpo, myKey)
+    t.ok(decKey instanceof CryptoKey,
+        'decryptKey should return a CryptoKey')
+
+    const _msg = await aesDecrypt(
+        fromString(groupMsg, 'base64pad'),
+        decKey,
+        ALGORITHM
+    )
+
+    const msg = toString(_msg)
+
+    t.equal(typeof msg, 'string', 'should decrypt a message')
+    t.equal(msg, 'hello group', 'should decrypt to the correct value')
+
+    const decrypted = await group.Decrypt(myGroup, alicesCrytpo, groupMsg)
+    t.equal(decrypted, 'hello group', 'should decrypt the correct value')
 })
 
 test('add a new member to the group', async t => {
