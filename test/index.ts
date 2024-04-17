@@ -133,6 +133,27 @@ test('can partially apply the `encryptTo` function', async t => {
     t.equal(decrypted, 'hello curry', 'can partially apply the function')
 })
 
+let noteToSelf:EncryptedMessage
+test('encrypt a message to yourself', async t => {
+    noteToSelf = await encryptTo(alice, null, 'hello self') as EncryptedMessage
+    t.deepEqual(noteToSelf.creator, alice, 'has message.creator')
+    t.equal(typeof noteToSelf.payload, 'string', 'should have encrypted payload')
+})
+
+test('decrypt the note to self', async t => {
+    const decryptedNote = await decryptMsg(alicesCrytpo, noteToSelf)
+    t.equal(decryptedNote, 'hello self', 'alice can decrypt the note')
+})
+
+test("bob cannot decrypt alice's 'note to self'", async t => {
+    try {
+        await decryptMsg(bobsCrypto, noteToSelf)
+        t.fail("Bob should not be able to decrypt Alice's message")
+    } catch (err) {
+        t.ok(err, 'should throw an error for Bob')
+    }
+})
+
 let encryptedMsg:EncryptedMessage
 test('alice can encrypt a message to several people', async t => {
     encryptedMsg = await encryptedGroup('hello group')

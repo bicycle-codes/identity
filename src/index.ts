@@ -147,7 +147,7 @@ export type CurriedEncrypt = (data:string|Uint8Array) => Promise<EncryptedMessag
  */
 export async function encryptTo (
     creator:Identity,
-    ids?:Identity[],
+    ids:null|Identity[],
     data?:string|Uint8Array
 ):Promise<EncryptedMessage | CurriedEncrypt> {
     if (!data) {
