@@ -91,14 +91,14 @@ const encryptedMessage = await encryptTo(
 //
 // => {
 //     creator:Identity, // the person who sent the message
-//     payload:string, /* This is the message, encrypted with the symm key for
+//     payload:string, /* This is the message, encrypted with the AES key for
 //         this message */
 //     devices:Record<string, string> <-- A map from device name to AES key,
 //          encrypted to the device
 // }
 //
 
-// bob can read the message b/c they are passed in above
+// bob can read the message b/c they are passed in as a recipient above
 const decryptedMsg = await decryptMsg(bobsCrypto, encryptedMessage)
 ```
 
