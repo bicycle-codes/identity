@@ -8,6 +8,8 @@
 
 This is an object representing a user. An Identity object contains a collection of "devices", where each device has several keypairs. This depends on each device having a [keystore](https://github.com/fission-codes/keystore-idb) that stores the private keys.
 
+The `keystore` module uses [indexedDB](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API/Using_IndexedDB) to [save keys as "non-extractable" keypairs](https://github.com/fission-codes/keystore-idb/blob/fb8fab2f0346ab6681b2f93913209939dd42d19f/src/ecc/keys.ts#L17), so we are never able to read the private keys.
+
 We can do e2e encryption by creating a symmetric key, then encrypting that key *to* each device. So the symmetric key is encrypted with the public key of each device.
 
 Each device has a primary keypair used for signing, which is `did` here, and also an "exchange" keypair, which is used for encrypting & decrypting things. In the `Device` record there is also an index `aes`, which is the symmetrical key that has been encrypted to the device's exchange key.
@@ -63,6 +65,42 @@ See [a live demo](https://nichoth-identity.netlify.app/) of the [example directo
 This uses websockets to 'link' two devices. That is, a single AES key is encrypted to the exchange key on each device, so both devices are able to use the same key.
 
 ------------------------------------------
+
+## quick example
+Given two identities, create a message that is readble by them only.
+
+```ts
+import type { EncryptedMessage } from '@bicycle-codes/identity'
+import { create, encryptTo, decryptMsg } from '@bicycle-codes/identity'
+
+// get identities somehow
+const alice = await create(crypto, {
+    humanName: 'alice',
+})
+const bob = await create(bobsCrypto, {
+    humanName: 'bob'
+})
+
+const encryptedMessage = await encryptTo(
+    alice,
+    [bob],
+    'hello bob'
+) as EncryptedMessage
+
+//  __the encrypted message__
+//
+// => {
+//     creator:Identity, // the person who sent the message
+//     payload:string, /* This is the message, encrypted with the symm key for
+//         this message */
+//     devices:Record<string, string> <-- A map from device name to AES key,
+//          encrypted to the device
+// }
+//
+
+// bob can read the message b/c they are passed in above
+const decryptedMsg = await decryptMsg(bobsCrypto, encryptedMessage)
+```
 
 ## types
 
@@ -347,15 +385,15 @@ export async function encryptTo (
 
 #### `encryptTo` example
 ```ts
-// a message from alice to bob
-const encryptedMsg = await encryptTo(alice, [bob], 'hello bob')
-
 const alice = await create(alicesCrypto, {
     humanName: 'alice'
 })
 const bob = await create(bobsCrypto, {
     humanName: 'bob'
 })
+
+// a message from alice to bob
+const encryptedMsg = await encryptTo(alice, [bob], 'hello bob')
 ```
 
 #### curried `encryptTo`
