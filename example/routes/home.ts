@@ -10,8 +10,6 @@ import '@nichoth/components/button.css'
 export const HomeRoute:FunctionComponent<{
     state:Awaited<ReturnType<typeof State>>
 }> = function ({ state }) {
-    const devices = state.devices.value
-
     function closeToast (ev:MouseEvent) {
         ev.preventDefault()
         ClearMessage(state)
@@ -29,10 +27,11 @@ export const HomeRoute:FunctionComponent<{
 
             <strong>Devices</strong>
             <dl class="device-list">
-                ${Object.keys(devices || {}).map(k => {
+                ${Object.keys(state.identity.value.devices || {}).map(k => {
+                    const device = state.identity.value?.devices[k]
                     return html`
                         <dt>${k}:</dt>
-                        <dd>${devices![k].humanName}</dd>
+                        <dd>${device?.humanReadableName}</dd>
                     `
                 })}
             </dl>
