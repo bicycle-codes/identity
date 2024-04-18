@@ -16,10 +16,8 @@ export const Create:FunctionComponent<{
         ev.preventDefault()
         const humanName = (ev.target as HTMLFormElement)
             .elements['human-name'].value
-        const deviceName = (ev.target as HTMLFormElement)
-            .elements['device-name'].value
 
-        await CreateIdentity(state, { humanName, deviceName })
+        await CreateIdentity(state, { humanName })
         state._setRoute('/')
     }
 
