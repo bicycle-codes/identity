@@ -25,6 +25,7 @@ test('create an identity', async t => {
 
     identity = await create(crypto, {
         humanName: 'alice',
+        humanReadableDeviceName: 'root'
     })
 
     const deviceName = alicesDeviceName = await getDeviceName(rootDID)
@@ -69,7 +70,7 @@ test('add a device to the identity', async t => {
     const _crypto = await createCryptoComponent()
     const newDid = await writeKeyToDid(_crypto)
     const exchangeKey = await _crypto.keystore.publicExchangeKey()
-    const id = await addDevice(identity, crypto, newDid, exchangeKey)
+    const id = await addDevice(identity, crypto, newDid, exchangeKey, 'phone')
     t.ok(id, 'should return a new identity')
     t.ok(id !== identity, 'should return a new object, not the same one')
     const newDeviceName = await getDeviceName(newDid)
@@ -112,11 +113,13 @@ test('can partially apply the `encryptTo` function', async t => {
     alice = identity
     bobsCrypto = await createCryptoComponent()
     bob = await create(bobsCrypto, {
-        humanName: 'bob'
+        humanName: 'bob',
+        humanReadableDeviceName: 'root'
     })
     carolsCrypto = await createCryptoComponent()
     carol = await create(carolsCrypto, {
-        humanName: 'carol'
+        humanName: 'carol',
+        humanReadableDeviceName: 'root'
     })
 
     // (msg creator, recipients[])
@@ -218,6 +221,7 @@ test('add a new member to the group', async t => {
     const _crypto = await createCryptoComponent()
     const fran = await create(_crypto, {
         humanName: 'fran',
+        humanReadableDeviceName: 'root'
     })
 
     const newGroup = await AddToGroup(myGroup, alicesCrytpo, fran)

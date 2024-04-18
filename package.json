@@ -20,6 +20,27 @@
     "postversion": "export $(cat .env | grep -v \"#\" | xargs) && git push --follow-tags && npm publish && npm publish --@bicycle-codes:registry=https://registry.npmjs.org",
     "prepublishOnly": "npm run build"
   },
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./*.min.js": {
+      "import": [
+        "./dist/*.min.js"
+      ]
+    },
+    "./*": {
+      "import": [
+        "./dist/*.js",
+        "./dist/*"
+      ],
+      "require": [
+        "./dist/*.cjs",
+        "./dist/*"
+      ]
+    }
+  },
   "dependencies": {
     "@nichoth/nanoid": "^5.0.8",
     "@nichoth/nanoid-dictionary": "^5.0.2",
@@ -54,27 +75,6 @@
     "typescript": "^5.4.5",
     "uuid": "^9.0.1",
     "vite": "^5.2.8"
-  },
-  "exports": {
-    ".": {
-      "import": "./dist/index.js",
-      "require": "./dist/index.cjs"
-    },
-    "./*.min.js": {
-      "import": [
-        "./dist/*.min.js"
-      ]
-    },
-    "./*": {
-      "import": [
-        "./dist/*.js",
-        "./dist/*"
-      ],
-      "require": [
-        "./dist/*.cjs",
-        "./dist/*"
-      ]
-    }
   },
   "files": [
     "dist/*"

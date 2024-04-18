@@ -9,10 +9,10 @@ import {
     create as createId
 } from '../src/index.js'
 
-type AppDeviceRecord = {
-    humanName:string;  // a human-readblae name
-    name:string  // the random unique name
-}
+// type AppDeviceRecord = {
+//     humanReadableName:string;  // a human-readblae name
+//     name:string  // the random unique name
+// }
 
 /**
  * Setup any state
@@ -23,7 +23,7 @@ export async function State ():Promise<{
     identity:Signal<Identity|null>;
     linkStatus:Signal<'success'|null>;
     // key is the machine name, value is the human name
-    devices:Signal<Record<string, AppDeviceRecord>|null>;
+    // devices:Signal<Record<string, AppDeviceRecord>|null>;
     myDid:Signal<DID>;
     _crypto:Implementation;
     _setRoute:(path:string)=>void;
@@ -69,23 +69,22 @@ export function ClearMessage (state:Awaited<ReturnType<typeof State>>) {
 export function AddDevice (
     state:Awaited<ReturnType<typeof State>>,
     newIdentity:Identity,
-    newDevice:AppDeviceRecord
+    // newDevice:AppDeviceRecord
 ) {
     batch(() => {
         state.identity.value = newIdentity
-        state.devices.value = Object.assign({}, state.devices.value, {
-            [newDevice.name]: newDevice
-        })
+        // state.devices.value = Object.assign({}, state.devices.value, {
+        //     [newDevice.name]: newDevice
+        // })
         state.linkStatus.value = 'success'
     })
 
-    // for gh pages
     state._setRoute('/')
 }
 
 export async function CreateIdentity (
     state:Awaited<ReturnType<typeof State>>,
-    { humanName, deviceName }:{ humanName:string, deviceName:string },
+    { humanName }:{ humanName:string },
 ) {
     const program = await createProgram({
         namespace: { creator: 'identity', name: 'example' },
@@ -94,11 +93,9 @@ export async function CreateIdentity (
 
     const crypto = program.components.crypto
 
-    const id = await createId(crypto, { humanName })
-
-    state.devices.value = Object.assign({}, state.devices.value, {
-        // record for the first device
-        [id.username]: { name: id.username, humanName: deviceName }
+    const id = await createId(crypto, {
+        humanName,
+        humanReadableDeviceName: 'root'
     })
 
     state.identity.value = id
@@ -109,14 +106,10 @@ export async function CreateIdentity (
  */
 export function LinkSuccess (
     state:Awaited<ReturnType<typeof State>>,
-    newIdRecord:Identity,
-    newDevice:AppDeviceRecord
+    newIdRecord:Identity
 ) {
     batch(() => {
         state.identity.value = newIdRecord
-        state.devices.value = Object.assign({}, state.devices.value, {
-            [newDevice.name]: newDevice
-        })
         state.linkStatus.value = 'success'
     })
 

@@ -52,7 +52,8 @@ export interface Device {
     did:DID,
     aes:string,  /* the symmetric key for this account, encrypted to the
       exchange key for this device */
-    exchange:string
+    exchange:string,
+    humanReadableName:string
 }
 
 /**
@@ -81,7 +82,13 @@ export const ALGORITHM = SymmAlg.AES_GCM
  */
 export async function create (
     crypto:Implementation,
-    { humanName }:{ humanName:string }
+    {
+        humanName,
+        humanReadableDeviceName
+    }:{
+        humanName:string,
+        humanReadableDeviceName:string
+    }
 ):Promise<Identity> {
     const rootDID = await writeKeyToDid(crypto)  // this is equal to agentDid()
     const deviceName = await createDeviceName(rootDID)
@@ -101,6 +108,7 @@ export async function create (
     initialDevices[deviceName] = {
         aes: encryptedKey,
         name: deviceName,
+        humanReadableName: humanReadableDeviceName,
         did: rootDID,
         exchange: toString(exchangeKey)
     }
@@ -418,6 +426,7 @@ export async function addDevice (
     crypto:Implementation,
     newDid:DID,
     exchangeKey:Uint8Array|CryptoKey|string,
+    humanReadableName:string
 ):Promise<Identity> {
     // need to decrypt the existing AES key, then re-encrypt it to the
     // new did
@@ -453,6 +462,7 @@ export async function addDevice (
 
     newDeviceData[name] = {
         name,
+        humanReadableName,
         aes: encryptedKey,
         did: newDid,
         exchange: exchangeString

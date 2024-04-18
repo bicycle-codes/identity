@@ -10,6 +10,7 @@ export const device = z.object({
     aes: z.string(),
     did,
     exchange: z.string(),
+    humanReadableName: z.string(),
     name: z.string()
 })
 

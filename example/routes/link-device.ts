@@ -6,7 +6,7 @@ import PartySocket from 'partysocket'
 import { customAlphabet } from '@nichoth/nanoid'
 import { numbers } from '@nichoth/nanoid-dictionary'
 import { State, AddDevice } from '../state.js'
-import { addDevice, createDeviceName } from '../../src/index.js'
+import { addDevice } from '../../src/index.js'
 import '@nichoth/components/text-input.css'
 
 const serverAddress = (import.meta.env.DEV ?
@@ -17,6 +17,7 @@ type Message = {
     newDid:`did:key:z${string}`;
     deviceName:string;
     exchangeKey:string;
+    humanReadableName:string;
 }
 
 /**
@@ -63,7 +64,7 @@ export const LinkDevice:FunctionComponent<{
                 throw new Error('bad json')
             }
 
-            const { newDid, exchangeKey, deviceName } = msg
+            const { newDid, exchangeKey, deviceName, humanReadableName } = msg
             if (!newDid || !exchangeKey || !deviceName) {
                 throw new Error('bad message')
             }
@@ -75,12 +76,11 @@ export const LinkDevice:FunctionComponent<{
                 state.identity.value,
                 state._crypto,
                 newDid,
-                exchangeKey
+                exchangeKey,
+                humanReadableName
             )
 
-            const name = await createDeviceName(newDid)
-
-            AddDevice(state, newIdentity, { humanName: deviceName, name })
+            AddDevice(state, newIdentity)
 
             partySocket.send(JSON.stringify(newIdentity))
             partySocket.close()
