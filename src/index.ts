@@ -12,6 +12,8 @@ import {
 import { SymmAlg } from 'keystore-idb/types.js'
 import type { Implementation } from '@oddjs/odd/components/crypto/implementation'
 
+export type { Crypto }
+
 export { aesDecrypt, aesEncrypt }
 
 type KeyStore = Implementation['keystore']
