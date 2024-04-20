@@ -12,7 +12,7 @@ import {
 import { SymmAlg } from 'keystore-idb/types.js'
 import type { Implementation } from '@oddjs/odd/components/crypto/implementation'
 
-export type { Crypto }
+export type Crypto = Crypto.Implementation
 
 export { aesDecrypt, aesEncrypt }
 
