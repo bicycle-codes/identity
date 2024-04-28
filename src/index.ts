@@ -504,7 +504,7 @@ export function sign (keystore:KeyStore, msg:string):Promise<Uint8Array> {
 }
 
 /**
- * Sign a string; return the signature as `base64pad` encoded string.
+ * Sign a string; return the signature as string.
  */
 export async function signAsString (
     keystore:KeyStore,
