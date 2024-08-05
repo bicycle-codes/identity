@@ -67,7 +67,7 @@
     "eslint-config-standard": "^17.1.0",
     "partykit": "^0.0.108",
     "partysocket": "1.0.2",
-    "postcss-nesting": "^12.1.1",
+    "postcss-nesting": "^13.0.0",
     "preact": "^10.20.2",
     "route-event": "^5.2.2",
     "tap-spec": "^5.0.0",
