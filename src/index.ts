@@ -80,7 +80,10 @@ export const ALGORITHM = SymmAlg.AES_GCM
  * we can store this anywhere, whereas the private keys are non-exportable,
  * stored only on-device.
  * @param crypto Fission crypto implementation for the current device
- * @param {{ humanName:string }} opts The human-readable name of this identity
+ * @param {{
+ *   humanName:string,
+ *   humanReadableDeviceName
+ * }} opts The human-readable name of this identity, and a name for the device
  * @returns {Identity}
  */
 export async function create (
