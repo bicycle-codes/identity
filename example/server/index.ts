@@ -48,6 +48,7 @@ export default class WebSocketServer implements Party.Server {
             return request  // forward the request onwards to onConnect
         } catch (err) {
             // authentication failed!
+            console.log('error...', err)
             // short-circuit the request before it's forwarded to the party
             return new Response('Unauthorized', { status: 401 })
         }

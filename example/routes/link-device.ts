@@ -5,7 +5,7 @@ import { useSignal } from '@preact/signals'
 import PartySocket from 'partysocket'
 import { customAlphabet } from '@nichoth/nanoid'
 import { numbers } from '@nichoth/nanoid-dictionary'
-import { State, AddDevice } from '../state.js'
+import { type State, AddDevice } from '../state.js'
 import { addDevice } from '../../src/index.js'
 import '@nichoth/components/text-input.css'
 

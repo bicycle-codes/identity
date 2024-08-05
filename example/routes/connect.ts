@@ -7,7 +7,7 @@ import { Button } from '@nichoth/components/htm/button'
 import { TextInput } from '@nichoth/components/htm/text-input'
 import * as z from '../../src/z.js'
 import { toString } from '../../src/index.js'
-import { State, LinkSuccess } from '../state.js'
+import { type State, LinkSuccess } from '../state.js'
 
 /**
  * Visit this route from a new device.
