@@ -69,7 +69,7 @@
     "partysocket": "1.0.2",
     "postcss-nesting": "^13.0.0",
     "preact": "^10.20.2",
-    "route-event": "^5.2.2",
+    "route-event": "^6.0.0",
     "tap-spec": "^5.0.0",
     "tape-run": "^11.0.0",
     "typescript": "^5.4.5",
