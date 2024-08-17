@@ -1,5 +1,10 @@
 # docs
 
+## indexedDB
+
+### [`.persist` method](https://developer.mozilla.org/en-US/docs/Web/API/StorageManager/persist)
+
+
 ## partykit deploy environments
 
 ### 10/24/2023 11:24 AM

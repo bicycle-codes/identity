@@ -1,5 +1,5 @@
 import { html } from 'htm/preact'
-import { FunctionComponent } from 'preact'
+import type { FunctionComponent } from 'preact'
 import { TextInput } from '@nichoth/components/htm/text-input'
 import { Button } from '@nichoth/components/htm/button'
 import { useSignal } from '@preact/signals'

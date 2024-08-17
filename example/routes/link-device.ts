@@ -1,5 +1,5 @@
 import { html } from 'htm/preact'
-import { FunctionComponent } from 'preact'
+import type { FunctionComponent } from 'preact'
 import { useEffect } from 'preact/hooks'
 import { useSignal } from '@preact/signals'
 import PartySocket from 'partysocket'

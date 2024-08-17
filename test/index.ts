@@ -1,14 +1,15 @@
 import { test } from '@nichoth/tapzero'
 import { createCryptoComponent } from '@ssc-hermes/node-components'
-import { Crypto } from '@oddjs/odd'
+import type { Crypto } from '@oddjs/odd'
 import { aesEncrypt, aesDecrypt } from
     '@oddjs/odd/components/crypto/implementation/browser'
 import { fromString, toString } from 'uint8arrays'
 import {
-    writeKeyToDid, DID,
-    create, decryptKey, Identity, ALGORITHM, addDevice,
-    getDeviceName, encryptTo, CurriedEncrypt,
-    group, EncryptedMessage, Group, decryptMsg,
+    writeKeyToDid,
+    type DID,
+    create, decryptKey, type Identity, ALGORITHM, addDevice,
+    getDeviceName, encryptTo, type CurriedEncrypt,
+    group, type EncryptedMessage, type Group, decryptMsg,
     AddToGroup, sign, signAsString, verifyFromString
 } from '../src/index.js'
 

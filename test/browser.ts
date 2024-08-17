@@ -1,9 +1,10 @@
 import { test } from '@nichoth/tapzero'
 import * as odd from '@oddjs/odd'
-import { DID, writeKeyToDid } from '@ssc-half-light/util'
-import { Crypto } from '@oddjs/odd'
+import { type DID, writeKeyToDid } from '@ssc-half-light/util'
+import type { Crypto } from '@oddjs/odd'
 import {
-    create, Identity,
+    create,
+    type Identity,
     createDeviceName,
 } from '../src/index.js'
 
@@ -23,6 +24,7 @@ test('create an identity', async t => {
 
     identity = await create(alicesCrytpo, {
         humanName: 'alice',
+        humanReadableDeviceName: 'phone'
     })
 
     rootDeviceName = await createDeviceName(rootDid)

@@ -1,6 +1,6 @@
 import { html } from 'htm/preact'
 import { ButtonLink } from '@nichoth/components/htm/button-link'
-import { FunctionComponent } from 'preact'
+import type { FunctionComponent } from 'preact'
 import { Toaster } from '@nichoth/components/htm/toast'
 import { type State, ClearMessage } from '../state.js'
 import '@nichoth/components/toast.css'

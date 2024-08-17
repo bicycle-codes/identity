@@ -1,5 +1,5 @@
 import { html } from 'htm/preact'
-import { FunctionComponent } from 'preact'
+import type { FunctionComponent } from 'preact'
 import { useComputed, useSignal } from '@preact/signals'
 import PartySocket from 'partysocket'
 import { writeKeyToDid } from '@ssc-half-light/util'

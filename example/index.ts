@@ -1,4 +1,4 @@
-import { FunctionComponent, render } from 'preact'
+import { type FunctionComponent, render } from 'preact'
 import { html } from 'htm/preact'
 import Router from './routes/index.js'
 import { State } from './state'

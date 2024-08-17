@@ -1,18 +1,15 @@
-import { Signal, batch, signal } from '@preact/signals'
+import { type Signal, batch, signal } from '@preact/signals'
 import Route from 'route-event'
 import { program as createProgram } from '@oddjs/odd'
-import { Implementation } from '@oddjs/odd/components/crypto/implementation'
+import type {
+    Implementation
+} from '@oddjs/odd/components/crypto/implementation'
 import {
-    DID,
+    type DID,
     writeKeyToDid,
-    Identity,
+    type Identity,
     create as createId
 } from '../src/index.js'
-
-// type AppDeviceRecord = {
-//     humanReadableName:string;  // a human-readblae name
-//     name:string  // the random unique name
-// }
 
 /**
  * Setup any state
