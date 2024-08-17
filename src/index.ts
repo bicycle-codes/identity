@@ -1,5 +1,5 @@
 import { webcrypto } from 'one-webcrypto'
-import type { Crypto } from '@oddjs/odd'
+import type { Crypto as OddCrypto } from '@oddjs/odd'
 import {
     concat,
     fromString as uFromString,
@@ -12,7 +12,7 @@ import {
 import { SymmAlg } from 'keystore-idb/types.js'
 import type { Implementation } from '@oddjs/odd/components/crypto/implementation'
 
-export type Crypto = Crypto.Implementation
+export type Crypto = OddCrypto.Implementation
 
 export { aesDecrypt, aesEncrypt }
 
@@ -40,7 +40,7 @@ export function publicKeyToDid (
 }
 
 export async function writeKeyToDid (
-    crypto:Crypto.Implementation
+    crypto:Crypto
 ):Promise<DID> {
     const [pubKey, ksAlg] = await Promise.all([
         crypto.keystore.publicWriteKey(),
