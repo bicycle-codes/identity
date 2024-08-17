@@ -9,8 +9,24 @@ import {
     aesGenKey, aesExportKey, rsa, importAesKey, aesEncrypt,
     aesDecrypt, sha256, did as didLib
 } from '@oddjs/odd/components/crypto/implementation/browser'
+import { set } from 'idb-keyval'
 import { SymmAlg } from 'keystore-idb/types.js'
 import type { Implementation } from '@oddjs/odd/components/crypto/implementation'
+import { RsaSize, type HashAlg, KeyUse } from './util'
+
+const DEFAULT_EXCHANGE_KEY_NAME = 'exchange-key'
+const DEFAULT_WRITE_KEY_NAME = 'write-key'
+const DEFAULT_STORE_NAME = 'keystore'
+const RSA_EXCHANGE_ALG = 'RSA-OAEP'
+const DEFAULT_RSA_SIZE = RsaSize.B2048
+const DEFAULT_HASH_ALG = HashAlg.SHA_256
+// const ECC_WRITE_ALG = 'ECDSA'
+const RSA_WRITE_ALG = 'RSASSA-PKCS1-v1_5'
+
+/**
+ * Exchange = encrypt/decrypt
+ * Write = sign
+ */
 
 export type Crypto = OddCrypto.Implementation
 
@@ -82,22 +98,49 @@ export const ALGORITHM = SymmAlg.AES_GCM
  * @param crypto Fission crypto implementation for the current device
  * @param {{
  *   humanName:string,
- *   humanReadableDeviceName
- * }} opts The human-readable name of this identity, and a name for the device
+ *   humanReadableDeviceName:string,
+ *   persist?:boolean
+ * }} opts The human-readable name of this identity, and a name for the device,
+ *         and `persist`, which will request "persistent" storage if passed in.
  * @returns {Identity}
  */
 export async function create (
     crypto:Implementation,
     {
         humanName,
-        humanReadableDeviceName
+        humanReadableDeviceName,
+        persist
     }:{
         humanName:string,
-        humanReadableDeviceName:string
+        humanReadableDeviceName:string,
+        persist?:boolean
     }
 ):Promise<Identity> {
     const rootDID = await writeKeyToDid(crypto)  // this is equal to agentDid()
     const deviceName = await createDeviceName(rootDID)
+    if (persist) {
+        if (navigator.storage && navigator.storage.persist) {
+            try {
+                await navigator.storage.persist()
+            } catch (err) {
+                console.error(err)
+            }
+        }
+    }
+
+    const exchangeKeypair = makeRSAKeypair(
+        DEFAULT_RSA_SIZE,
+        DEFAULT_HASH_ALG,
+        KeyUse.Exchange
+    )
+    const writeKeypair = makeRSAKeypair(
+        DEFAULT_RSA_SIZE,
+        DEFAULT_HASH_ALG,
+        KeyUse.Write
+    )
+
+    set(DEFAULT_EXCHANGE_KEY_NAME, exchangeKeypair)
+    set(DEFAULT_WRITE_KEY_NAME, writeKeypair)
 
     // this is the private aes key for this ID
     const key = await aesGenKey(ALGORITHM)
@@ -643,4 +686,28 @@ function parseMagicBytes (prefixedKey) {
 
 function hasPrefix (prefixedKey, prefix) {
     return arrBufs.equal(prefix, prefixedKey.slice(0, prefix.byteLength))
+}
+
+async function makeRSAKeypair (
+    size:RsaSize,
+    hashAlg:HashAlg,
+    use:KeyUse
+):Promise<CryptoKeyPair> {
+    if (!(Object.values(KeyUse).includes(use))) {
+        throw new Error('invalid key use')
+    }
+    const alg = use === KeyUse.Exchange ? RSA_EXCHANGE_ALG : RSA_WRITE_ALG
+    const uses:KeyUsage[] = (use === KeyUse.Exchange ?
+        ['encrypt', 'decrypt'] :
+        ['sign', 'verify'])
+    return webcrypto.subtle.generateKey({
+        name: alg,
+        modulusLength: size,
+        publicExponent: publicExponent(),
+        hash: { name: hashAlg }
+    }, false, uses)
+}
+
+function publicExponent ():Uint8Array {
+    return new Uint8Array([0x01, 0x00, 0x01])
 }
