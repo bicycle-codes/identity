@@ -2,11 +2,10 @@ import { html } from 'htm/preact'
 import type { FunctionComponent } from 'preact'
 import { useComputed, useSignal } from '@preact/signals'
 import PartySocket from 'partysocket'
-import { writeKeyToDid } from '@ssc-half-light/util'
 import { Button } from '@nichoth/components/htm/button'
 import { TextInput } from '@nichoth/components/htm/text-input'
 import * as z from '../../src/z.js'
-import { toString } from '../../src/index.js'
+import { toString, writeKeyToDid } from '../../src/index.js'
 import { type State, LinkSuccess } from '../state.js'
 
 /**
