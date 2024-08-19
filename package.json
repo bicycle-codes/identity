@@ -15,8 +15,9 @@
     "build": "mkdir -p ./dist && rm -rf ./dist/* && npm run build-cjs && npm run build-esm && npm run build:min:esm",
     "build-example": "vite build",
     "build:min:esm": "mkdir -p ./dist && esbuild ./src/*.ts --sourcemap=inline --outdir=./dist --format=esm --minify --keep-names --bundle --out-extension:.js=.min.js",
+    "toc": "markdown-toc --maxdepth 3 -i README.md",
     "preversion": "npm run lint",
-    "version": "auto-changelog -p --template keepachangelog --breaking-pattern 'BREAKING CHANGE:' && git add CHANGELOG.md",
+    "version": "npm run toc && auto-changelog -p --template keepachangelog --breaking-pattern 'BREAKING CHANGE:' && git add CHANGELOG.md",
     "postversion": "git push --follow-tags && npm publish",
     "prepublishOnly": "npm run build"
   },
@@ -66,6 +67,7 @@
     "esbuild": "^0.23.0",
     "eslint": "^8.57.0",
     "eslint-config-standard": "^17.1.0",
+    "markdown-toc": "^1.2.0",
     "partykit": "^0.0.108",
     "partysocket": "1.0.2",
     "postcss-nesting": "^13.0.0",

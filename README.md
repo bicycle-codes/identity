@@ -5,9 +5,13 @@
 [![semantic versioning](https://img.shields.io/badge/semver-2.0.0-blue?logo=semver&style=flat-square)](https://semver.org/)
 [![license](https://nichoth.github.io/badge/license-polyform-shield.svg)](LICENSE)
 
-This is an object representing a user. An Identity object contains a collection of "devices", where each device has several keypairs. This depends on each device having a [keystore](https://github.com/fission-codes/keystore-idb) that stores the private keys.
+Use [non-extractable keypairs](https://github.com/fission-codes/keystore-idb/blob/fb8fab2f0346ab6681b2f93913209939dd42d19f/src/ecc/keys.ts#L17) as user identity.
 
-The `keystore` module uses [indexedDB](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API/Using_IndexedDB) to [save keys as "non-extractable" keypairs](https://github.com/fission-codes/keystore-idb/blob/fb8fab2f0346ab6681b2f93913209939dd42d19f/src/ecc/keys.ts#L17), so we are never able to read the private keys.
+
+-----------
+
+
+The `keystore` module uses [indexedDB](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API/Using_IndexedDB) to , so we are never able to read the private keys.
 
 We can do e2e encryption by creating a symmetric key, then encrypting that key *to* each device. So the symmetric key is encrypted with the public key of each device.
 
