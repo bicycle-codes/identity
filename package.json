@@ -47,7 +47,7 @@
     "@oddjs/odd": "^0.37.2",
     "idb-keyval": "^6.2.1",
     "one-webcrypto": "^1.0.3",
-    "uint8arrays": "^5.0.3",
+    "uint8arrays": "^5.1.0",
     "zod": "^3.22.4"
   },
   "devDependencies": {
