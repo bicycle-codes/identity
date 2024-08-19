@@ -1,6 +1,5 @@
 import * as uint8arrays from 'uint8arrays'
-import { webcrypto } from 'one-webcrypto'
-import { RSA_WRITE_ALG, RSA_HASHING_ALGORITHM } from './index.js'
+import { RSA_HASHING_ALGORITHM } from './index.js'
 import { checkValidKeyUse, InvalidMaxValue } from './errors.js'
 import { CharSize, HashAlg, type Msg } from './types.js'
 import {
@@ -8,12 +7,13 @@ import {
     DEFAULT_HASH_ALGORITHM,
     SALT_LENGTH,
     RSA_ALGORITHM,
+    RSA_SIGN_ALG
 } from './constants.js'
 export { HashAlg }
 
 export enum KeyUse {
-    Exchange = 'exchange',  // encrypt/decrypt
-    Write = 'write',  // sign
+    Encrypt = 'exchange',  // encrypt/decrypt
+    Sign = 'write',  // sign
 }
 
 export const rsaOperations = {
@@ -24,11 +24,11 @@ export const rsaOperations = {
         charSize:CharSize = DEFAULT_CHAR_SIZE,
         hashAlg:HashAlg = DEFAULT_HASH_ALGORITHM
     ):Promise<boolean> {
-        return webcrypto.subtle.verify({
-            name: RSA_WRITE_ALG,
+        return window.crypto.subtle.verify({
+            name: RSA_SIGN_ALG,
             saltLength: SALT_LENGTH
         }, (typeof publicKey === 'string' ?
-            await importPublicKey(publicKey, hashAlg, KeyUse.Write) :
+            await importPublicKey(publicKey, hashAlg, KeyUse.Sign) :
             publicKey),
         normalizeBase64ToBuf(sig),
         normalizeUnicodeToBuf(msg, charSize))
@@ -39,8 +39,8 @@ export const rsaOperations = {
         privateKey:CryptoKey,
         charSize:CharSize = DEFAULT_CHAR_SIZE
     ):Promise<ArrayBuffer> {
-        return webcrypto.subtle.sign(
-            { name: RSA_WRITE_ALG, saltLength: SALT_LENGTH },
+        return window.crypto.subtle.sign(
+            { name: RSA_SIGN_ALG, saltLength: SALT_LENGTH },
             privateKey,
             normalizeUnicodeToBuf(msg, charSize)
         )
@@ -52,10 +52,10 @@ export const rsaOperations = {
         charSize:CharSize = DEFAULT_CHAR_SIZE,
         hashAlg:HashAlg = DEFAULT_HASH_ALGORITHM
     ): Promise<ArrayBuffer> {
-        return webcrypto.subtle.encrypt(
+        return window.crypto.subtle.encrypt(
             { name: RSA_ALGORITHM },
             typeof publicKey === 'string'
-                ? await importPublicKey(publicKey, hashAlg, KeyUse.Exchange)
+                ? await importPublicKey(publicKey, hashAlg, KeyUse.Encrypt)
                 : publicKey,
             normalizeUnicodeToBuf(msg, charSize)
         )
@@ -65,7 +65,7 @@ export const rsaOperations = {
         data:Uint8Array,
         privateKey:CryptoKey|Uint8Array
     ): Promise<Uint8Array> {
-        const arrayBuffer = await webcrypto.subtle.decrypt(
+        const arrayBuffer = await window.crypto.subtle.decrypt(
             { name: RSA_ALGORITHM },
             isCryptoKey(privateKey) ?
                 privateKey :
@@ -96,10 +96,10 @@ export async function importPublicKey (
     use:KeyUse
 ):Promise<CryptoKey> {
     checkValidKeyUse(use)
-    const alg = use === KeyUse.Exchange ? RSA_ALGORITHM : RSA_WRITE_ALG
-    const uses: KeyUsage[] = use === KeyUse.Exchange ? ['encrypt'] : ['verify']
+    const alg = use === KeyUse.Encrypt ? RSA_ALGORITHM : RSA_SIGN_ALG
+    const uses: KeyUsage[] = use === KeyUse.Encrypt ? ['encrypt'] : ['verify']
     const buf = base64ToArrBuf(stripKeyHeader(base64Key))
-    return webcrypto.subtle.importKey(
+    return window.crypto.subtle.importKey(
         'spki',
         buf,
         { name: alg, hash: { name: hashAlg } },
@@ -147,7 +147,7 @@ export function base64ToArrBuf (string:string):ArrayBuffer {
 }
 
 export async function sha256 (bytes:Uint8Array):Promise<Uint8Array> {
-    return new Uint8Array(await webcrypto.subtle.digest('sha-256', bytes))
+    return new Uint8Array(await window.crypto.subtle.digest('sha-256', bytes))
 }
 
 export const did:{ keyTypes:KeyTypes } = {
@@ -179,10 +179,10 @@ export async function rsaVerify ({
     return rsaOperations.verify(
         message,
         signature,
-        await webcrypto.subtle.importKey(
+        await window.crypto.subtle.importKey(
             'spki',
             publicKey,
-            { name: RSA_WRITE_ALG, hash: RSA_HASHING_ALGORITHM },
+            { name: RSA_SIGN_ALG, hash: RSA_HASHING_ALGORITHM },
             false,
             ['verify']
         ),
@@ -224,11 +224,11 @@ export function normalizeBase64ToBuf (msg:Msg):ArrayBuffer {
     return normalizeToBuf(msg, base64ToArrBuf)
 }
 
-export const normalizeUtf8ToBuf = (msg: Msg): ArrayBuffer => {
+export const normalizeUtf8ToBuf = (msg:Msg): ArrayBuffer => {
     return normalizeToBuf(msg, (str) => strToArrBuf(str, CharSize.B8))
 }
 
-export const normalizeUtf16ToBuf = (msg: Msg): ArrayBuffer => {
+export const normalizeUtf16ToBuf = (msg:Msg): ArrayBuffer => {
     return normalizeToBuf(msg, (str) => strToArrBuf(str, CharSize.B16))
 }
 
@@ -253,7 +253,7 @@ export function strToArrBuf (str:string, charSize:CharSize):ArrayBuffer {
 
 export function randomBuf (
     length:number,
-    { max }:{ max: number } = { max: 255 }
+    { max }:{ max:number } = { max: 255 }
 ):ArrayBuffer {
     if (max < 1 || max > 255) {
         throw InvalidMaxValue
@@ -262,7 +262,7 @@ export function randomBuf (
     const arr = new Uint8Array(length)
 
     if (max === 255) {
-        webcrypto.getRandomValues(arr)
+        window.crypto.getRandomValues(arr)
         return arr.buffer
     }
 
@@ -272,7 +272,7 @@ export function randomBuf (
     const tmp = new Uint8Array(1)
 
     while (index < arr.length) {
-        webcrypto.getRandomValues(tmp)
+        window.crypto.getRandomValues(tmp)
         if (tmp[0] < divisibleMax) {
             arr[index] = tmp[0] % interval
             index++
@@ -282,8 +282,11 @@ export function randomBuf (
     return arr.buffer
 }
 
-export function importRsaKey (key: Uint8Array, keyUsages: KeyUsage[]): Promise<CryptoKey> {
-    return webcrypto.subtle.importKey(
+export function importRsaKey (
+    key:Uint8Array,
+    keyUsages:KeyUsage[]
+):Promise<CryptoKey> {
+    return window.crypto.subtle.importKey(
         'spki',
         key,
         { name: RSA_ALGORITHM, hash: RSA_HASHING_ALGORITHM },

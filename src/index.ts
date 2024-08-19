@@ -4,7 +4,7 @@ import {
     toString as uToString
 } from 'uint8arrays'
 import { set, get } from 'idb-keyval'
-import { DEFAULT_CHAR_SIZE, RSA_ALGORITHM } from './constants'
+import { DEFAULT_CHAR_SIZE, RSA_ALGORITHM, RSA_SIGN_ALG } from './constants'
 import {
     RsaSize,
     HashAlg,
@@ -22,11 +22,10 @@ import {
 } from './util'
 import type { CharSize, Msg } from './types'
 
-const DEFAULT_EXCHANGE_KEY_NAME = 'exchange-key'
-const DEFAULT_WRITE_KEY_NAME = 'write-key'
+const DEFAULT_ENCRYPT_KEY_NAME = 'encrypt-key'
+const DEFAULT_SIGN_KEY_NAME = 'sign-key'
 const DEFAULT_RSA_SIZE = RsaSize.B2048
 const DEFAULT_HASH_ALG = HashAlg.SHA_256
-export const RSA_HASHING_ALGORITHM = 'SHA-256'
 // const ECC_WRITE_ALG = 'ECDSA'
 
 export enum SymmKeyLength {
@@ -34,11 +33,10 @@ export enum SymmKeyLength {
     B192 = 192,
     B256 = 256,
 }
-
-export const RSA_WRITE_ALG = 'RSASSA-PKCS1-v1_5'
 export const AES_GCM = 'AES-GCM'
 export const DEFAULT_SYMM_ALG = AES_GCM
 export const DEFAULT_SYMM_LEN = SymmKeyLength.B256
+export const RSA_HASHING_ALGORITHM = 'SHA-256'
 
 /**
  * Exchange = encrypt/decrypt
@@ -81,14 +79,14 @@ export function publicKeyToDid (
  * @returns {Promise<CryptoKeyPair>}
  */
 export async function writeKey (
-    keyName:string = DEFAULT_WRITE_KEY_NAME
+    keyName:string = DEFAULT_SIGN_KEY_NAME
 ):Promise<CryptoKeyPair> {
     let keypair = await get<CryptoKeyPair>(keyName)
     if (!keypair) {
         keypair = await makeRSAKeypair(
             DEFAULT_RSA_SIZE,
             DEFAULT_HASH_ALG,
-            KeyUse.Write
+            KeyUse.Sign
         )
 
         await set(keyName, keypair)
@@ -98,14 +96,14 @@ export async function writeKey (
 }
 
 export async function exchangeKey (
-    keyname:string = DEFAULT_EXCHANGE_KEY_NAME
+    keyname:string = DEFAULT_ENCRYPT_KEY_NAME
 ):Promise<CryptoKeyPair> {
     let keypair = await get<CryptoKeyPair>(keyname)
     if (!keypair) {
         keypair = await makeRSAKeypair(
             DEFAULT_RSA_SIZE,
             DEFAULT_HASH_ALG,
-            KeyUse.Exchange
+            KeyUse.Encrypt
         )
 
         await set(keyname, keypair)
@@ -169,20 +167,15 @@ export interface Identity {
     storage:{ exchangeKeyName:string; writeKeyName:string; }
 }
 
-export const ALGORITHM = AES_GCM
-
 /**
- * Create a new `identity`. This tracks a set of exchange keys by device.
- * Depends on the `crypto` interface of `odd`, the keystore that
- * holds the keys for your device. This creates a public record, meaning that
- * we can store this anywhere, whereas the private keys are non-exportable,
- * stored only on-device.
+ * Create a new `identity`. This tracks a set of keys by device.
+ * Each device has 1 "encrypt" key and 1 "sign" key.
  *
- * @param crypto Fission crypto implementation for the current device
  * @param {{
  *   humanName:string,
  *   humanReadableDeviceName:string,
  *   persist?:boolean
+ *   storage?:{ exchangeKeyName, writeKeyName }
  * }} opts The human-readable name of this identity, and a name for the device,
  *         and `persist`, which will request "persistent" storage if passed in.
  * @returns {Promise<Identity>}
@@ -192,8 +185,8 @@ export async function create ({
     humanReadableDeviceName,
     persist,
     storage = {
-        exchangeKeyName: DEFAULT_EXCHANGE_KEY_NAME,
-        writeKeyName: DEFAULT_WRITE_KEY_NAME
+        exchangeKeyName: DEFAULT_ENCRYPT_KEY_NAME,
+        writeKeyName: DEFAULT_SIGN_KEY_NAME
     }
 }:{
     humanName:string,
@@ -214,22 +207,22 @@ export async function create ({
         }
     }
 
-    const exchangeKeypair = await makeRSAKeypair(
+    const encryptKeypair = await makeRSAKeypair(
         DEFAULT_RSA_SIZE,
         DEFAULT_HASH_ALG,
-        KeyUse.Exchange
+        KeyUse.Encrypt
     )
-    const writeKeypair = await makeRSAKeypair(
+    const signKeypair = await makeRSAKeypair(
         DEFAULT_RSA_SIZE,
         DEFAULT_HASH_ALG,
-        KeyUse.Write
+        KeyUse.Sign
     )
 
-    const rootDID = await writeKeyToDid(writeKeypair)
+    const rootDID = await writeKeyToDid(signKeypair)
     const deviceName = await createDeviceName(rootDID)
 
-    set(storage.exchangeKeyName, exchangeKeypair)
-    set(storage.writeKeyName, writeKeypair)
+    set(storage.exchangeKeyName, encryptKeypair)
+    set(storage.writeKeyName, signKeypair)
 
     // this is the private AES key for this ID
     const key = await aesGenKey({ alg: AES_GCM, length: DEFAULT_SYMM_LEN })
@@ -237,13 +230,13 @@ export async function create ({
 
     const pubKey = new Uint8Array(await window.crypto.subtle.exportKey(
         'spki',
-        exchangeKeypair.publicKey
+        encryptKeypair.publicKey
     ))
 
     const encryptedKey = uToString(
         new Uint8Array(await rsaOperations.encrypt(
             exported,
-            exchangeKeypair.publicKey
+            encryptKeypair.publicKey
         )),
         'base64pad'
     )
@@ -821,8 +814,8 @@ async function makeRSAKeypair (
     if (!(Object.values(KeyUse).includes(use))) {
         throw new Error('invalid key use')
     }
-    const alg = use === KeyUse.Exchange ? RSA_ALGORITHM : RSA_WRITE_ALG
-    const uses:KeyUsage[] = (use === KeyUse.Exchange ?
+    const alg = use === KeyUse.Encrypt ? RSA_ALGORITHM : RSA_SIGN_ALG
+    const uses:KeyUsage[] = (use === KeyUse.Encrypt ?
         ['encrypt', 'decrypt'] :
         ['sign', 'verify'])
 
