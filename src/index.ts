@@ -1,4 +1,3 @@
-import type { Crypto as OddCrypto } from '@oddjs/odd'
 import {
     concat,
     fromString as uFromString,
@@ -45,8 +44,6 @@ export const DEFAULT_SYMM_LEN = SymmKeyLength.B256
  * Exchange = encrypt/decrypt
  * Write = sign
  */
-
-export type Crypto = OddCrypto.Implementation
 
 // export { aesDecrypt, aesEncrypt }
 
@@ -176,10 +173,11 @@ export const ALGORITHM = AES_GCM
 
 /**
  * Create a new `identity`. This tracks a set of exchange keys by device.
- * This depends on the `crypto` interface of `odd`, the keystore that
+ * Depends on the `crypto` interface of `odd`, the keystore that
  * holds the keys for your device. This creates a public record, meaning that
  * we can store this anywhere, whereas the private keys are non-exportable,
  * stored only on-device.
+ *
  * @param crypto Fission crypto implementation for the current device
  * @param {{
  *   humanName:string,
