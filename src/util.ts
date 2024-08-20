@@ -1,8 +1,8 @@
 import * as uint8arrays from 'uint8arrays'
-import { RSA_HASHING_ALGORITHM } from './index.js'
 import { checkValidKeyUse, InvalidMaxValue } from './errors.js'
 import { CharSize, HashAlg, type Msg } from './types.js'
 import {
+    RSA_HASHING_ALGORITHM,
     DEFAULT_CHAR_SIZE,
     DEFAULT_HASH_ALGORITHM,
     SALT_LENGTH,
@@ -76,12 +76,6 @@ export const rsaOperations = {
 
         return new Uint8Array(arrayBuffer)
     }
-}
-
-export enum RsaSize {
-    B1024 = 1024,
-    B2048 = 2048,
-    B4096 = 4096
 }
 
 export type VerifyArgs = {
