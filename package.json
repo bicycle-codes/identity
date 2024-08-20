@@ -48,11 +48,13 @@
     "@nichoth/nanoid": "^5.0.8",
     "@nichoth/nanoid-dictionary": "^5.0.2",
     "idb-keyval": "^6.2.1",
+    "tweetnacl": "^1.0.3",
     "uint8arrays": "^5.1.0",
     "zod": "^3.22.4"
   },
   "devDependencies": {
     "@bicycle-codes/debug": "^0.6.13",
+    "@bicycle-codes/one-webcrypto": "^1.1.0",
     "@bicycle-codes/routes": "^4.0.7",
     "@bicycle-codes/tapzero": "^0.10.3",
     "@nichoth/components": "^0.16.7",

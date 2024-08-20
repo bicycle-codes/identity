@@ -1,3 +1,4 @@
+import { webcrypto } from '@bicycle-codes/one-webcrypto'
 import {
     concat,
     fromString as uFromString,
@@ -9,14 +10,14 @@ import {
     RSA_ALGORITHM,
     RSA_SIGN_ALG,
     BASE58_DID_PREFIX,
-    DEFAULT_SIGN_KEY_NAME,
     DEFAULT_RSA_SIZE,
     DEFAULT_HASH_ALG,
-    DEFAULT_ENCRYPT_KEY_NAME,
+    DEFAULT_ENCRYPTION_KEY_NAME,
+    DEFAULT_SIGNING_KEY_NAME,
     AES_GCM,
     DEFAULT_SYMM_LEN,
     DEFAULT_SYMM_ALG,
-    RSA_HASHING_ALGORITHM
+    // RSA_HASHING_ALGORITHM
 } from './constants'
 import {
     type HashAlg,
@@ -30,7 +31,8 @@ import {
     normalizeBase64ToBuf,
     base64ToArrBuf,
     randomBuf,
-    joinBufs
+    joinBufs,
+    isCryptoKeyPair
 } from './util'
 import type {
     CharSize,
@@ -40,61 +42,180 @@ import type {
 } from './types'
 import { SymmKeyLength } from './types'
 
+export interface Device {
+    name:string;  // random, collision resistant name
+    humanReadableName:string;
+    did:DID;
+    aes:string;  /* the symmetric key for this account, encrypted to the
+      exchange key for this device */
+    encryptionKey:string;  // encryption key, stringified
+}
+
+// export interface DeserializedDevice {
+//     name:string;
+//     humanReadableName:string;
+//     did:DID;
+//     aes:CryptoKey;
+//     encryptionKey:CryptoKeyPair;
+// }
+
+/**
+ * `devices` is a map of `{ <deviceName>: Device }`, where `device.aes` is the
+ * AES key encrypted to this exchange key. The private side of this exchange
+ * key is stored only on-device, in a keystore instance.
+ */
+export interface SerializedIdentity {
+    humanName:string;
+    username:string;
+    DID:DID;
+    rootDID:DID;
+    devices:Record<string, Device>;
+    storage:{ encryptionKeyName:string; signingKeyName:string; }
+}
+
+/**
+ * A record for an encrypted message. Contains `devices`, a record like
+ *  `{ deviceName: <encrypted key> }`
+ * You would decrypt the encrypted key -- message.devices[my-device-name] --
+ *   with the device's `encrypt` key
+ * Then use the decrypted key to decrypt the payload
+ */
+export interface EncryptedMessage<T extends string = string> {
+    payload:T, /* This is the message, encrypted with the symm key for
+        the message */
+    devices:Record<string, string>  /* a map from `deviceName` to this
+        messages's encrypted AES key, encrypted to that device */
+}
+
+export type CurriedEncrypt = (data:string|Uint8Array) => Promise<EncryptedMessage>
+
 // const ECC_WRITE_ALG = 'ECDSA'
 
 /**
  * A class representing a user.
  *
  * By default, includes two "main" keypairs, and a "main" AES key.
- *   - `encryptKey` -- asymmetric key for encrypting
- *   - `signKey` -- asymmetric key for signing
+ *   - `encryptionKey` -- asymmetric key for encrypting
+ *   - `signingKey` -- asymmetric key for signing
+ *
+ * This will serialize some properties like a human-readable name to
+ * localStorage also. Choose the storage key by setting the static property
+ * `STORAGE_KEY`. The default is `identity`.
  */
 export class Identity {
-    encryptKey:CryptoKeyPair
-    signKey:CryptoKeyPair
+    encryptionKey:CryptoKeyPair
+    signingKey:CryptoKeyPair
     rootDID:DID
+    DID:DID
+    humanName:string
     rootDeviceName:string
-    // devices:Record<string, { aes, name, humanReadableName, did:DID, encrypt }>
+    deviceName:string
+    devices:Record<string, Device>  // serialized devices
     aes:CryptoKey
-    ENCRYPT_KEY:string
-    SIGN_KEY:string
+    username:string  // the collision-resistant random string
+    static STORAGE_KEY:string = 'identity'
+    private ENCRYPTION_KEY_NAME:string
+    private SIGNING_KEY_NAME:string
 
     constructor (opts:{
-        encryptKey:CryptoKeyPair;
-        signKey:CryptoKeyPair;
+        humanName:string;
+        username:string;
+        encryptionKey:CryptoKeyPair;
+        signingKey:CryptoKeyPair;
         aes:CryptoKey;
         DID:DID;
         deviceName:string;
-    }, storage:{ encryptKeyName:string; signKeyName:string; }) {
-        const { encryptKey, signKey, DID, aes, deviceName } = opts
-        this.encryptKey = encryptKey
-        this.signKey = signKey
+        devices:Record<string, Device>;
+    }, storage:{ encryptionKeyName:string; signingKeyName:string; }) {
+        const { encryptionKey, signingKey, DID, aes, deviceName } = opts
+        this.devices = opts.devices
+        this.username = opts.username
+        this.encryptionKey = encryptionKey
+        this.signingKey = signingKey
         this.rootDID = DID
+        this.DID = DID
         this.rootDeviceName = deviceName
-        this.aes = aes
-        this.ENCRYPT_KEY = storage.encryptKeyName
-        this.SIGN_KEY = storage.signKeyName
+        this.deviceName = deviceName
+        this.aes = aes  // 'private' AES key for this device
+        this.ENCRYPTION_KEY_NAME = storage.encryptionKeyName
+        this.SIGNING_KEY_NAME = storage.signingKeyName
+        this.humanName = opts.humanName
     }
 
     /**
-     * Create a new Identity.
-     * @param { encryptionKeyName, signKeyName} opts Key names used for storing
+     * Create an identity, loading saved keys from indexedDB, and
+     * saved properties from `localStorage`.
+     */
+    static async init (opts:{
+        type?: 'rsa';
+        encryptionKeyName:string;
+        signingKeyName:string;
+    } = {
+        encryptionKeyName: DEFAULT_ENCRYPTION_KEY_NAME,
+        signingKeyName: DEFAULT_SIGNING_KEY_NAME
+    }):Promise<Identity> {
+        const { encryptionKeyName, signingKeyName } = opts
+        const savedID = localStorage.getItem(Identity.STORAGE_KEY)
+        if (!savedID) {
+            throw new Error("Couldn't find the ID")
+        }
+
+        const parsedID:SerializedIdentity = JSON.parse(savedID)
+        const deviceName = await createDeviceName(parsedID.rootDID)
+        const encryptionKey = await ecryptionKey(opts.encryptionKeyName)
+        const _signingKey = await signingKey(opts.signingKeyName)
+
+        const decryptedKey = await decryptKey(
+            parsedID.devices[deviceName].aes,
+            encryptionKey
+        )
+
+        // the unencrypted AES key
+        // const aes = decryptKey()
+        const id = new Identity({
+            encryptionKey: await ecryptionKey(opts.encryptionKeyName),
+            signingKey: _signingKey,
+            ...parsedID,
+            deviceName,
+            aes: decryptedKey
+        }, { encryptionKeyName, signingKeyName })
+
+        return id
+    }
+
+    /**
+     * Save a serialized Identity. Crypto keys are already saved to
+     * indexedDB.
+     * @param {SerializedIdentity} id The serialized Identity
+     */
+    static save (id:SerializedIdentity) {
+        localStorage.setItem(Identity.STORAGE_KEY, JSON.stringify(id))
+    }
+
+    /**
+     * Create a new Identity. Use this because `async`.
+     *
+     * @param { encryptionKeyName, signingKeyName} opts Key names used for storing
      * the main keypairs in indexedDB.
      * @returns {Identity} A new identity instance
      */
     static async create (opts:{
+        humanName:string;
         type?: 'rsa';
-        encryptKeyName:string;
-        signKeyName:string;
+        humanReadableDeviceName:string;  // a name for this device
+        encryptionKeyName?:string;
+        signingKeyName?:string;
     }):Promise<Identity> {
-        const { encryptKeyName, signKeyName } = opts
+        let { encryptionKeyName, signingKeyName } = opts
+        encryptionKeyName = encryptionKeyName || DEFAULT_ENCRYPTION_KEY_NAME
+        signingKeyName = signingKeyName || DEFAULT_SIGNING_KEY_NAME
 
-        const encryptKeypair = await makeRSAKeypair(
+        const encryptionKeypair = await makeRSAKeypair(
             DEFAULT_RSA_SIZE,
             DEFAULT_HASH_ALG,
             KeyUse.Encrypt
         )
-        const signKeypair = await makeRSAKeypair(
+        const signingKeypair = await makeRSAKeypair(
             DEFAULT_RSA_SIZE,
             DEFAULT_HASH_ALG,
             KeyUse.Sign
@@ -106,48 +227,132 @@ export class Identity {
             length: DEFAULT_SYMM_LEN
         })
 
-        const rootDID = await writeKeyToDid(signKeypair)
+        const rootDID = await writeKeyToDid(signingKeypair)
+
+        const exported = await aesExportKey(AESKey)
+
+        const encryptedKey = uToString(
+            new Uint8Array(await rsaOperations.encrypt(
+                exported,
+                encryptionKeypair.publicKey
+            )),
+            'base64pad'
+        )
+
+        const deviceName = await createDeviceName(rootDID)
 
         const id = new Identity({
-            encryptKey: encryptKeypair,
-            signKey: signKeypair,
+            username: deviceName,
+            humanName: opts.humanName,
+            encryptionKey: encryptionKeypair,
+            signingKey: signingKeypair,
             aes: AESKey,
             DID: rootDID,
-            deviceName: await createDeviceName(rootDID)
-        }, { encryptKeyName, signKeyName })
+            deviceName,
+            devices: {
+                [deviceName]: {
+                    humanReadableName: opts.humanReadableDeviceName,
+                    name: deviceName,
+                    aes: encryptedKey,
+                    did: rootDID,
+                    encryptionKey: toString(
+                        new Uint8Array(await webcrypto.subtle.exportKey(
+                            'spki',
+                            encryptionKeypair.publicKey
+                        ))
+                    )
+                }
+            }
+        }, {
+            encryptionKeyName,
+            signingKeyName
+        })
 
         // save the keys to indexedDB
         await Promise.all([
-            set(encryptKeyName, encryptKeypair),
-            set(signKeyName, signKeypair)
+            set(encryptionKeyName, encryptionKeypair),
+            set(signingKeyName, signingKeypair)
         ])
 
         return id
+    }
 
-        // const key = await aesGenKey({ alg: AES_GCM, length: DEFAULT_SYMM_LEN })
-        // const exported = await aesExportKey(key)
+    /**
+     * Return a JSON stringifiable version of this Identity.
+     */
+    async serialize ():Promise<SerializedIdentity> {
+        // need to serialize this device's keys only;
+        // the embedded `devices` record is already serialized
 
-        // const pubKey = new Uint8Array(await window.crypto.subtle.exportKey(
-        //     'spki',
-        //     encryptKeypair.publicKey
-        // ))
+        return {
+            username: this.username,
+            humanName: this.humanName,
+            DID: this.DID,
+            rootDID: this.rootDID,
+            devices: this.devices,
+            storage: {
+                encryptionKeyName: this.ENCRYPTION_KEY_NAME,
+                signingKeyName: this.SIGNING_KEY_NAME
+            }
+        }
+    }
 
-        // const encryptedKey = uToString(
-        //     new Uint8Array(await rsaOperations.encrypt(
-        //         exported,
-        //         encryptKeypair.publicKey
-        //     )),
-        //     'base64pad'
-        // )
+    async sign (msg:Msg, charsize?:CharSize):Promise<Uint8Array> {
+        return sign(msg, charsize, this.signingKey)
+    }
 
-        // const initialDevices:SerializedIdentity['devices'] = {}
-        // initialDevices[deviceName] = {
-        //     aes: encryptedKey,
-        //     name: deviceName,
-        //     humanReadableName: humanReadableDeviceName,
-        //     did: rootDID,
-        //     exchange: toString(pubKey)
-        // }
+    async signAsString (msg:string) {
+        return signAsString(msg, this.signingKey)
+    }
+
+    /**
+     * Decrypt the given message. Throws if the message does not contain
+     * a key for this device.
+     * @param {EncryptedMessage} encryptedMsg The message to decrypt
+     * @returns {Promise<string>}
+     */
+    async decryptMsg (encryptedMsg:EncryptedMessage):Promise<string> {
+        const encryptedKey = encryptedMsg.devices[this.deviceName]
+        if (!encryptedKey) throw new Error("Can't find an encrypted key")
+        const decryptedKey = await decryptKey(encryptedKey, this.encryptionKey)
+        const msgBuf = uFromString(encryptedMsg.payload, 'base64pad')
+        const decryptedMsg = await aesDecrypt(msgBuf, decryptedKey)
+        return uToString(decryptedMsg)
+    }
+
+    /**
+     * Generate a new AES key and use it to encrypt a message to the given
+     * recipients. The message author (this ID) is appended to the devices in
+     * the message, so the author will be able to decrypt the message.
+     *
+     * @param recipients The recipients
+     * @param data The thing to encrypt
+     * @returns {Promise<EncryptedMessage>}
+     */
+    async encryptMsg (
+        recipients:SerializedIdentity[],
+        data:string|Uint8Array
+    ):Promise<EncryptedMessage> {
+        // need to encrypt a key to each exchange key,
+        // then encrypt the data with the key
+        const key = await aesGenKey()
+
+        const encryptedKeys = {}
+        for (const id of (recipients || []).concat([await this.serialize()])) {
+            for await (const deviceName of Object.keys(id.devices)) {
+                const encrypted = await rsaOperations.encrypt(
+                    await aesExportKey(key),
+                    id.devices[deviceName].encryptionKey
+                )
+
+                encryptedKeys[deviceName] = toString(new Uint8Array(encrypted))
+            }
+        }
+
+        return {
+            payload: await encryptContent(key, data),
+            devices: encryptedKeys
+        }
     }
 }
 
@@ -181,8 +386,8 @@ function publicKeyToDid (
  * @param {string} [keyName] The key name that the indexedDB data is stored under
  * @returns {Promise<CryptoKeyPair>}
  */
-async function writeKey (
-    keyName:string = DEFAULT_SIGN_KEY_NAME
+async function signingKey (
+    keyName:string = DEFAULT_SIGNING_KEY_NAME
 ):Promise<CryptoKeyPair> {
     let keypair = await get<CryptoKeyPair>(keyName)
     if (!keypair) {
@@ -198,8 +403,11 @@ async function writeKey (
     return keypair
 }
 
-async function exchangeKey (
-    keyname:string = DEFAULT_ENCRYPT_KEY_NAME
+/**
+ * Get the `encrypt` key from indexedDB.
+ */
+async function ecryptionKey (
+    keyname:string = DEFAULT_ENCRYPTION_KEY_NAME
 ):Promise<CryptoKeyPair> {
     let keypair = await get<CryptoKeyPair>(keyname)
     if (!keypair) {
@@ -229,10 +437,10 @@ async function writeKeyToDid (
     return publicKeyToDid(new Uint8Array(arr), ksAlg)
 }
 
-export async function getPublicKeyAsArrayBuffer (
+async function getPublicKeyAsArrayBuffer (
     keypair:CryptoKeyPair
 ):Promise<ArrayBuffer> {
-    const spki = await window.crypto.subtle.exportKey(
+    const spki = await webcrypto.subtle.exportKey(
         'spki',
         keypair.publicKey
     )
@@ -241,34 +449,12 @@ export async function getPublicKeyAsArrayBuffer (
 }
 
 // export async function getPublicKeyAsString (keypair:CryptoKeyPair):Promise<string> {
-//     const spki = await window.crypto.subtle.exportKey(
+//     const spki = await webcrypto.subtle.exportKey(
 //         'spki',
 //         keypair.publicKey
 //     )
 //     return arrBufToBase64(spki)
 // }
-
-export interface Device {
-    name:string,
-    did:DID,
-    aes:string,  /* the symmetric key for this account, encrypted to the
-      exchange key for this device */
-    exchange:string,
-    humanReadableName:string
-}
-
-/**
- * `devices` is a map of `{ <deviceName>: Device }`, where `device.aes` is the
- * AES key encrypted to this exchange key. The private side of this exchange
- * key is stored only on-device, in a keystore instance.
- */
-export interface SerializedIdentity {
-    humanName:string;
-    username:string;
-    rootDID:DID;
-    devices:Record<string, Device>;
-    storage:{ exchangeKeyName:string; writeKeyName:string; }
-}
 
 /**
  * Create a new `identity`. This tracks a set of keys by device.
@@ -288,18 +474,18 @@ export async function create ({
     humanReadableDeviceName,
     persist,
     storage = {
-        exchangeKeyName: DEFAULT_ENCRYPT_KEY_NAME,
-        writeKeyName: DEFAULT_SIGN_KEY_NAME
+        encryptionKeyName: DEFAULT_ENCRYPTION_KEY_NAME,
+        signingKeyName: DEFAULT_SIGNING_KEY_NAME
     }
 }:{
     humanName:string,
     humanReadableDeviceName:string,
     persist?:boolean,
     storage:{
-        exchangeKeyName:string,
-        writeKeyName:string
+        encryptionKeyName:string,
+        signingKeyName:string
     }
-}):Promise<SerializedIdentity> {
+}):Promise<Identity> {
     if (persist) {
         if (navigator.storage && navigator.storage.persist) {
             try {
@@ -310,36 +496,36 @@ export async function create ({
         }
     }
 
-    const encryptKeypair = await makeRSAKeypair(
+    const encryptionKeypair = await makeRSAKeypair(
         DEFAULT_RSA_SIZE,
         DEFAULT_HASH_ALG,
         KeyUse.Encrypt
     )
-    const signKeypair = await makeRSAKeypair(
+    const signingKeypair = await makeRSAKeypair(
         DEFAULT_RSA_SIZE,
         DEFAULT_HASH_ALG,
         KeyUse.Sign
     )
 
-    const rootDID = await writeKeyToDid(signKeypair)
+    const rootDID = await writeKeyToDid(signingKeypair)
     const deviceName = await createDeviceName(rootDID)
 
-    set(storage.exchangeKeyName, encryptKeypair)
-    set(storage.writeKeyName, signKeypair)
+    set(storage.encryptionKeyName, encryptionKeypair)
+    set(storage.signingKeyName, signingKeypair)
 
     // this is the private AES key for this ID
     const key = await aesGenKey({ alg: AES_GCM, length: DEFAULT_SYMM_LEN })
     const exported = await aesExportKey(key)
 
-    const pubKey = new Uint8Array(await window.crypto.subtle.exportKey(
+    const pubKey = new Uint8Array(await webcrypto.subtle.exportKey(
         'spki',
-        encryptKeypair.publicKey
+        encryptionKeypair.publicKey
     ))
 
     const encryptedKey = uToString(
         new Uint8Array(await rsaOperations.encrypt(
             exported,
-            encryptKeypair.publicKey
+            encryptionKeypair.publicKey
         )),
         'base64pad'
     )
@@ -350,48 +536,35 @@ export async function create ({
         name: deviceName,
         humanReadableName: humanReadableDeviceName,
         did: rootDID,
-        exchange: toString(pubKey)
+        encryptionKey: toString(pubKey)
     }
 
-    return {
-        username: deviceName,
+    return new Identity({
         humanName,
-        rootDID,
+        username: deviceName,
+        encryptionKey: encryptionKeypair,
+        signingKey: signingKeypair,
+        aes: key,
+        DID: rootDID,
+        deviceName,
         devices: initialDevices,
-        storage: { ...storage }
-    }
+    }, storage)
 }
 
 function aesGenKey (opts:{ alg, length } = {
     alg: DEFAULT_SYMM_ALG,
     length: DEFAULT_SYMM_LEN
 }) {
-    return window.crypto.subtle.generateKey({
+    return webcrypto.subtle.generateKey({
         name: opts.alg,
         length: opts.length
     }, true, ['encrypt', 'decrypt'])
 }
 
 /**
- * A record for an encrypted message. Contains `devices`, a record like
- *  `{ deviceName: <encrypted key> }`
- * You would decrypt the encrypted key -- message.devices[my-device-name] --
- *   with the device's exchange key
- * Then use the decrypted key to decrypt the payload
- */
-export interface EncryptedMessage<T extends string = string> {
-    creator:SerializedIdentity, // the person who sent the message
-    payload:T, /* This is the message, encrypted with the symm key for
-        this message */
-    devices:Record<string, string>
-}
-
-export type CurriedEncrypt = (data:string|Uint8Array) => Promise<EncryptedMessage>
-
-/**
  * Encrypt a given message to the given set of identities.
- * To decrypt this message, use your exchange key to decrypt the symm key,
- * then use the symm key to decrypt the payload.
+ * To decrypt this message, use your device's exchange key to decrypt the symm
+ * key, then use the symm key to decrypt the payload.
  *
  * Omit `ids` to encrypt a message to yourself.
  *
@@ -428,7 +601,7 @@ export async function encryptTo (
         for await (const deviceName of Object.keys(id.devices)) {
             const encrypted = await rsaOperations.encrypt(
                 await aesExportKey(key),
-                id.devices[deviceName].exchange
+                id.devices[deviceName].encryptionKey
             )
 
             encryptedKeys[deviceName] = toString(new Uint8Array(encrypted))
@@ -436,29 +609,28 @@ export async function encryptTo (
     }
 
     const payload = await encryptContent(key, data)
-    return { payload, devices: encryptedKeys, creator }
+    return { payload, devices: encryptedKeys }
 }
 
-/**
- * Decrypt the given encrypted message, that has been encrypted
- * to this device.
- *
- * @param {Implementation} crypto The crypto instance with the right keypair.
- * @param {EncryptedMessage} encryptedMsg The message to decrypt
- * @returns {string} The decrypted message.
- */
-export async function decryptMsg (
-    id:Identity,
-    encryptedMsg:EncryptedMessage,
-):Promise<string> {
-    const myDid = await writeKeyToDid(await writeKey())
-    const deviceName = await createDeviceName(myDid)
-    const encryptedKey = encryptedMsg.devices[deviceName]
-    const decryptedKey = await decryptKey(encryptedKey)
-    const msgBuf = uFromString(encryptedMsg.payload, 'base64pad')
-    const decryptedMsg = await aesDecrypt(msgBuf, decryptedKey)
-    return uToString(decryptedMsg)
-}
+// /**
+//  * Decrypt the given encrypted message, that has been encrypted
+//  * to this device.
+//  *
+//  * @param {Implementation} crypto The crypto instance with the right keypair.
+//  * @param {EncryptedMessage} encryptedMsg The message to decrypt
+//  * @returns {string} The decrypted message.
+//  */
+// async function decryptMsg (
+//     encryptedMsg:EncryptedMessage,
+// ):Promise<string> {
+//     const myDid = await writeKeyToDid(await writeKey())
+//     const deviceName = await createDeviceName(myDid)
+//     const encryptedKey = encryptedMsg.devices[deviceName]
+//     const decryptedKey = await decryptKey(encryptedKey)
+//     const msgBuf = uFromString(encryptedMsg.payload, 'base64pad')
+//     const decryptedMsg = await aesDecrypt(msgBuf, decryptedKey)
+//     return uToString(decryptedMsg)
+// }
 
 export type Group = {
     groupMembers:SerializedIdentity[];
@@ -496,7 +668,7 @@ export async function group (
 
             encryptedKeys[deviceName] = await encryptKey(
                 key,
-                id.devices[deviceName].exchange
+                id.devices[deviceName].encryptionKey
             )
         }
     }
@@ -599,15 +771,29 @@ export async function encryptContent (
  */
 export async function encryptKey (
     key:CryptoKey,
-    exchangeKey:string|CryptoKey
+    exchangeKey:string|CryptoKeyPair
 ):Promise<string> {
-    const encryptedKey = uToString(
-        new Uint8Array(await rsaOperations.encrypt(
-            await aesExportKey(key),
-            exchangeKey
-        )),
-        'base64pad'
-    )
+    let encryptedKey
+    if (typeof exchangeKey === 'string') {
+        encryptedKey = uToString(
+            new Uint8Array(await rsaOperations.encrypt(
+                await aesExportKey(key),
+                exchangeKey
+            )),
+            'base64pad'
+        )
+    } else {
+        // is crypto keypair
+        encryptedKey = uToString(
+            new Uint8Array(
+                await rsaOperations.encrypt(
+                    await aesExportKey(key),
+                    exchangeKey.publicKey
+                )
+            ),
+            'base64pad'
+        )
+    }
 
     return encryptedKey
 }
@@ -618,13 +804,19 @@ export async function encryptKey (
  *
  * @param {string} encryptedKey The encrypted key, returned by `create`:
  *   `identity.devices[name].aes`
+ * @param {CryptoKeyPair} [keypair] The keypair to use to decrypt
  * @returns {Promise<CryptoKey>} The symmetric key
  */
-export async function decryptKey (
-    encryptedKey:string
+async function decryptKey (
+    encryptedKey:string,
+    keypair?:CryptoKeyPair
 ):Promise<CryptoKey> {
-    const myKey = await exchangeKey()
-    const decrypted = await decryptBytes(fromString(encryptedKey), myKey.privateKey)
+    let myKey = keypair
+    if (!myKey) myKey = await ecryptionKey()
+    const decrypted = await decryptBytes(
+        fromString(encryptedKey),
+        myKey.privateKey
+    )
 
     const key = await importAesKey(new Uint8Array(decrypted))
     return key
@@ -641,7 +833,7 @@ export async function importKey (
     opts?:Partial<SymmKeyOpts>
 ):Promise<CryptoKey> {
     const buf = base64ToArrBuf(base64key)
-    return window.crypto.subtle.importKey(
+    return webcrypto.subtle.importKey(
         'raw',
         buf,
         {
@@ -662,9 +854,10 @@ export async function decryptBytes (
     const importedKey = typeof key === 'string' ?
         await importKey(key, opts) :
         key
+    // `iv` is prefixed to the cypher text
     const iv = cipherText.slice(0, 12)
     const cipherBytes = cipherText.slice(12)
-    const msgBuff = await window.crypto.subtle.decrypt({
+    const msgBuff = await webcrypto.subtle.decrypt({
         name: DEFAULT_SYMM_ALG,
         iv
     }, importedKey, cipherBytes)
@@ -692,7 +885,7 @@ export async function addDevice (
     // need to decrypt the existing AES key, then re-encrypt it to the
     // new did
 
-    const myKeys = await writeKey()
+    const myKeys = await signingKey()
     const existingDid = await writeKeyToDid(myKeys)
     const existingDeviceName = await createDeviceName(existingDid)
     const secretKey = await decryptKey(id.devices[existingDeviceName].aes)
@@ -703,14 +896,13 @@ export async function addDevice (
     if (typeof exchangeKey === 'string') {
         encryptedKey = await encryptKey(secretKey, exchangeKey)
         exchangeString = exchangeKey
-    } else if (isCryptoKey(exchangeKey)) {
-        // is CryptoKey
+    } else if (isCryptoKeyPair(exchangeKey)) {
         encryptedKey = await encryptKey(secretKey, exchangeKey)
         exchangeString = toString(
-            new Uint8Array(await window.crypto.subtle.exportKey('raw', exchangeKey))
+            new Uint8Array(await webcrypto.subtle.exportKey('raw', exchangeKey))
         )
     } else {
-        throw new Error('Exchange key should be string or CryptoKey')
+        throw new Error('Exchange key should be string or CryptoKeyPair')
     }
 
     const newDeviceData:SerializedIdentity['devices'] = {}
@@ -721,7 +913,7 @@ export async function addDevice (
         humanReadableName,
         aes: encryptedKey,
         did: newDid,
-        exchange: exchangeString
+        encryptionKey: exchangeString
     }
 
     const newId:SerializedIdentity = {
@@ -748,12 +940,15 @@ export async function createDeviceName (did:DID):Promise<string> {
 
 /**
  * Sign a string. Return the signature as Uint8Array.
- * @param keystore Local keystore instance
  * @param msg The message to sign
  * @returns {Promise<Uint8Array>} The signature
  */
-export async function sign (msg:Msg, charsize:CharSize):Promise<Uint8Array> {
-    const key = await writeKey()
+export async function sign (
+    msg:Msg,
+    charsize?:CharSize,
+    keys?:CryptoKeyPair
+):Promise<Uint8Array> {
+    const key = keys || await signingKey()
 
     const sig = await rsaOperations.sign(
         msg,
@@ -768,12 +963,19 @@ export async function sign (msg:Msg, charsize:CharSize):Promise<Uint8Array> {
  * Sign a string; return the signature as string.
  */
 export async function signAsString (
-    msg:string
+    msg:string,
+    keys?:CryptoKeyPair
 ):Promise<string> {
-    const key = await writeKey()
+    const key = keys || await signingKey()
     const sig = await rsaOperations.sign(msg, key.privateKey)
     return arrBufToBase64(sig)
 }
+
+const KEY_TYPE = {
+    RSA: 'rsa',
+    Edwards: 'ed25519',
+    BLS: 'bls12-381'
+} as const
 
 /**
  * Check that the given signature is valid with the given message.
@@ -784,7 +986,7 @@ export async function verifyFromString (
     signingDid:DID
 ):Promise<boolean> {
     const { publicKey, type } = didToPublicKey(signingDid)
-    const keyType = KEY_TYPE[type]
+    const keyType = did.keyTypes[type]
 
     const isValid = await keyType.verify({
         message: uFromString(msg),
@@ -817,7 +1019,7 @@ export async function getDeviceName (input:DID|CryptoKeyPair):Promise<string> {
  * @param str `base64pad` encoded string
  * @returns {Uint8Array}
  */
-export function fromString (str:string) {
+function fromString (str:string) {
     return uFromString(str, 'base64pad')
 }
 
@@ -827,19 +1029,13 @@ export function fromString (str:string) {
  * @param {Uint8Array} arr Binary data
  * @returns {string} String encoded as `base64pad`
  */
-export function toString (arr:Uint8Array) {
+function toString (arr:Uint8Array) {
     return uToString(arr, 'base64pad')
 }
 
 const EDWARDS_DID_PREFIX = new Uint8Array([0xed, 0x01])
 const BLS_DID_PREFIX = new Uint8Array([0xea, 0x01])
 const RSA_DID_PREFIX = new Uint8Array([0x00, 0xf5, 0x02])
-
-const KEY_TYPE = {
-    RSA: 'rsa',
-    Edwards: 'ed25519',
-    BLS: 'bls12-381'
-} as const
 
 const arrBufs = {
     equal: (aBuf:ArrayBuffer, bBuf:ArrayBuffer) => {
@@ -917,7 +1113,7 @@ async function makeRSAKeypair (
         ['encrypt', 'decrypt'] :
         ['sign', 'verify'])
 
-    return window.crypto.subtle.generateKey({
+    return webcrypto.subtle.generateKey({
         name: alg,
         modulusLength: size,
         publicExponent: publicExponent(),
@@ -929,40 +1125,40 @@ function publicExponent ():Uint8Array {
     return new Uint8Array([0x01, 0x00, 0x01])
 }
 
-export async function rsaDecrypt (
-    data:Uint8Array,
-    privateKey:CryptoKey|Uint8Array
-):Promise<Uint8Array> {
-    const arrayBuffer = await window.crypto.subtle.decrypt(
-        { name: RSA_ALGORITHM },
-        isCryptoKey(privateKey) ?
-            privateKey :
-            await importRsaKey(privateKey, ['decrypt']),
-        data
-    )
+// async function rsaDecrypt (
+//     data:Uint8Array,
+//     privateKey:CryptoKey|Uint8Array
+// ):Promise<Uint8Array> {
+//     const arrayBuffer = await webcrypto.subtle.decrypt(
+//         { name: RSA_ALGORITHM },
+//         isCryptoKey(privateKey) ?
+//             privateKey :
+//             await importRsaKey(privateKey, ['decrypt']),
+//         data
+//     )
 
-    return new Uint8Array(arrayBuffer)
-}
+//     return new Uint8Array(arrayBuffer)
+// }
 
-export function importRsaKey (
-    key:Uint8Array,
-    keyUsages:KeyUsage[]
-):Promise<CryptoKey> {
-    return window.crypto.subtle.importKey(
-        'spki',
-        key,
-        { name: RSA_ALGORITHM, hash: RSA_HASHING_ALGORITHM },
-        false,
-        keyUsages
-    )
-}
+// function importRsaKey (
+//     key:Uint8Array,
+//     keyUsages:KeyUsage[]
+// ):Promise<CryptoKey> {
+//     return webcrypto.subtle.importKey(
+//         'spki',
+//         key,
+//         { name: RSA_ALGORITHM, hash: RSA_HASHING_ALGORITHM },
+//         false,
+//         keyUsages
+//     )
+// }
 
-export async function aesExportKey (key:CryptoKey):Promise<string> {
-    const raw = await window.crypto.subtle.exportKey('raw', key)
+async function aesExportKey (key:CryptoKey):Promise<string> {
+    const raw = await webcrypto.subtle.exportKey('raw', key)
     return arrBufToBase64(raw)
 }
 
-export async function aesDecrypt (
+async function aesDecrypt (
     encrypted:Uint8Array,
     key:CryptoKey|Uint8Array,
     iv?:Uint8Array
@@ -970,7 +1166,7 @@ export async function aesDecrypt (
     const cryptoKey = isCryptoKey(key) ? key : await importAesKey(key)
     // we prefix the `iv` into the cipher text
     const decrypted = iv ?
-        await window.crypto.subtle.decrypt({
+        await webcrypto.subtle.decrypt({
             name: AES_GCM,
             iv
         }, cryptoKey, encrypted) :
@@ -979,7 +1175,7 @@ export async function aesDecrypt (
     return new Uint8Array(decrypted)
 }
 
-export async function aesEncrypt (
+async function aesEncrypt (
     data:Uint8Array,
     key:CryptoKey|Uint8Array,
     iv?:Uint8Array
@@ -990,7 +1186,7 @@ export async function aesEncrypt (
 
     // prefix the `iv` into the cipher text
     const encrypted = iv ?
-        await window.crypto.subtle.encrypt(
+        await webcrypto.subtle.encrypt(
             { name: AES_GCM, iv },
             cryptoKey,
             data
@@ -1000,8 +1196,8 @@ export async function aesEncrypt (
     return new Uint8Array(encrypted)
 }
 
-export function importAesKey (key: Uint8Array): Promise<CryptoKey> {
-    return window.crypto.subtle.importKey(
+function importAesKey (key: Uint8Array): Promise<CryptoKey> {
+    return webcrypto.subtle.importKey(
         'raw',
         key,
         {
@@ -1013,7 +1209,7 @@ export function importAesKey (key: Uint8Array): Promise<CryptoKey> {
     )
 }
 
-export async function encryptBytes (
+async function encryptBytes (
     msg:Msg,
     key:CryptoKey|string,
     opts?:Partial<{ iv }>
@@ -1023,7 +1219,7 @@ export async function encryptBytes (
         await importKey(key, opts) :
         key
     const iv = opts?.iv || randomBuf(12)
-    const cipherBuf = await window.crypto.subtle.encrypt({
+    const cipherBuf = await webcrypto.subtle.encrypt({
         name: AES_GCM,
         iv
     }, importedKey, data)

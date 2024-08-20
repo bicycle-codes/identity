@@ -1,4 +1,5 @@
 import * as uint8arrays from 'uint8arrays'
+import tweetnacl from 'tweetnacl'
 import { checkValidKeyUse, InvalidMaxValue } from './errors.js'
 import { CharSize, HashAlg, type Msg } from './types.js'
 import {
@@ -150,15 +151,23 @@ export const did:{ keyTypes:KeyTypes } = {
             magicBytes: new Uint8Array([0xea, 0x01]),
             verify: () => { throw new Error('Not implemented') },
         },
-        // ed25519: {
-        //     magicBytes: new Uint8Array([0xed, 0x01]),
-        //     verify: ed25519Verify,
-        // },
+        ed25519: {
+            magicBytes: new Uint8Array([0xed, 0x01]),
+            verify: ed25519Verify,
+        },
         rsa: {
             magicBytes: new Uint8Array([0x00, 0xf5, 0x02]),
             verify: rsaVerify,
         },
     }
+}
+
+export async function ed25519Verify ({
+    message,
+    publicKey,
+    signature
+}:VerifyArgs):Promise<boolean> {
+    return tweetnacl.sign.detached.verify(message, signature, publicKey)
 }
 
 export async function rsaVerify ({
@@ -181,6 +190,13 @@ export async function rsaVerify ({
             ['verify']
         ),
         8
+    )
+}
+
+export function isCryptoKeyPair (val:unknown):val is CryptoKeyPair {
+    return (
+        hasProp(val, 'algorithm') &&
+        hasProp(val, 'publicKey')
     )
 }
 
