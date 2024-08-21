@@ -25,3 +25,5 @@ export enum RsaSize {
     B2048 = 2048,
     B4096 = 4096
 }
+
+export type SymmKeyAlgorithm = 'AES_GCM'

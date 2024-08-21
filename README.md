@@ -10,23 +10,23 @@ Use [non-extractable keypairs](https://github.com/fission-codes/keystore-idb/blo
 
 -----------
 
+Use the webcrypto API to create a keypair representing a user.
 
-The `keystore` module uses [indexedDB](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API/Using_IndexedDB) to , so we are never able to read the private keys.
+This creates two keypairs -- 1 for signing and 1 for encrypting, and stores them
+in `indexedDB` in the browser. All keypairs here are "non-extractable", so you
+are never able to read the private key, but it can persist indefinitely.
 
-We can do e2e encryption by creating a symmetric key, then encrypting that key *to* each device. So the symmetric key is encrypted with the public key of each device.
+## E2E encryption
 
-Each device has a primary keypair used for signing, which is `did` here, and also an "exchange" keypair, which is used for encrypting & decrypting things. In the `Device` record there is also an index `aes`, which is the symmetrical key that has been encrypted to the device's exchange key.
-
-see also, [keystore as used in crypto component](https://github.com/oddsdk/ts-odd/blob/main/src/components/crypto/implementation/browser.ts#L8) 
+We can do e2e encryption by creating a symmetric key, then encrypting that key *to* each device that should be able to read the message. So the symmetric key is encrypted with the public key of each device.
 
 Devices are indexed by a sufficiently random key, created by calling [createDeviceName](https://github.com/bicycle-codes/identity/blob/ce5bb38cf9370c5f7ae1c5f545985c9ab574747b/src/index.ts#L359) with the primary did for the device.
 
 ------------------------
 
-## E2E encryption
 Sending a private message to an identity would mean encrypting a message with a new symmetric key, then encrypting `n` versions of the symmetric key, one for each device in the other identity.
 
-You can think of it like one conversation = 1 symmetric key. The person initiating the conversation needs to know the exchange keys of the other party.
+You can think of it like one conversation = 1 symmetric key. The person initiating the conversation needs to know the encryption keys of the other party.
 
 ------------------------------------------
 
@@ -36,27 +36,56 @@ npm i -S @bicycle-codes/identity
 ```
 
 ## use
-This uses [@oddjs/odd](https://www.npmjs.com/package/@oddjs/odd) to store the local keys.
-
 ```js
-import { program as createProgram } from '@oddjs/odd'
-import { create } from '@bicycle-codes/identity'
+import { Identity } from '@bicycle-codes/identity'
 
-// ...get an ODD program somehow...
-
-const program = await createProgram({
-    namespace: {
-        name: 'my-app',
-        creator: 'my-company'
-    }
-})
-crypto = program.components.crypto
-
-// ...
-
-identity = await create(crypto, {
+const id = await Identity.create({
     humanName: 'alice',
+    humanReadableDeviceName: 'phone'
 })
+```
+
+## API
+
+See [bicycle-codes/identity](...) for complete API docs.
+
+### create
+Use this factory function, not the constructor, because we use async code.
+
+```ts
+class Identity {
+    static async create (opts:{
+        humanName:string;
+        type?: 'rsa';
+        humanReadableDeviceName:string;  // a name for this device
+        encryptionKeyName?:string;
+        signingKeyName?:string;
+    }):Promise<Identity>
+}
+```
+
+#### example
+```js
+const id = await Identity.create({
+    humanName: 'alice',
+    humanReadableDeviceName: 'phone'
+})
+```
+
+### init
+Load an identity that has been saved to `localStorage` & indexedDB.
+
+```ts
+class Identity {
+    static async init (opts:{
+        type?:'rsa';
+        encryptionKeyName:string;
+        signingKeyName:string;
+    } = {
+        encryptionKeyName: DEFAULT_ENCRYPTION_KEY_NAME,
+        signingKeyName: DEFAULT_SIGNING_KEY_NAME
+    }):Promise<Identity>
+}
 ```
 
 ------------------------------------------
