@@ -6,7 +6,8 @@ import {
     decryptKey,
     aesGenKey,
     aesDecrypt,
-    encryptContent
+    encryptContent,
+    exportPublicKey
 } from '../src/index.js'
 import * as uArrs from 'uint8arrays'
 import { AES_GCM } from '../src/constants.js'
@@ -98,3 +99,16 @@ test('decrypt the message', async t => {
     t.equal(decrypted, 'hello world',
         'should decrypt the message to the right text')
 })
+
+test('load a saved identity', async t => {
+    Identity.save(await alice.serialize())
+    const alice2 = await Identity.init()
+    const alice2Key = await exportPublicKey(alice2.signingKey)
+    t.equal(typeof alice2Key, 'string', 'should return a string')
+    const aliceKey = await exportPublicKey(alice.signingKey)
+    t.equal(aliceKey, alice2Key, 'should load the same keys from storage')
+})
+
+// test('sign a message', async t => {
+
+// })
