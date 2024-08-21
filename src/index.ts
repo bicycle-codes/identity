@@ -17,7 +17,6 @@ import {
     AES_GCM,
     DEFAULT_SYMM_LEN,
     DEFAULT_SYMM_ALG,
-    // RSA_HASHING_ALGORITHM
 } from './constants'
 import {
     type HashAlg,
@@ -50,14 +49,6 @@ export interface Device {
       exchange key for this device */
     encryptionKey:string;  // encryption key, stringified
 }
-
-// export interface DeserializedDevice {
-//     name:string;
-//     humanReadableName:string;
-//     did:DID;
-//     aes:CryptoKey;
-//     encryptionKey:CryptoKeyPair;
-// }
 
 /**
  * `devices` is a map of `{ <deviceName>: Device }`, where `device.aes` is the
@@ -114,8 +105,8 @@ export class Identity {
     aes:CryptoKey
     username:string  // the collision-resistant random string
     static STORAGE_KEY:string = 'identity'
-    private ENCRYPTION_KEY_NAME:string
-    private SIGNING_KEY_NAME:string
+    ENCRYPTION_KEY_NAME:string
+    SIGNING_KEY_NAME:string
 
     constructor (opts:{
         humanName:string;
@@ -314,7 +305,11 @@ export class Identity {
     async decryptMsg (encryptedMsg:EncryptedMessage):Promise<string> {
         const encryptedKey = encryptedMsg.devices[this.deviceName]
         if (!encryptedKey) throw new Error("Can't find an encrypted key")
+        console.log('**encrypted key**', encryptedKey)
+        console.log('**this encryption key**',
+            JSON.stringify(this.encryptionKey.privateKey.algorithm, null, 2))
         const decryptedKey = await decryptKey(encryptedKey, this.encryptionKey)
+        console.log('**decrypted key**', decryptedKey)
         const msgBuf = uFromString(encryptedMsg.payload, 'base64pad')
         const decryptedMsg = await aesDecrypt(msgBuf, decryptedKey)
         return uToString(decryptedMsg)
@@ -325,13 +320,15 @@ export class Identity {
      * recipients. The message author (this ID) is appended to the devices in
      * the message, so the author will be able to decrypt the message.
      *
-     * @param recipients The recipients
+     * Omit the recipients to create a self-encrypted message.
+     *
      * @param data The thing to encrypt
+     * @param recipients The recipients
      * @returns {Promise<EncryptedMessage>}
      */
     async encryptMsg (
-        recipients:SerializedIdentity[],
-        data:string|Uint8Array
+        data:string|Uint8Array,
+        recipients?:SerializedIdentity[],
     ):Promise<EncryptedMessage> {
         // need to encrypt a key to each exchange key,
         // then encrypt the data with the key
@@ -813,11 +810,12 @@ async function decryptKey (
 ):Promise<CryptoKey> {
     let myKey = keypair
     if (!myKey) myKey = await ecryptionKey()
-    const decrypted = await decryptBytes(
+    const decrypted = await rsaOperations.decrypt(
         fromString(encryptedKey),
         myKey.privateKey
     )
 
+    console.log('**decrypted key length**', decrypted.length)
     const key = await importAesKey(new Uint8Array(decrypted))
     return key
 }

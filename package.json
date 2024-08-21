@@ -7,7 +7,6 @@
   "scripts": {
     "start": "concurrently --kill-others \"npx partykit dev\" \"npx vite\"",
     "lint": "eslint \"./**/*.{ts,js}\"",
-    "//test": "esbuild ./src/index.ts > ./src/index.js && cd test && esbuild ./index.ts --platform=node --format=esm | node --input-type=module | tap-spec",
     "test": "npm run test:browser",
     "build-browser-tests": "esbuild ./test/browser.ts --bundle --keep-names > test/test-bundle.js",
     "test:browser": "npm run build-browser-tests && cat test/index.html | tape-run --input=html --static=test | tap-spec",
