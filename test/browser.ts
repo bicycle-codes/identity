@@ -123,3 +123,24 @@ test('verify the signature', async t => {
     t.equal(await verifyFromString('bad one', sig, alice.DID), false,
         'should not verify an invalid signature')
 })
+
+let bob:Identity
+let msgToBob:EncryptedMessage
+test('encrypt a message to another identity', async t => {
+    bob = await Identity.create({
+        humanName: 'bob',
+        humanReadableDeviceName: 'computer'
+    })
+
+    const msg = msgToBob = await alice.encryptMsg('hello bob', [
+        await bob.serialize()
+    ])
+    t.ok(msg.payload, 'should return a message')
+    t.ok(msg.devices[bob.rootDeviceName],
+        'should have bob in the list of recipients')
+})
+
+test('decrypt a message from another person', async t => {
+    const decrypted = await bob.decryptMsg(msgToBob)
+    t.equal(decrypted, 'hello bob', 'should decrypt the message')
+})
