@@ -49,8 +49,6 @@
     }
   },
   "dependencies": {
-    "@nichoth/nanoid": "^5.0.8",
-    "@nichoth/nanoid-dictionary": "^5.0.2",
     "idb-keyval": "^6.2.1",
     "tweetnacl": "^1.0.3",
     "uint8arrays": "^5.1.0",
@@ -59,7 +57,6 @@
   "devDependencies": {
     "@bicycle-codes/debug": "^0.6.13",
     "@bicycle-codes/one-webcrypto": "^1.1.2",
-    "@bicycle-codes/routes": "^4.0.7",
     "@bicycle-codes/tapzero": "^0.10.3",
     "@typescript-eslint/eslint-plugin": "^8.0.0",
     "@typescript-eslint/parser": "^8.0.0",
@@ -92,5 +89,5 @@
   "bugs": {
     "url": "https://github.com/bicycle-codes/identity/issues"
   },
-  "homepage": "https://github.com/bicycle-codes/identity#readme"
+  "homepage": "https://github.com/bicycle-codes/identity/"
 }
