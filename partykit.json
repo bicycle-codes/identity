@@ -1,5 +1,0 @@
-{
-  "name": "identity-party",
-  "main": "example/server/index.ts",
-  "compatibilityDate": "2023-10-05"
-}

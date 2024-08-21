@@ -10,8 +10,8 @@ import {
     exportPublicKey,
     verifyFromString
 } from '../src/index.js'
-import * as uArrs from 'uint8arrays'
 import { AES_GCM } from '../src/constants.js'
+import * as uArrs from 'uint8arrays'
 import { test } from '@bicycle-codes/tapzero'
 import { get } from 'idb-keyval'
 
