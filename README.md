@@ -16,6 +16,8 @@ All encryption is via [AES-GCM](https://developer.mozilla.org/en-US/docs/Web/API
 
 All asymmetric crypto is using RSA, because we are waiting for more browsers to support ECC.
 
+## contents
+
 <!-- toc -->
 
 - [conceptual view](#conceptual-view)
