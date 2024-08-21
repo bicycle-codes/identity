@@ -1,36 +1,35 @@
-import { test } from '@nichoth/tapzero'
-import * as odd from '@oddjs/odd'
-import { type DID, writeKeyToDid } from '@ssc-half-light/util'
-import type { Crypto } from '@oddjs/odd'
-import {
-    create,
-    type Identity,
-    createDeviceName,
-} from '../src/index.js'
+import { type EncryptedMessage, Identity } from '../src/index.js'
+import { test } from '@bicycle-codes/tapzero'
+import { get } from 'idb-keyval'
 
-let identity:Identity
-let rootDid:DID
-let alicesCrytpo:Crypto.Implementation
-let rootDeviceName:string
-
-test('create an identity', async t => {
-    const program = await odd.program({
-        namespace: { creator: 'test', name: 'testing' },
-        debug: true
-    })
-
-    alicesCrytpo = program.components.crypto
-    rootDid = await writeKeyToDid(alicesCrytpo)
-
-    identity = await create(alicesCrytpo, {
+let alice:Identity
+test('Identity.create', async t => {
+    const id = alice = await Identity.create({
         humanName: 'alice',
         humanReadableDeviceName: 'phone'
     })
 
-    rootDeviceName = await createDeviceName(rootDid)
-    t.ok(alicesCrytpo, "should create Alice's crypto")
-    t.ok(rootDeviceName, 'should create root device name')
-    t.ok(identity, 'should return a new identity')
-    t.ok(identity.devices[rootDeviceName].aes,
-        'should map the symmetric key, indexed by device name')
+    t.ok(id instanceof Identity, 'should return a new identity')
+
+    const key = await get<CryptoKeyPair>(id.ENCRYPTION_KEY_NAME)
+    t.ok(key, 'should store a key in indexedDB')
+    t.ok(key?.publicKey, 'should create an asymmetric keypair')
+    t.ok(key?.privateKey, 'should create an asymmetric keypair')
+
+    const signingKey = await get<CryptoKeyPair>(id.SIGNING_KEY_NAME)
+    t.ok(signingKey?.publicKey, 'should create an asymmetric signing keypair')
+    t.ok(signingKey?.privateKey, 'should create an asymmetric signing keypair')
+})
+
+let msg:EncryptedMessage
+test('encrypt a message', async t => {
+    msg = await alice.encryptMsg('hello world')
+    t.ok(msg, 'should return something')
+    t.ok(msg.devices[alice.rootDeviceName],
+        'should encrypt the message to its author')
+})
+
+test('decrypt the message', async t => {
+    const decrypted = await alice.decryptMsg(msg)
+    t.equal(decrypted, 'hello world', 'should decrypt the message')
 })

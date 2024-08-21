@@ -1,4 +1,5 @@
 import * as uint8arrays from 'uint8arrays'
+import { webcrypto } from '@bicycle-codes/one-webcrypto'
 import tweetnacl from 'tweetnacl'
 import { checkValidKeyUse, InvalidMaxValue } from './errors.js'
 import { CharSize, HashAlg, type Msg } from './types.js'
@@ -13,8 +14,8 @@ import {
 export { HashAlg }
 
 export enum KeyUse {
-    Encrypt = 'exchange',  // encrypt/decrypt
-    Sign = 'write',  // sign
+    Encrypt = 'encryption',  // encrypt/decrypt
+    Sign = 'signing',  // sign
 }
 
 export const rsaOperations = {
@@ -25,7 +26,7 @@ export const rsaOperations = {
         charSize:CharSize = DEFAULT_CHAR_SIZE,
         hashAlg:HashAlg = DEFAULT_HASH_ALGORITHM
     ):Promise<boolean> {
-        return window.crypto.subtle.verify({
+        return webcrypto.subtle.verify({
             name: RSA_SIGN_ALG,
             saltLength: SALT_LENGTH
         }, (typeof publicKey === 'string' ?
@@ -40,7 +41,7 @@ export const rsaOperations = {
         privateKey:CryptoKey,
         charSize:CharSize = DEFAULT_CHAR_SIZE
     ):Promise<ArrayBuffer> {
-        return window.crypto.subtle.sign(
+        return webcrypto.subtle.sign(
             { name: RSA_SIGN_ALG, saltLength: SALT_LENGTH },
             privateKey,
             normalizeUnicodeToBuf(msg, charSize)
@@ -53,7 +54,7 @@ export const rsaOperations = {
         charSize:CharSize = DEFAULT_CHAR_SIZE,
         hashAlg:HashAlg = DEFAULT_HASH_ALGORITHM
     ): Promise<ArrayBuffer> {
-        return window.crypto.subtle.encrypt(
+        return webcrypto.subtle.encrypt(
             { name: RSA_ALGORITHM },
             typeof publicKey === 'string'
                 ? await importPublicKey(publicKey, hashAlg, KeyUse.Encrypt)
@@ -66,7 +67,7 @@ export const rsaOperations = {
         data:Uint8Array,
         privateKey:CryptoKey|Uint8Array
     ): Promise<Uint8Array> {
-        const arrayBuffer = await window.crypto.subtle.decrypt(
+        const arrayBuffer = await webcrypto.subtle.decrypt(
             { name: RSA_ALGORITHM },
             isCryptoKey(privateKey) ?
                 privateKey :
@@ -92,9 +93,11 @@ export async function importPublicKey (
 ):Promise<CryptoKey> {
     checkValidKeyUse(use)
     const alg = use === KeyUse.Encrypt ? RSA_ALGORITHM : RSA_SIGN_ALG
-    const uses: KeyUsage[] = use === KeyUse.Encrypt ? ['encrypt'] : ['verify']
+    const uses:KeyUsage[] = use === KeyUse.Encrypt ?
+        ['encrypt'] :
+        ['verify']
     const buf = base64ToArrBuf(stripKeyHeader(base64Key))
-    return window.crypto.subtle.importKey(
+    return webcrypto.subtle.importKey(
         'spki',
         buf,
         { name: alg, hash: { name: hashAlg } },
@@ -142,7 +145,7 @@ export function base64ToArrBuf (string:string):ArrayBuffer {
 }
 
 export async function sha256 (bytes:Uint8Array):Promise<Uint8Array> {
-    return new Uint8Array(await window.crypto.subtle.digest('sha-256', bytes))
+    return new Uint8Array(await webcrypto.subtle.digest('sha-256', bytes))
 }
 
 export const did:{ keyTypes:KeyTypes } = {
@@ -182,7 +185,7 @@ export async function rsaVerify ({
     return rsaOperations.verify(
         message,
         signature,
-        await window.crypto.subtle.importKey(
+        await webcrypto.subtle.importKey(
             'spki',
             publicKey,
             { name: RSA_SIGN_ALG, hash: RSA_HASHING_ALGORITHM },
@@ -272,7 +275,7 @@ export function randomBuf (
     const arr = new Uint8Array(length)
 
     if (max === 255) {
-        window.crypto.getRandomValues(arr)
+        webcrypto.getRandomValues(arr)
         return arr.buffer
     }
 
@@ -282,7 +285,7 @@ export function randomBuf (
     const tmp = new Uint8Array(1)
 
     while (index < arr.length) {
-        window.crypto.getRandomValues(tmp)
+        webcrypto.getRandomValues(tmp)
         if (tmp[0] < divisibleMax) {
             arr[index] = tmp[0] % interval
             index++
@@ -296,7 +299,7 @@ export function importRsaKey (
     key:Uint8Array,
     keyUsages:KeyUsage[]
 ):Promise<CryptoKey> {
-    return window.crypto.subtle.importKey(
+    return webcrypto.subtle.importKey(
         'spki',
         key,
         { name: RSA_ALGORITHM, hash: RSA_HASHING_ALGORITHM },
