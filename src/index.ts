@@ -62,6 +62,7 @@ export interface SerializedIdentity {
     username:string;
     DID:DID;
     rootDID:DID;
+    rootDeviceName:string;
     devices:Record<string, Device>;
     storage:{ encryptionKeyName:string; signingKeyName:string; }
 }
@@ -280,10 +281,38 @@ export class Identity {
             DID: this.DID,
             rootDID: this.rootDID,
             devices: this.devices,
+            rootDeviceName: this.rootDeviceName,
             storage: {
                 encryptionKeyName: this.ENCRYPTION_KEY_NAME,
                 signingKeyName: this.SIGNING_KEY_NAME
             }
+        }
+    }
+
+    /**
+     * Create a new device record for this identity. This does not include an
+     * AES key in the device record, because typically you create a device
+     * record before adding this device to a different Identity, so you
+     * would add an AES key at that point.
+     *
+     * @param {{ humanReadableName:string }} opts A human-readable name for the device.
+     * @returns {Partial<Device>} The device record without `aes` key.
+     */
+    async createDeviceRecord (opts:{
+        humanReadableName:string
+    }):Promise<{
+        name:string;
+        humanReadableName:string;
+        did:DID;
+        encryptionKey:string
+    }> {
+        const { humanReadableName } = opts
+
+        return {
+            name: this.deviceName,
+            humanReadableName,
+            did: this.DID,
+            encryptionKey: await exportPublicKey(this.encryptionKey)
         }
     }
 
@@ -353,6 +382,33 @@ export class Identity {
             payload: await encryptContent(key, data),
             devices: encryptedKeys
         }
+    }
+
+    /**
+     * Add another device to this identity.
+     *
+     * @returns {Identity}
+     */
+    async addDevice (opts:{
+        name:string,
+        encryptionKey:string,
+        humanReadableName:string,
+        did:DID,
+    }):Promise<Identity> {
+        const { encryptionKey } = opts
+        const aes = this.aes
+        const encrypted = await encryptKey(aes, encryptionKey)
+        const newDeviceRecord = {
+            ...opts,
+            aes: encrypted
+        }
+
+        this.devices = {
+            ...this.devices,
+            [opts.name]: newDeviceRecord
+        }
+
+        return this
     }
 }
 

@@ -144,3 +144,27 @@ test('decrypt a message from another person', async t => {
     const decrypted = await bob.decryptMsg(msgToBob)
     t.equal(decrypted, 'hello bob', 'should decrypt the message')
 })
+
+let alice3:Identity
+test('add a new device', async t => {
+    alice3 = await Identity.create({
+        humanName: 'alice',
+        humanReadableDeviceName: 'work computer'
+    })
+
+    const workComputer = await alice3.createDeviceRecord({
+        humanReadableName: 'work computer'
+    })
+
+    await alice.addDevice(workComputer)
+
+    t.ok(alice.devices[workComputer.name],
+        'alice Identity should have the new device record')
+})
+
+test('alice can decrypt messages with any device', async t => {
+    const newMessage = await alice.encryptMsg('encrypting things')
+    const plaintext = await alice3.decryptMsg(newMessage)
+    t.equal(plaintext, 'encrypting things',
+        'work computer can decrypt a message encrypted with phone')
+})
