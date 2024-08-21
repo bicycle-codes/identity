@@ -1007,7 +1007,7 @@ export async function verifyFromString (
 /**
  * Create a 32-character, DNS-friendly hash for a device. Takes either the DID
  * string or a crypto instance.
- * @param {DID|Implementation} input DID string or Crypto implementation
+ * @param {DID|CryptoKeyPair} input DID string or Crypto implementation
  * @returns {string} The 32-character hash string of the DID
  */
 export async function getDeviceName (input:DID|CryptoKeyPair):Promise<string> {

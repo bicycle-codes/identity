@@ -7,18 +7,23 @@ export const did = z.custom<`did:key:z${string}`>(val => {
 })
 
 export const device = z.object({
-    aes: z.string(),
-    did,
-    exchange: z.string(),
     humanReadableName: z.string(),
-    name: z.string()
+    name: z.string(),
+    did,
+    aes: z.string(),
+    encryptionKey: z.string()
 })
 
 export const devices = z.record(z.string(), device)
 
-export const Identity = z.object({
-    username: z.string(),
+export const SerializedIdentity = z.object({
     humanName: z.string(),
+    username: z.string(),
+    DID: did,
     rootDID: did,
-    devices
+    devices: z.record(z.string(), z.string()),
+    storage: z.object({
+        encryptionKeyName: z.string(),
+        signingKeyName: z.string()
+    })
 })

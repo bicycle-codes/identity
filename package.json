@@ -33,6 +33,10 @@
         "./dist/*.min.js"
       ]
     },
+    "./z": {
+      "import": "./dist/z.js",
+      "require": "./dist/z.cjs"
+    },
     "./*": {
       "import": [
         "./dist/*.js",
@@ -57,9 +61,6 @@
     "@bicycle-codes/one-webcrypto": "^1.1.2",
     "@bicycle-codes/routes": "^4.0.7",
     "@bicycle-codes/tapzero": "^0.10.3",
-    "@nichoth/components": "^0.16.7",
-    "@preact/preset-vite": "^2.8.2",
-    "@preact/signals": "^1.2.3",
     "@typescript-eslint/eslint-plugin": "^8.0.0",
     "@typescript-eslint/parser": "^8.0.0",
     "auto-changelog": "^2.4.0",
@@ -68,17 +69,10 @@
     "eslint": "^8.57.0",
     "eslint-config-standard": "^17.1.0",
     "markdown-toc": "^1.2.0",
-    "partykit": "^0.0.108",
-    "partysocket": "1.0.2",
-    "postcss-nesting": "^13.0.0",
-    "preact": "^10.20.2",
-    "route-event": "^6.0.0",
     "tap-spec": "^5.0.0",
     "tape-run": "^11.0.0",
     "typedoc": "^0.26.6",
-    "typescript": "^5.4.5",
-    "uuid": "^10.0.0",
-    "vite": "^5.2.8"
+    "typescript": "^5.4.5"
   },
   "files": [
     "dist/*"
