@@ -12,15 +12,14 @@ Use [non-extractable keypairs](https://github.com/fission-codes/keystore-idb/blo
 
 Use the webcrypto API to create a keypair representing a user.
 
-This creates two keypairs -- 1 for signing and 1 for encrypting, and stores them
-in `indexedDB` in the browser. All keypairs here are "non-extractable", so you
-are never able to read the private key, but it can persist indefinitely.
+This creates two keypairs -- 1 for signing and 1 for encrypting, and stores them in `indexedDB` in the browser. [All keypairs here are "non-extractable"](https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/generateKey#extractable), so you are never able to read the private key, but they still persist indefinitely in indexedDB.
+
 
 ## E2E encryption
 
 We can do e2e encryption by creating a symmetric key, then encrypting that key *to* each device that should be able to read the message. So the symmetric key is encrypted with the public key of each device.
 
-Devices are indexed by a sufficiently random key, created by calling [createDeviceName](https://github.com/bicycle-codes/identity/blob/ce5bb38cf9370c5f7ae1c5f545985c9ab574747b/src/index.ts#L359) with the primary did for the device.
+Devices are indexed by a sufficiently random key, created by calling [createDeviceName](./src/index.ts#L940) with the primary did for the device.
 
 ------------------------
 
@@ -47,10 +46,12 @@ const id = await Identity.create({
 
 ## API
 
-See [bicycle-codes/identity](...) for complete API docs.
+See [bicycle-codes/identity](https://bicycle-codes.github.io/identity/) for complete API docs.
 
 ### create
-Use this factory function, not the constructor, because we use async code.
+Use this factory function, not the constructor, because it is async.
+
+By default this will use indexedDB with the keys `encryption-key` and `signing-key`. Pass in the options `encryptionKeyName` and `signingKeyName` to change these.
 
 ```ts
 class Identity {
@@ -66,14 +67,37 @@ class Identity {
 
 #### example
 ```js
-const id = await Identity.create({
+const alice = await Identity.create({
     humanName: 'alice',
     humanReadableDeviceName: 'phone'
 })
 ```
 
+### save
+Save an existing Identity to `localStorage` and `indexedDB`.
+
+By default this saves to the `localStorage` key `identity`. Set this class property to change the storage key.
+
+```ts
+class Identity {
+    static STORAGE_KEY:string = 'identity'
+
+    static save (id:SerializedIdentity) {
+        localStorage.setItem(Identity.STORAGE_KEY, JSON.stringify(id))
+    }
+}
+```
+
+#### example
+```js
+import { Identity } from '@bicycle-codes/identity'
+
+// `alice` is an id we created earlier
+Identity.save(await alice.serialize())
+```
+
 ### init
-Load an identity that has been saved to `localStorage` & indexedDB.
+Load an Identity that has been saved in `localStorage` & `indexedDB`.
 
 ```ts
 class Identity {
@@ -88,13 +112,12 @@ class Identity {
 }
 ```
 
-------------------------------------------
+#### example
+```js
+import { Identity } from '@bicycle-codes/identity'
 
-## demo
-
-See [a live demo](https://nichoth-identity.netlify.app/) of the [example directory](./example/)
-
-This uses websockets to 'link' two devices. That is, a single AES key is encrypted to the exchange key on each device, so both devices are able to use the same key.
+const alice = await Identity.init()
+```
 
 ------------------------------------------
 

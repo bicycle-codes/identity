@@ -14,10 +14,11 @@
     "build-esm": "tsc --project tsconfig.build.json",
     "build": "mkdir -p ./dist && rm -rf ./dist/* && npm run build-cjs && npm run build-esm && npm run build:min:esm",
     "build-example": "vite build",
+    "build-docs": "typedoc ./src/index.ts",
     "build:min:esm": "mkdir -p ./dist && esbuild ./src/*.ts --sourcemap=inline --outdir=./dist --format=esm --minify --keep-names --bundle --out-extension:.js=.min.js",
     "toc": "markdown-toc --maxdepth 3 -i README.md",
     "preversion": "npm run lint",
-    "version": "npm run toc && auto-changelog -p --template keepachangelog --breaking-pattern 'BREAKING CHANGE:' && git add CHANGELOG.md",
+    "version": "npm run toc && auto-changelog -p --template keepachangelog --breaking-pattern 'BREAKING CHANGE:' && git add CHANGELOG.md README.md",
     "postversion": "git push --follow-tags && npm publish",
     "prepublishOnly": "npm run build"
   },
@@ -74,6 +75,7 @@
     "route-event": "^6.0.0",
     "tap-spec": "^5.0.0",
     "tape-run": "^11.0.0",
+    "typedoc": "^0.26.6",
     "typescript": "^5.4.5",
     "uuid": "^10.0.0",
     "vite": "^5.2.8"
