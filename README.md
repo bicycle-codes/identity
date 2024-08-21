@@ -18,6 +18,24 @@ All asymmetric crypto is using RSA, because we are waiting for more browsers to 
 
 <!-- toc -->
 
+- [conceptual view](#conceptual-view)
+- [E2E encryption](#e2e-encryption)
+- [install](#install)
+- [use](#use)
+- [quick example](#quick-example)
+- [API](#api)
+  * [import](#import)
+  * [create](#create)
+  * [save](#save)
+  * [init](#init)
+  * [getDeviceName](#getdevicename)
+- [types](#types)
+  * [Device](#device)
+- [z](#z)
+- [test](#test)
+
+<!-- tocstop -->
+
 ## conceptual view
 
 Create two keypairs -- 1 for signing and 1 for encrypting, and store them in `indexedDB` in the browser. [All keypairs here are "non-extractable"](https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/generateKey#extractable), so you are never able to read the private key, but they still persist indefinitely in indexedDB.
