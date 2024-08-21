@@ -7,7 +7,8 @@ import {
     aesGenKey,
     aesDecrypt,
     encryptContent,
-    exportPublicKey
+    exportPublicKey,
+    verifyFromString
 } from '../src/index.js'
 import * as uArrs from 'uint8arrays'
 import { AES_GCM } from '../src/constants.js'
@@ -109,6 +110,16 @@ test('load a saved identity', async t => {
     t.equal(aliceKey, alice2Key, 'should load the same keys from storage')
 })
 
-// test('sign a message', async t => {
+let sig:string
+test('sign a message', async t => {
+    const _sig = await alice.sign('hello again')
+    t.ok(_sig instanceof Uint8Array, 'should return a uint8array')
+    sig = uArrs.toString(_sig, 'base64pad')
+})
 
-// })
+test('verify the signature', async t => {
+    const valid = await verifyFromString('hello again', sig, alice.DID)
+    t.equal(valid, true, 'should verify a valid signature')
+    t.equal(await verifyFromString('bad one', sig, alice.DID), false,
+        'should not verify an invalid signature')
+})

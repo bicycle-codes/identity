@@ -92,7 +92,7 @@ export type VerifyArgs = {
 }
 
 export async function importPublicKey (
-    base64Key:string,
+    base64Key:string|ArrayBuffer,
     hashAlg:HashAlg,
     use:KeyUse
 ):Promise<CryptoKey> {
@@ -101,7 +101,9 @@ export async function importPublicKey (
     const uses:KeyUsage[] = use === KeyUse.Encrypt ?
         ['encrypt'] :
         ['verify']
-    const buf = base64ToArrBuf(stripKeyHeader(base64Key))
+    const buf = typeof base64Key === 'string' ?
+        base64ToArrBuf(stripKeyHeader(base64Key)) :
+        base64Key
 
     return webcrypto.subtle.importKey('spki', buf, {
         name: alg,

@@ -19,7 +19,7 @@ import {
     DEFAULT_SYMM_ALG,
 } from './constants'
 import {
-    type HashAlg,
+    HashAlg,
     KeyUse,
     did,
     arrBufToBase64,
@@ -31,7 +31,8 @@ import {
     base64ToArrBuf,
     randomBuf,
     joinBufs,
-    isCryptoKeyPair
+    isCryptoKeyPair,
+    importPublicKey
 } from './util'
 import { SymmKeyLength } from './types'
 import type {
@@ -946,6 +947,7 @@ export async function createDeviceName (did:DID):Promise<string> {
 
 /**
  * Sign a string. Return the signature as Uint8Array.
+ *
  * @param msg The message to sign
  * @returns {Promise<Uint8Array>} The signature
  */
@@ -991,16 +993,15 @@ export async function verifyFromString (
     sig:string,
     signingDid:DID
 ):Promise<boolean> {
-    const { publicKey, type } = didToPublicKey(signingDid)
-    const keyType = did.keyTypes[type]
+    const _key = didToPublicKey(signingDid)
+    const key = await importPublicKey(
+        _key.publicKey.buffer,
+        HashAlg.SHA_256,
+        KeyUse.Sign
+    )
 
-    const isValid = await keyType.verify({
-        message: uFromString(msg),
-        publicKey,
-        signature: uFromString(sig, 'base64pad')
-    })
-
-    return isValid
+    const isOk = rsaOperations.verify(msg, sig, key)
+    return isOk
 }
 
 /**
