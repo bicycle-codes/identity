@@ -53,12 +53,14 @@ export const rsaOperations = {
         publicKey:string|CryptoKey,
         charSize:CharSize = DEFAULT_CHAR_SIZE,
         hashAlg:HashAlg = DEFAULT_HASH_ALGORITHM
-    ): Promise<ArrayBuffer> {
+    ):Promise<ArrayBuffer> {
+        const pubKey = typeof publicKey === 'string' ?
+            await importPublicKey(publicKey, hashAlg, KeyUse.Encrypt) :
+            publicKey
+
         return webcrypto.subtle.encrypt(
             { name: RSA_ALGORITHM },
-            typeof publicKey === 'string'
-                ? await importPublicKey(publicKey, hashAlg, KeyUse.Encrypt)
-                : publicKey,
+            pubKey,
             normalizeUnicodeToBuf(msg, charSize)
         )
     },
@@ -66,17 +68,20 @@ export const rsaOperations = {
     decrypt: async function rsaDecrypt (
         data:Uint8Array,
         privateKey:CryptoKey|Uint8Array
-    ): Promise<Uint8Array> {
+    ):Promise<Uint8Array> {
+        const key = isCryptoKey(privateKey) ?
+            privateKey :
+            await importRsaKey(privateKey, ['decrypt'])
+
         const arrayBuffer = await webcrypto.subtle.decrypt(
             { name: RSA_ALGORITHM },
-            isCryptoKey(privateKey) ?
-                privateKey :
-                await importRsaKey(privateKey, ['decrypt'])
-            ,
+            key,
             data
         )
 
-        return new Uint8Array(arrayBuffer)
+        const arr = new Uint8Array(arrayBuffer)
+
+        return arr
     }
 }
 
@@ -92,18 +97,16 @@ export async function importPublicKey (
     use:KeyUse
 ):Promise<CryptoKey> {
     checkValidKeyUse(use)
-    const alg = use === KeyUse.Encrypt ? RSA_ALGORITHM : RSA_SIGN_ALG
+    const alg = (use === KeyUse.Encrypt ? RSA_ALGORITHM : RSA_SIGN_ALG)
     const uses:KeyUsage[] = use === KeyUse.Encrypt ?
         ['encrypt'] :
         ['verify']
     const buf = base64ToArrBuf(stripKeyHeader(base64Key))
-    return webcrypto.subtle.importKey(
-        'spki',
-        buf,
-        { name: alg, hash: { name: hashAlg } },
-        true,
-        uses
-    )
+
+    return webcrypto.subtle.importKey('spki', buf, {
+        name: alg,
+        hash: { name: hashAlg }
+    }, true, uses)
 }
 
 function stripKeyHeader (base64Key:string):string {
