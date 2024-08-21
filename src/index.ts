@@ -155,7 +155,6 @@ export class Identity {
         const parsedID:SerializedIdentity = JSON.parse(savedID)
         const deviceName = await createDeviceName(parsedID.rootDID)
         const encryptionKey = await ecryptionKey(opts.encryptionKeyName)
-        const _signingKey = await signingKey(opts.signingKeyName)
 
         const decryptedKey = await decryptKey(
             parsedID.devices[deviceName].aes,
@@ -166,7 +165,7 @@ export class Identity {
         // const aes = decryptKey()
         const id = new Identity({
             encryptionKey: await ecryptionKey(opts.encryptionKeyName),
-            signingKey: _signingKey,
+            signingKey: await signingKey(opts.signingKeyName),
             ...parsedID,
             deviceName,
             aes: decryptedKey
@@ -361,7 +360,7 @@ export class Identity {
  *
  * @param {Uint8Array} publicKey Public key as Uint8Array
  * @param {'rsa'} [keyType] 'rsa' only
- * @returns {DID}
+ * @returns {DID} A DID format string
  */
 function publicKeyToDid (
     publicKey:Uint8Array,
@@ -377,6 +376,13 @@ function publicKeyToDid (
     const prefixedBuf = concat([prefix, publicKey])
 
     return (BASE58_DID_PREFIX + uToString(prefixedBuf, 'base58btc')) as DID
+}
+
+export async function exportPublicKey (
+    keypair:CryptoKeyPair
+):Promise<string> {
+    const key = await webcrypto.subtle.exportKey('spki', keypair.publicKey)
+    return uToString(new Uint8Array(key), 'base64pad')
 }
 
 /**
