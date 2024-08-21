@@ -16,6 +16,8 @@ All encryption is via [AES-GCM](https://developer.mozilla.org/en-US/docs/Web/API
 
 All asymmetric crypto is using RSA, because we are waiting for more browsers to support ECC.
 
+<!-- toc -->
+
 ## conceptual view
 
 Create two keypairs -- 1 for signing and 1 for encrypting, and store them in `indexedDB` in the browser. [All keypairs here are "non-extractable"](https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/generateKey#extractable), so you are never able to read the private key, but they still persist indefinitely in indexedDB.
