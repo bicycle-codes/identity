@@ -1,3 +1,6 @@
+import * as uArrs from 'uint8arrays'
+import { test } from '@bicycle-codes/tapzero'
+import { get } from 'idb-keyval'
 import {
     type EncryptedMessage,
     Identity,
@@ -11,9 +14,6 @@ import {
     verifyFromString
 } from '../src/index.js'
 import { AES_GCM } from '../src/constants.js'
-import * as uArrs from 'uint8arrays'
-import { test } from '@bicycle-codes/tapzero'
-import { get } from 'idb-keyval'
 
 let alice:Identity
 test('Identity.create', async t => {
