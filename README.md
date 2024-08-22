@@ -49,7 +49,7 @@ We can do passwordless user ID, using something like [UCAN](https://github.com/u
 
 We can do e2e encryption by creating a symmetric key, then encrypting that key *to* each device that should be able to read the message. So the symmetric key is encrypted with the public key of each device.
 
-Devices are indexed by a sufficiently random key, created by calling [createDeviceName](./src/index.ts#L940) with the primary did for the device.
+Devices are indexed by a sufficiently random key, created by calling [createDeviceName](./src/index.ts#L642) with the primary did for the device.
 
 ------------------------
 
