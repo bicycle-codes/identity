@@ -1,4 +1,4 @@
-name: tests
+name: Node CI
 
 run-name: testing in node
 
@@ -6,7 +6,7 @@ on: [push]
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     timeout-minutes: 5
 
     strategy:
@@ -26,6 +26,6 @@ jobs:
           npm run lint
         env:
           CI: true
-      - name: Run tests
+      - name: Run tape tests
         run: |
-          npm test
+          xvfb-run --server-args="-screen 0 1920x1080x24" npm test
