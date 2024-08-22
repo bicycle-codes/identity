@@ -19,13 +19,9 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
-      - name: create env file
-        run: |
-          touch .env
-          echo "NPM_TOKEN=${{ secrets.NPM_TOKEN }}" >> .env
       - name: npm install, build
         run: |
-          export $(cat .env | xargs) && npm install
+          npm install
           npm run build --if-present
           npm run lint
         env:
