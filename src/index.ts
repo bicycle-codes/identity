@@ -265,33 +265,6 @@ export class Identity {
         }
     }
 
-    // /**
-    //  * Create a new device record for this identity. This does not include an
-    //  * AES key in the device record, because typically you create a device
-    //  * record before adding this device to a different Identity, so you
-    //  * would add an AES key at that point.
-    //  *
-    //  * @param {{ humanReadableName:string }} opts A human-readable name for the device.
-    //  * @returns {Partial<Device>} The device record without `aes` key.
-    //  */
-    // async createDeviceRecord (opts:{
-    //     humanReadableName:string
-    // }):Promise<{
-    //     name:string;
-    //     humanReadableName:string;
-    //     did:DID;
-    //     encryptionKey:string
-    // }> {
-    //     const { humanReadableName } = opts
-
-    //     return {
-    //         name: this.deviceName,
-    //         humanReadableName,
-    //         did: this.DID,
-    //         encryptionKey: await exportPublicKey(this.encryptionKey)
-    //     }
-    // }
-
     sign (msg:Msg, charsize?:CharSize):Promise<Uint8Array> {
         return sign(msg, charsize, this.signingKey)
     }
