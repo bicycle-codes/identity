@@ -410,7 +410,7 @@ async function signingKey (
 }
 
 /**
- * Get the `encrypt` key from indexedDB.
+ * Get the encryption key from indexedDB, or create a new one.
  */
 async function ecryptionKey (
     keyname:string = DEFAULT_ENCRYPTION_KEY_NAME

@@ -122,6 +122,35 @@ const decrypted = await bob.decryptMsg(msgToBob)
 
 See [bicycle-codes/identity](https://bicycle-codes.github.io/identity/) for complete API docs.
 
+### globals
+We use some "global" keys in `indexedDB` and `localStorage`. These can be configured by setting class properties.
+
+#### `indexedDB`
+
+* `encryption-key` -- RSA key for encrypt/decrypt
+* `signing-key` -- RSA key for signatures
+
+Set the class properties `ENCRYPTION_KEY_NAME` and `SIGNING_KEY_NAME` to configure this.
+
+```js
+class Identity {
+    static ENCRYPTION_KEY_NAME:string = 'encryption-key'
+    static SIGNING_KEY_NAME:string = 'signing-key'
+}
+```
+
+#### `localStorage`
+
+* `identity` -- store a serialized Identity here, when you call [save](#save).
+
+Configure this with the class property `STORAGE_KEY`.
+
+```js
+class Identity {
+    static STORAGE_KEY:string = 'identity'
+}
+```
+
 ### import
 Import functions and types
 
@@ -144,7 +173,7 @@ import {
 ### create
 Use this factory function, not the constructor, because it is async.
 
-By default this will use indexedDB with the keys `encryption-key` and `signing-key`. Pass in the options `encryptionKeyName` and `signingKeyName` to change these.
+By default this will store keyapirs in indexedDB with the keys `encryption-key` and `signing-key`. Set the class properties `ENCRYPTION_KEY_NAME` and `SIGNING_KEY_NAME` to change these.
 
 ```ts
 class Identity {
@@ -167,9 +196,9 @@ const alice = await Identity.create({
 ```
 
 ### save
-Save an existing Identity to `localStorage` and `indexedDB`.
+Save an existing Identity to `localStorage`.
 
-By default this saves to the `localStorage` key `identity`. Set this class property to change the storage key.
+By default this saves to the `localStorage` key `identity`. Set the class property `STORAGE_KEY` to change the storage key.
 
 ```ts
 class Identity {
@@ -260,7 +289,7 @@ class Identity {
 }
 ```
 
-### createDeviceRecord
+### `static createDeviceRecord`
 
 Create a new [Device record](#device). This does not include an
 AES key in the device record, because typically you create a device
