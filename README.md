@@ -133,7 +133,7 @@ We use some "global" keys in `indexedDB` and `localStorage`. These can be config
 
 Set the class properties `ENCRYPTION_KEY_NAME` and `SIGNING_KEY_NAME` to configure this.
 
-```js
+```ts
 class Identity {
     static ENCRYPTION_KEY_NAME:string = 'encryption-key'
     static SIGNING_KEY_NAME:string = 'signing-key'
@@ -146,7 +146,7 @@ class Identity {
 
 Configure this with the class property `STORAGE_KEY`.
 
-```js
+```ts
 class Identity {
     static STORAGE_KEY:string = 'identity'
 }
@@ -297,7 +297,7 @@ AES key in the device record, because typically you create a device
 record before adding the device to a different Identity, so you
 would add an AES key at that point.
 
-This function does read the class properties `ENCRYPTION_KEY_NAME` and `SIGNING_KEY_NAME`, because it does create asymmetric keys for the device and save them in `localStorage`.
+This function does read the class properties `ENCRYPTION_KEY_NAME` and `SIGNING_KEY_NAME`, because it creates asymmetric keys for the device and saves them in `localStorage`.
 
 ```ts
 class Identity {
@@ -320,7 +320,7 @@ class Identity {
 }
 ```
 
-### decryptMsg 
+### decryptMsg
 The given message should include an AES key, encrypted to this device. Look up the AES key by device name, and use it to decrypt the message.
 
 ```ts
@@ -333,12 +333,9 @@ class Identity {
 Add a new device to this Identity. Returns `this`.
 
 ```ts
-async addDevice (opts:{
-    name:string,
-    encryptionKey:string,
-    humanReadableName:string,
-    did:DID,
-}):Promise<Identity>
+class Identity {
+    async addDevice (opts:Omit<Device, 'aes'>):Promise<Identity>
+}
 ```
 
 #### example
@@ -417,19 +414,4 @@ Tests run in a browser environment via [tape-run](https://github.com/tape-testin
 
 ```
 npm test
-```
-
-------------------------------------------------------------------------
-
-```js
-const myDeviceName = getDeviceName(program.components.crypto)
-// => '4k4z2xpgpmmssbcasqanlaxoxtpppl54'
-```
-
-Pass in a DID as a string
-```ts
-import { getDeviceName } from '@bicycle-codes/identity'
-
-const deviceName = getDeviceName('did:key:z13V3Sog2Y...')
-// => '4k4z2xpgpmmssbcasqanlaxoxtpppl54'
 ```

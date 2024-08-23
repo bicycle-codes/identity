@@ -155,8 +155,8 @@ export class Identity {
         signingKeyName?:string;
     }):Promise<Identity> {
         let { encryptionKeyName, signingKeyName } = opts
-        encryptionKeyName = encryptionKeyName || DEFAULT_ENCRYPTION_KEY_NAME
-        signingKeyName = signingKeyName || DEFAULT_SIGNING_KEY_NAME
+        encryptionKeyName = this.ENCRYPTION_KEY_NAME
+        signingKeyName = this.SIGNING_KEY_NAME
 
         const encryptionKeypair = await makeRSAKeypair(
             DEFAULT_RSA_SIZE,
@@ -332,12 +332,7 @@ export class Identity {
      *
      * @returns {Identity}
      */
-    async addDevice (opts:{
-        name:string,
-        encryptionKey:string,
-        humanReadableName:string,
-        did:DID,
-    }):Promise<Identity> {
+    async addDevice (opts:Omit<Device, 'aes'>):Promise<Identity> {
         const { encryptionKey } = opts
         const aes = this.aes
         const encrypted = await encryptKey(aes, encryptionKey)
