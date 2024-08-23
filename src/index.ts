@@ -42,48 +42,12 @@ import type {
     Msg,
     DID,
     RsaSize,
-    SymmKeyAlgorithm
+    SymmKeyAlgorithm,
+    SerializedIdentity,
+    Device,
+    EncryptedMessage
 } from './types'
-
-export interface Device {
-    name:string;  // random, collision resistant name
-    humanReadableName:string;
-    did:DID;
-    aes:string;  /* the symmetric key for this account, encrypted to the
-      exchange key for this device */
-    encryptionKey:string;  // encryption key, stringified
-}
-
-/**
- * `devices` is a map of `{ <deviceName>: Device }`, where `device.aes` is the
- * AES key encrypted to this exchange key. The private side of this exchange
- * key is stored only on-device, in a keystore instance.
- */
-export interface SerializedIdentity {
-    humanName:string;
-    username:string;
-    DID:DID;
-    rootDID:DID;
-    rootDeviceName:string;
-    devices:Record<string, Device>;
-    storage:{ encryptionKeyName:string; signingKeyName:string; }
-}
-
-/**
- * A record for an encrypted message. Contains `devices`, a record like
- *  `{ deviceName: <encrypted key> }`
- * You would decrypt the encrypted key -- message.devices[my-device-name] --
- *   with the device's `encrypt` key
- * Then use the decrypted key to decrypt the payload
- */
-export interface EncryptedMessage<T extends string = string> {
-    payload:T, /* This is the message, encrypted with the symm key for
-        the message */
-    devices:Record<string, string>  /* a map from `deviceName` to this
-        messages's encrypted AES key, encrypted to that device */
-}
-
-export type CurriedEncrypt = (data:string|Uint8Array) => Promise<EncryptedMessage>
+export type { EncryptedMessage } from './types'
 
 /**
  * A class representing a user.
@@ -107,9 +71,9 @@ export class Identity {
     devices:Record<string, Device>  // serialized devices
     aes:CryptoKey
     username:string  // the collision-resistant random string
+    static ENCRYPTION_KEY_NAME:string = 'encryption-key'
+    static SIGNING_KEY_NAME:string = 'signing-key'
     static STORAGE_KEY:string = 'identity'
-    ENCRYPTION_KEY_NAME:string
-    SIGNING_KEY_NAME:string
 
     constructor (opts:{
         humanName:string;
@@ -120,7 +84,7 @@ export class Identity {
         DID:DID;
         deviceName:string;
         devices:Record<string, Device>;
-    }, storage:{ encryptionKeyName:string; signingKeyName:string; }) {
+    }) {
         const { encryptionKey, signingKey, DID, aes, deviceName } = opts
         this.devices = opts.devices
         this.username = opts.username
@@ -131,8 +95,6 @@ export class Identity {
         this.rootDeviceName = deviceName
         this.deviceName = deviceName
         this.aes = aes  // 'private' AES key for this device
-        this.ENCRYPTION_KEY_NAME = storage.encryptionKeyName
-        this.SIGNING_KEY_NAME = storage.signingKeyName
         this.humanName = opts.humanName
     }
 
@@ -140,15 +102,7 @@ export class Identity {
      * Create an identity, loading saved keys from indexedDB, and
      * saved properties from `localStorage`.
      */
-    static async init (opts:{
-        type?:'rsa';
-        encryptionKeyName:string;
-        signingKeyName:string;
-    } = {
-        encryptionKeyName: DEFAULT_ENCRYPTION_KEY_NAME,
-        signingKeyName: DEFAULT_SIGNING_KEY_NAME
-    }):Promise<Identity> {
-        const { encryptionKeyName, signingKeyName } = opts
+    static async init ():Promise<Identity> {
         const savedID = localStorage.getItem(Identity.STORAGE_KEY)
         if (!savedID) {
             throw new Error("Couldn't find the ID")
@@ -156,28 +110,30 @@ export class Identity {
 
         const parsedID:SerializedIdentity = JSON.parse(savedID)
         const deviceName = await createDeviceName(parsedID.rootDID)
-        const encryptionKey = await ecryptionKey(opts.encryptionKeyName)
+        const encKey = await ecryptionKey(this.ENCRYPTION_KEY_NAME)
+        const signKey = await signingKey(this.SIGNING_KEY_NAME)
 
         const decryptedKey = await decryptKey(
             parsedID.devices[deviceName].aes,
-            encryptionKey
+            encKey
         )
 
         // the unencrypted AES key
         const id = new Identity({
-            encryptionKey: await ecryptionKey(opts.encryptionKeyName),
-            signingKey: await signingKey(opts.signingKeyName),
+            encryptionKey: encKey,
+            signingKey: signKey,
             ...parsedID,
             deviceName,
             aes: decryptedKey
-        }, { encryptionKeyName, signingKeyName })
+        })
 
         return id
     }
 
     /**
-     * Save a serialized Identity. Crypto keys are already saved to
-     * indexedDB.
+     * Save a serialized Identity to localStorage. Crypto keys are already saved
+     * to indexedDB.
+     *
      * @param {SerializedIdentity} id The serialized Identity
      */
     static save (id:SerializedIdentity) {
@@ -253,9 +209,6 @@ export class Identity {
                     )
                 }
             }
-        }, {
-            encryptionKeyName,
-            signingKeyName
         })
 
         // save the keys to indexedDB
@@ -265,6 +218,30 @@ export class Identity {
         ])
 
         return id
+    }
+
+    /**
+     * Create a new device record. This does not include an
+     * AES key in the device record, because typically you create a device
+     * record before adding this device to a different Identity, so you
+     * would add an AES key at that point.
+     *
+     * @param {{ humanReadableName:string }} opts A human-readable name for the device.
+     * @returns {Partial<Device>} The device record without `aes` key.
+     */
+    static async createDeviceRecord (opts:{
+        humanReadableName:string
+    }):Promise<Omit<Device, 'aes'>> {
+        const encKey = await ecryptionKey(this.ENCRYPTION_KEY_NAME)
+        const signKey = await signingKey(this.SIGNING_KEY_NAME)
+        const did = await writeKeyToDid(signKey)
+
+        return {
+            name: await createDeviceName(did),
+            humanReadableName: opts.humanReadableName,
+            did,
+            encryptionKey: await exportPublicKey(encKey)
+        }
     }
 
     /**
@@ -282,44 +259,44 @@ export class Identity {
             devices: this.devices,
             rootDeviceName: this.rootDeviceName,
             storage: {
-                encryptionKeyName: this.ENCRYPTION_KEY_NAME,
-                signingKeyName: this.SIGNING_KEY_NAME
+                encryptionKeyName: Identity.ENCRYPTION_KEY_NAME,
+                signingKeyName: Identity.SIGNING_KEY_NAME
             }
         }
     }
 
-    /**
-     * Create a new device record for this identity. This does not include an
-     * AES key in the device record, because typically you create a device
-     * record before adding this device to a different Identity, so you
-     * would add an AES key at that point.
-     *
-     * @param {{ humanReadableName:string }} opts A human-readable name for the device.
-     * @returns {Partial<Device>} The device record without `aes` key.
-     */
-    async createDeviceRecord (opts:{
-        humanReadableName:string
-    }):Promise<{
-        name:string;
-        humanReadableName:string;
-        did:DID;
-        encryptionKey:string
-    }> {
-        const { humanReadableName } = opts
+    // /**
+    //  * Create a new device record for this identity. This does not include an
+    //  * AES key in the device record, because typically you create a device
+    //  * record before adding this device to a different Identity, so you
+    //  * would add an AES key at that point.
+    //  *
+    //  * @param {{ humanReadableName:string }} opts A human-readable name for the device.
+    //  * @returns {Partial<Device>} The device record without `aes` key.
+    //  */
+    // async createDeviceRecord (opts:{
+    //     humanReadableName:string
+    // }):Promise<{
+    //     name:string;
+    //     humanReadableName:string;
+    //     did:DID;
+    //     encryptionKey:string
+    // }> {
+    //     const { humanReadableName } = opts
 
-        return {
-            name: this.deviceName,
-            humanReadableName,
-            did: this.DID,
-            encryptionKey: await exportPublicKey(this.encryptionKey)
-        }
-    }
+    //     return {
+    //         name: this.deviceName,
+    //         humanReadableName,
+    //         did: this.DID,
+    //         encryptionKey: await exportPublicKey(this.encryptionKey)
+    //     }
+    // }
 
-    async sign (msg:Msg, charsize?:CharSize):Promise<Uint8Array> {
+    sign (msg:Msg, charsize?:CharSize):Promise<Uint8Array> {
         return sign(msg, charsize, this.signingKey)
     }
 
-    async signAsString (msg:string) {
+    signAsString (msg:string):Promise<string> {
         return signAsString(msg, this.signingKey)
     }
 

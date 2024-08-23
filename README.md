@@ -202,6 +202,16 @@ import { Identity } from '@bicycle-codes/identity'
 const alice = await Identity.init()
 ```
 
+### serialize
+
+Return a JSON stringifiable version of this Identity.
+
+```ts
+class Identity {
+    async serialize ():Promise<SerializedIdentity>
+}
+```
+
 ### getDeviceName
 Create a 32-character, DNS-friendly hash for a device. Takes either the DID
 string or a CryptoKeyPair.
@@ -222,19 +232,133 @@ import { getDeviceName } from '@bicycle-codes/identity'
 const alicesDid = getDeviceName(alice.DID)
 ```
 
+### sign
+Sign the given message with the RSA `signingKey`; return a `Uint8Array`.
+
+```ts
+class Identity {
+    sign (msg:Msg, charsize?:CharSize):Promise<Uint8Array>
+}
+```
+
+### signAsString
+Sign the given message with the RSA `signingKey`; return a `string`.
+
+```ts
+class Identity {
+    signAsString (msg:string):Promise<string>
+}
+```
+
+### createDeviceRecord
+
+Create a new [Device record](#device). This does not include an
+AES key in the device record, because typically you create a device
+record before adding the device to a different Identity, so you
+would add an AES key at that point.
+
+This function does read the class properties `ENCRYPTION_KEY_NAME` and `SIGNING_KEY_NAME`, because it does create asymmetric keys for the device and save them in `localStorage`.
+
+```ts
+class Identity {
+    static async createDeviceRecord (opts:{
+        humanReadableName:string
+    }):Promise<Omit<Device, 'aes'>> {
+}
+```
+
+### encryptMsg
+Each new message gets a new AES key. The key is then encrypted to the public
+key of each recipient.
+
+```ts
+class Identity {
+    async encryptMsg (
+        data:string|Uint8Array,
+        recipients?:SerializedIdentity[],
+    ):Promise<EncryptedMessage>
+}
+```
+
+### decryptMsg 
+The given message should include an AES key, encrypted to this device. Look up the AES key by device name, and use it to decrypt the message.
+
+```ts
+class Identity {
+    async decryptMsg (encryptedMsg:EncryptedMessage):Promise<string>
+}
+```
+
+### addDevice
+Add a new device to this Identity. Returns `this`.
+
+```ts
+async addDevice (opts:{
+    name:string,
+    encryptionKey:string,
+    humanReadableName:string,
+    did:DID,
+}):Promise<Identity>
+```
+
+#### example
+```js
+import { Identity } from '@bicycle-codes/identity'
+
+const alice = Identity.create({ /* ... */ })
+
+// ... need to get the other device record somehow ...
+const workComputer:Device = // ...
+
+await alice.addDevice(workComputer)
+```
+
 ------------------------------------------
 
 ## types
 
 ### Device
+
 ```ts
-export interface Device {
+interface Device {
     name:string;  // <-- random, collision resistant name
     humanReadableName:string;
     did:DID;
     aes:string;  /* <-- the symmetric key for this account, encrypted to the
       exchange key for this device */
     encryptionKey:string;  // <-- encryption key, stringified
+}
+```
+
+### SerializedIdentity
+
+```ts
+interface SerializedIdentity {
+    humanName:string;
+    username:string;
+    DID:DID;
+    rootDID:DID;
+    rootDeviceName:string;
+    devices:Record<string, Device>;
+    storage:{ encryptionKeyName:string; signingKeyName:string; }
+}
+```
+
+### Msg
+```ts
+type Msg = ArrayBuffer|string|Uint8Array
+```
+
+### EncryptedMessage
+Each new message gets a new AES key. The key is then encrypted to the public
+key of each recipient.
+
+```ts
+interface EncryptedMessage<T extends string = string> {
+    payload:T, /* This is the message, encrypted with the symm key for
+        the message */
+    devices:Record<string, string>  /* a map from `deviceName` to this
+        messages's encrypted AES key, encrypted to that device */
 }
 ```
 

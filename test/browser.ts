@@ -24,12 +24,12 @@ test('Identity.create', async t => {
 
     t.ok(id instanceof Identity, 'should return a new identity')
 
-    const key = await get<CryptoKeyPair>(id.ENCRYPTION_KEY_NAME)
+    const key = await get<CryptoKeyPair>(Identity.ENCRYPTION_KEY_NAME)
     t.ok(key, 'should store a key in indexedDB')
     t.ok(key?.publicKey, 'should create an asymmetric keypair')
     t.ok(key?.privateKey, 'should create an asymmetric keypair')
 
-    const signingKey = await get<CryptoKeyPair>(id.SIGNING_KEY_NAME)
+    const signingKey = await get<CryptoKeyPair>(Identity.SIGNING_KEY_NAME)
     t.ok(signingKey?.publicKey, 'should create an asymmetric signing keypair')
     t.ok(signingKey?.privateKey, 'should create an asymmetric signing keypair')
 })
@@ -149,10 +149,10 @@ let alice3:Identity
 test('add a new device', async t => {
     alice3 = await Identity.create({
         humanName: 'alice',
-        humanReadableDeviceName: 'work computer'
+        humanReadableDeviceName: 'computer'
     })
 
-    const workComputer = await alice3.createDeviceRecord({
+    const workComputer = await Identity.createDeviceRecord({
         humanReadableName: 'work computer'
     })
 
