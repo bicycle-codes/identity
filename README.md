@@ -7,16 +7,17 @@
 
 Use [non-extractable keypairs](https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/generateKey#extractable) as user identity.
 
-
 -----------
 
-Use the webcrypto API to create a keypair representing a user.
+Use the [webcrypto API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Crypto_API) to create keypairs representing a user.
 
 All encryption is via [AES-GCM](https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/encrypt#algorithm).
 
 All asymmetric crypto is using RSA, because we are waiting for more browsers to support ECC.
 
+----------------------------------------------------------
 ## contents
+----------------------------------------------------------
 
 <!-- toc -->
 
@@ -68,10 +69,12 @@ Sending a private message to an identity would mean encrypting a message with a 
 
 You can think of it like one conversation = 1 symmetric key. The person initiating the conversation needs to know the encryption keys of the other party.
 
+
+------------------------------------------
+## install
 ------------------------------------------
 
-## install
-```
+```sh
 npm i -S @bicycle-codes/identity
 ```
 
@@ -85,7 +88,9 @@ const id = await Identity.create({
 })
 ```
 
+------------------------------------------
 ## quick example
+------------------------------------------
 Given two identities, create a message that is readble by them only.
 
 ```ts
@@ -119,9 +124,11 @@ const decrypted = await bob.decryptMsg(msgToBob)
    // => 'hello bob'
 ```
 
+----------------------------------------------------------
 ## API
+----------------------------------------------------------
 
-See [bicycle-codes/identity](https://bicycle-codes.github.io/identity/) for complete API docs.
+See [bicycle-codes.github.io/identity](https://bicycle-codes.github.io/identity/) for complete API docs.
 
 ### globals
 We use some "global" keys in `indexedDB` and `localStorage`. These can be configured by setting class properties.
@@ -152,7 +159,10 @@ class Identity {
 }
 ```
 
+----------------------------------------------------------
 ### import
+----------------------------------------------------------
+
 Import functions and types
 
 ```ts
@@ -174,7 +184,7 @@ import {
 ### create
 Use this factory function, not the constructor, because it is async.
 
-By default this will store keyapirs in indexedDB with the keys `encryption-key` and `signing-key`. Set the class properties `ENCRYPTION_KEY_NAME` and `SIGNING_KEY_NAME` to change these.
+By default this will store keypairs in `indexedDB` with the keys `encryption-key` and `signing-key`. Set the class properties `ENCRYPTION_KEY_NAME` and `SIGNING_KEY_NAME` to change these.
 
 ```ts
 class Identity {
@@ -182,8 +192,6 @@ class Identity {
         humanName:string;
         type?: 'rsa';
         humanReadableDeviceName:string;  // a name for this device
-        encryptionKeyName?:string;
-        signingKeyName?:string;
     }):Promise<Identity>
 }
 ```
@@ -292,10 +300,7 @@ class Identity {
 
 ### `static createDeviceRecord`
 
-Create a new [Device record](#device). This does not include an
-AES key in the device record, because typically you create a device
-record before adding the device to a different Identity, so you
-would add an AES key at that point.
+Create a new [Device record](#device). This means creating asymmetric keypairs for the device, and storing them in `indexedDB`. This does not include an AES key in the device record, because typically you create a device record before adding the device to a different Identity, so you would add an AES key at that point.
 
 This function does read the class properties `ENCRYPTION_KEY_NAME` and `SIGNING_KEY_NAME`, because it creates asymmetric keys for the device and saves them in `localStorage`.
 
@@ -350,9 +355,9 @@ const workComputer:Device = // ...
 await alice.addDevice(workComputer)
 ```
 
-------------------------------------------
-
+----------------------------------------------------------
 ## types
+----------------------------------------------------------
 
 ### Device
 
@@ -399,7 +404,9 @@ interface EncryptedMessage<T extends string = string> {
 }
 ```
 
+------------------------------------------
 ## z
+------------------------------------------
 
 This package exposes some type checking utilities made with [zod](https://zod.dev/). Import `z`:
 
@@ -408,8 +415,8 @@ import { device, SerializedIdentity, did  } from '@bicycle-codes/identity/z'
 ```
 
 --------------------------------------------------------------------------
-
 ## test
+--------------------------------------------------------------------------
 Tests run in a browser environment via [tape-run](https://github.com/tape-testing/tape-run).
 
 ```

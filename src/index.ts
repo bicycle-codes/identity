@@ -151,12 +151,9 @@ export class Identity {
         humanName:string;
         type?: 'rsa';
         humanReadableDeviceName:string;  // a name for this device
-        encryptionKeyName?:string;
-        signingKeyName?:string;
     }):Promise<Identity> {
-        let { encryptionKeyName, signingKeyName } = opts
-        encryptionKeyName = this.ENCRYPTION_KEY_NAME
-        signingKeyName = this.SIGNING_KEY_NAME
+        const encryptionKeyName = this.ENCRYPTION_KEY_NAME
+        const signingKeyName = this.SIGNING_KEY_NAME
 
         const encryptionKeypair = await makeRSAKeypair(
             DEFAULT_RSA_SIZE,
