@@ -34,6 +34,12 @@ test('Identity.create', async t => {
     t.ok(signingKey?.privateKey, 'should create an asymmetric signing keypair')
 })
 
+test('getDeviceName', async t => {
+    const name = await alice.getDeviceName()
+    t.equal(typeof name, 'string', 'should return the device name')
+    t.equal(name.length, 32, 'should be 32 characters')
+})
+
 let encryptedString:string
 test('encrypt content', async t => {
     const encrypted = encryptedString = await encryptContent(

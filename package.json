@@ -8,7 +8,7 @@
     "start": "concurrently --kill-others \"npx partykit dev\" \"npx vite\"",
     "lint": "eslint \"./**/*.{ts,js}\"",
     "build-browser-tests": "npx esbuild ./test/browser.ts --bundle --keep-names > ./test/test-bundle.js",
-    "test": "npx esbuild ./test/browser.ts --bundle --keep-names | npx tape-run",
+    "test": "npx esbuild ./test/browser.ts --bundle --keep-names | npx tape-run | tap-spec",
     "build-cjs": "esbuild src/*.ts --format=cjs --sourcemap=inline --keep-names --bundle --outdir=./dist --out-extension:.js=.cjs",
     "build-esm": "tsc --project tsconfig.build.json",
     "build": "mkdir -p ./dist && rm -rf ./dist/* && npm run build-cjs && npm run build-esm && npm run build:min:esm",

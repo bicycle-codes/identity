@@ -266,18 +266,25 @@ string or a CryptoKeyPair.
 
 ```ts
 /**
- * @param {DID|CryptoKeyPair} input DID string or Crypto implementation
- * @returns {string} The 32-character hash string of the DID
+ * Get the device name -- a 32 character, DNS-friendly name
+ *
+ * @returns {Promise<string>}
  */
-async function getDeviceName (input:DID|CryptoKeyPair):Promise<string>
+class Identity {
+    getDeviceName ():Promise<string>
+}
 ```
 
 #### example 
 
 ```js
-import { getDeviceName } from '@bicycle-codes/identity'
+const alice = Identity.create({
+    humanName: 'alice',
+    humanReadableDeviceName: 'phone'
+})
 
-const alicesDid = getDeviceName(alice.DID)
+alice.getDeviceName()
+// => qfcip23vxaiprwmbyo3dxyrurltt4rgo
 ```
 
 ### sign

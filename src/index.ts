@@ -271,6 +271,15 @@ export class Identity {
     }
 
     /**
+     * Get the device name -- a 32 character, DNS-friendly name
+     *
+     * @returns {Promise<string>}
+     */
+    getDeviceName ():Promise<string> {
+        return getDeviceName(this.DID)
+    }
+
+    /**
      * Decrypt the given message. Throws if the message does not contain
      * a key for this device.
      * @param {EncryptedMessage} encryptedMsg The message to decrypt
