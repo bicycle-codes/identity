@@ -174,3 +174,9 @@ test('alice can decrypt messages with any device', async t => {
     t.equal(plaintext, 'encrypting things',
         'work computer can decrypt a message encrypted with phone')
 })
+
+test('get a map of keys', async t => {
+    const keys = alice.keys
+    t.equal(typeof keys[alice.deviceName], 'string',
+        'should return a map of device name to key')
+})
