@@ -48,6 +48,7 @@ import type {
     EncryptedMessage
 } from './types.js'
 import { SymmKeyLength } from './types.js'
+import type { PublicKey } from '@bicycle-codes/crypto-util'
 export type { EncryptedMessage } from './types.js'
 
 /**
@@ -494,13 +495,13 @@ export async function encryptContent (
 
 /**
  * Encrypt a given AES key to the given exchange key
- * @param key The symmetric key
- * @param exchangeKey The exchange key to encrypt *to*
+ * @param _key The symmetric key
+ * @param exchangeKey The public key to encrypt *to*
  * @returns the encrypted key, encoded as 'base64pad'
  */
 export async function encryptKey (
     _key:CryptoKey|Uint8Array,
-    exchangeKey:string|CryptoKeyPair
+    exchangeKey:string|PublicKey
 ):Promise<string> {
     const key:CryptoKey = (_key instanceof CryptoKey ?
         _key :
@@ -518,7 +519,7 @@ export async function encryptKey (
         // is crypto keypair
         const encryptedAes = await rsaOperations.encrypt(
             await aesExportKey(key),
-            exchangeKey.publicKey
+            exchangeKey
         )
 
         encryptedKey = toString(new Uint8Array(encryptedAes))
