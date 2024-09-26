@@ -505,6 +505,7 @@ export async function encryptKey (
     const key:CryptoKey = (_key instanceof CryptoKey ?
         _key :
         await aesImportKey(_key))
+
     let encryptedKey
     if (typeof exchangeKey === 'string') {
         const encryptedAes = await rsaOperations.encrypt(
@@ -794,9 +795,7 @@ function publicExponent ():Uint8Array {
 
 export async function aesExportKey (key:CryptoKey):Promise<Uint8Array> {
     const raw = await webcrypto.subtle.exportKey('raw', key)
-    // const str = toString(new Uint8Array(raw))
     return new Uint8Array(raw)
-    // return str
 }
 
 export async function aesDecrypt (

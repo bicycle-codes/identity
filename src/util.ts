@@ -48,6 +48,9 @@ export const rsaOperations = {
         )
     },
 
+    /**
+     * Encrypt the given AES key *to* a given public key.
+     */
     encrypt: async function rsaEncrypt (
         msg:Msg,
         publicKey:string|CryptoKey,
@@ -65,13 +68,23 @@ export const rsaOperations = {
         )
     },
 
+    /**
+     * Use RSA to decrypt the given data.
+     */
     decrypt: async function rsaDecrypt (
-        data:Uint8Array,
+        _data:Uint8Array|string,
         privateKey:CryptoKey|Uint8Array
     ):Promise<Uint8Array> {
         const key = isCryptoKey(privateKey) ?
             privateKey :
             await importRsaKey(privateKey, ['decrypt'])
+
+        let data:Uint8Array
+        if (typeof _data === 'string') {
+            data = uint8arrays.fromString(_data, 'base64pad')
+        } else {
+            data = _data
+        }
 
         const arrayBuffer = await webcrypto.subtle.decrypt(
             { name: RSA_ALGORITHM },
