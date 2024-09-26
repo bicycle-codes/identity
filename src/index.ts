@@ -4,6 +4,7 @@ import {
     fromString as uFromString,
     toString as uToString
 } from 'uint8arrays'
+import { importKey as aesImportKey } from '@bicycle-codes/crypto-util/webcrypto/aes'
 import { set, get } from 'idb-keyval'
 import {
     EDWARDS_DID_PREFIX,
@@ -20,7 +21,7 @@ import {
     AES_GCM,
     DEFAULT_SYMM_LEN,
     DEFAULT_SYMM_ALG,
-} from './constants'
+} from './constants.js'
 import {
     HashAlg,
     KeyUse,
@@ -35,8 +36,7 @@ import {
     randomBuf,
     joinBufs,
     importPublicKey
-} from './util'
-import { SymmKeyLength } from './types'
+} from './util.js'
 import type {
     CharSize,
     Msg,
@@ -46,8 +46,9 @@ import type {
     SerializedIdentity,
     Device,
     EncryptedMessage
-} from './types'
-export type { EncryptedMessage } from './types'
+} from './types.js'
+import { SymmKeyLength } from './types.js'
+export type { EncryptedMessage } from './types.js'
 
 /**
  * A class representing a user.
@@ -239,6 +240,13 @@ export class Identity {
             did,
             encryptionKey: await exportPublicKey(encKey)
         }
+    }
+
+    get keys ():Record<string, string> {
+        return Object.keys(this.devices).reduce((acc, deviceName) => {
+            acc[deviceName] = this.devices[deviceName].aes
+            return acc
+        }, {})
     }
 
     /**
@@ -491,9 +499,12 @@ export async function encryptContent (
  * @returns the encrypted key, encoded as 'base64pad'
  */
 export async function encryptKey (
-    key:CryptoKey,
+    _key:CryptoKey|Uint8Array,
     exchangeKey:string|CryptoKeyPair
 ):Promise<string> {
+    const key:CryptoKey = (_key instanceof CryptoKey ?
+        _key :
+        await aesImportKey(_key))
     let encryptedKey
     if (typeof exchangeKey === 'string') {
         const encryptedAes = await rsaOperations.encrypt(
