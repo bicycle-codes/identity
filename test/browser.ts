@@ -70,7 +70,7 @@ test('encrypt key', async t => {
     key = await aesGenKey({ alg: AES_GCM, length: 256 })
     const exported = await aesExportKey(key)
     plaintextKey = uArrs.toString(exported, 'base64pad')
-    encryptedKey = await encryptKey(key, alice.encryptionKey)
+    encryptedKey = await encryptKey(key, alice.encryptionKey.publicKey)
     t.ok(encryptedKey, 'should encrypt a key')
 })
 
