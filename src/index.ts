@@ -372,7 +372,7 @@ export class Identity {
  * @param {'rsa'} [keyType] 'rsa' only
  * @returns {DID} A DID format string
  */
-function publicKeyToDid (
+export function publicKeyToDid (
     publicKey:Uint8Array,
     keyType = 'rsa'
 ):DID {
@@ -441,10 +441,11 @@ async function ecryptionKey (
 
 /**
  * "write" key is for signing things
+ *
  * @param {CryptoKeyPair} publicWriteKey This device's write key.
  * @returns {Promise<DID>}
  */
-async function writeKeyToDid (
+export async function writeKeyToDid (
     publicWriteKey:CryptoKeyPair
 ):Promise<DID> {
     const arr = await getPublicKeyAsArrayBuffer(publicWriteKey)
