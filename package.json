@@ -48,7 +48,7 @@
     }
   },
   "dependencies": {
-    "@bicycle-codes/crypto-util": "^0.1.16",
+    "@bicycle-codes/crypto-util": "^0.2.3",
     "idb-keyval": "^6.2.1",
     "tweetnacl": "^1.0.3",
     "uint8arrays": "^5.1.0",
