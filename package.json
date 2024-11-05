@@ -2,7 +2,7 @@
   "name": "@bicycle-codes/identity",
   "description": "An identity record",
   "type": "module",
-  "version": "0.9.11",
+  "version": "0.9.12",
   "main": "dist/index.js",
   "scripts": {
     "start": "concurrently --kill-others \"npx partykit dev\" \"npx vite\"",
