@@ -131,6 +131,81 @@ const decrypted = await bob.decryptMsg(msgToBob)
 ```
 
 ----------------------------------------------------------
+## Examples
+----------------------------------------------------------
+
+### Create a new Identity
+```js
+const alice = await Identity.create({
+    humanName: 'alice',
+    humanReadableDeviceName: 'phone'
+})
+```
+
+### Create a new AES key and encrypt it
+
+Create an AES key and encrypt it to an RSA keypair.
+
+```js
+import {
+    aesGenKey,
+    aesExportKey,
+    encryptKey,
+} from '@bicycle-codes/identity'
+import { AES_GCM } from '@bicycle-codes/identity/CONSTANTS'
+
+const alice = await Identity.create({
+    humanName: 'alice',
+    humanReadableDeviceName: 'phone'
+})
+const key = await aesGenKey({ alg: AES_GCM, length: 256 })
+const exported = await aesExportKey(key)
+const encryptedKey = await encryptKey(key, alice.encryptionKey.publicKey)
+```
+
+### Decrypt a key
+```js
+import { decryptKey } from '@bicycle-codes/identity'
+
+test('decrypt key', async t => {
+    const decryptedKey = await decryptKey(encryptedKey, alice.encryptionKey)
+    t.ok(decryptedKey instanceof CryptoKey, 'should return a key')
+    const exported = await aesExportKey(decryptedKey)
+    t.equal(uArrs.toString(exported, 'base64pad'), plaintextKey,
+        'should decrypt to the the same key')
+})
+```
+
+### Encrypt a message
+Create a message that only Alice can decrypt.
+
+```js
+test('encrypt a message', async t => {
+    msg = await alice.encryptMsg('hello world')
+    t.equal(typeof msg.payload, 'string', 'should create a message object')
+    t.ok(msg.devices[alice.rootDeviceName],
+        'should encrypt the message to its author')
+})
+```
+
+### Encrypt a message to another Identity
+
+```js
+const msgToBob = await alice.encryptMsg('hello bob', [
+    await bob.serialize()  // <-- pass in recipients
+])
+```
+
+### Decrypt a message from someone else
+
+```js
+test('decrypt a message from another person', async t => {
+    const decrypted = await bob.decryptMsg(msgToBob)
+    t.equal(decrypted, 'hello bob', 'should decrypt the message')
+})
+```
+
+----------------------------------------------------------
 ## API
 ----------------------------------------------------------
 

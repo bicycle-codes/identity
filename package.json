@@ -26,7 +26,16 @@
       "import": "./dist/index.js",
       "require": "./dist/index.cjs"
     },
+    "./CONSTANTS": {
+      "import": "./dist/constants.js",
+      "require": "./dist/constants.cjs"
+    },
     "./min": "./dist/index.min.js",
+    "./min/*": {
+      "import": [
+        "./dist/*.min.js"
+      ]
+    },
     "./*.min.js": {
       "import": [
         "./dist/*.min.js"

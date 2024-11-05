@@ -63,11 +63,10 @@ test('aes decrypt', async t => {
     t.equal(uArrs.toString(decrypted), 'hello', 'should decrypt the text')
 })
 
-let key:CryptoKey
 let encryptedKey:string
 let plaintextKey:string
 test('encrypt key', async t => {
-    key = await aesGenKey({ alg: AES_GCM, length: 256 })
+    const key = await aesGenKey({ alg: AES_GCM, length: 256 })
     const exported = await aesExportKey(key)
     plaintextKey = uArrs.toString(exported, 'base64pad')
     encryptedKey = await encryptKey(key, alice.encryptionKey.publicKey)
@@ -138,6 +137,7 @@ test('encrypt a message to another identity', async t => {
         humanReadableDeviceName: 'computer'
     })
 
+    // pass in recipients here
     const msg = msgToBob = await alice.encryptMsg('hello bob', [
         await bob.serialize()
     ])
