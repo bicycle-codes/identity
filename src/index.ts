@@ -4,7 +4,6 @@ import {
     fromString as uFromString,
     toString as uToString
 } from 'uint8arrays'
-import { importKey as aesImportKey } from '@bicycle-codes/crypto-util/webcrypto/aes'
 import { set, get } from 'idb-keyval'
 import {
     EDWARDS_DID_PREFIX,
@@ -19,8 +18,8 @@ import {
     DEFAULT_ENCRYPTION_KEY_NAME,
     DEFAULT_SIGNING_KEY_NAME,
     AES_GCM,
-    DEFAULT_SYMM_LEN,
-    DEFAULT_SYMM_ALG,
+    DEFAULT_SYMM_LENGTH,
+    DEFAULT_SYMM_ALGORITHM,
 } from './constants.js'
 import {
     HashAlg,
@@ -35,7 +34,8 @@ import {
     base64ToArrBuf,
     randomBuf,
     joinBufs,
-    importPublicKey
+    importPublicKey,
+    importKey as aesImportKey
 } from './util.js'
 import type {
     CharSize,
@@ -45,10 +45,10 @@ import type {
     SymmKeyAlgorithm,
     SerializedIdentity,
     Device,
-    EncryptedMessage
+    EncryptedMessage,
+    PublicKey
 } from './types.js'
 import { SymmKeyLength } from './types.js'
-import type { PublicKey } from '@bicycle-codes/crypto-util'
 export type { EncryptedMessage } from './types.js'
 
 /**
@@ -171,7 +171,7 @@ export class Identity {
         // the private AES key for this ID
         const AESKey = await aesGenKey({
             alg: AES_GCM,
-            length: DEFAULT_SYMM_LEN
+            length: DEFAULT_SYMM_LENGTH
         })
 
         const rootDID = await writeKeyToDid(signingKeypair)
@@ -466,8 +466,8 @@ async function getPublicKeyAsArrayBuffer (
 }
 
 export function aesGenKey (opts:{ alg, length } = {
-    alg: DEFAULT_SYMM_ALG,
-    length: DEFAULT_SYMM_LEN
+    alg: DEFAULT_SYMM_ALGORITHM,
+    length: DEFAULT_SYMM_LENGTH
 }) {
     return webcrypto.subtle.generateKey({
         name: opts.alg,
@@ -566,8 +566,8 @@ async function importKey (
         'raw',
         buf,
         {
-            name: opts?.alg || DEFAULT_SYMM_ALG,
-            length: opts?.length || DEFAULT_SYMM_LEN,
+            name: opts?.alg || DEFAULT_SYMM_ALGORITHM,
+            length: opts?.length || DEFAULT_SYMM_LENGTH,
         },
         true,
         ['encrypt', 'decrypt']
@@ -591,7 +591,7 @@ async function decryptBytes (
     const iv = cipherText.slice(0, 12)
     const cipherBytes = cipherText.slice(12)
     const msgBuff = await webcrypto.subtle.decrypt({
-        name: DEFAULT_SYMM_ALG,
+        name: DEFAULT_SYMM_ALGORITHM,
         iv
     }, importedKey, cipherBytes)
 

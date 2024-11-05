@@ -26,6 +26,17 @@ export enum RsaSize {
     B4096 = 4096
 }
 
+export type SymmKey = CryptoKey
+export type PublicKey = CryptoKey
+
+export type SymmAlg = 'AES-CTR'|'AES-CBC'|'AES-GCM'
+
+export type SymmKeyOpts = {
+    alg:SymmAlg
+    length:SymmKeyLength
+    iv:ArrayBuffer
+}
+
 export type SymmKeyAlgorithm = 'AES_GCM'
 
 export interface Device {

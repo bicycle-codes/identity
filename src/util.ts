@@ -2,20 +2,46 @@ import * as uint8arrays from 'uint8arrays'
 import { webcrypto } from '@bicycle-codes/one-webcrypto'
 import tweetnacl from 'tweetnacl'
 import { checkValidKeyUse, InvalidMaxValue } from './errors.js'
-import { CharSize, HashAlg, type Msg } from './types.js'
+import {
+    CharSize,
+    HashAlg,
+    type Msg,
+    type SymmKeyOpts,
+    type SymmKey
+} from './types.js'
 import {
     RSA_HASHING_ALGORITHM,
     DEFAULT_CHAR_SIZE,
     DEFAULT_HASH_ALGORITHM,
+    DEFAULT_SYMM_ALGORITHM,
     SALT_LENGTH,
     RSA_ALGORITHM,
-    RSA_SIGN_ALG
+    RSA_SIGN_ALG,
+    DEFAULT_SYMM_LENGTH
 } from './constants.js'
 export { HashAlg }
 
 export enum KeyUse {
     Encrypt = 'encryption',  // encrypt/decrypt
     Sign = 'signing',  // sign
+}
+
+export async function importKey (
+    key:string|Uint8Array,
+    opts?:Partial<SymmKeyOpts>
+):Promise<SymmKey> {
+    const buf = typeof key === 'string' ? base64ToArrBuf(key) : key
+
+    return webcrypto.subtle.importKey(
+        'raw',
+        buf,
+        {
+            name: opts?.alg || DEFAULT_SYMM_ALGORITHM,
+            length: opts?.length || DEFAULT_SYMM_LENGTH,
+        },
+        true,
+        ['encrypt', 'decrypt']
+    )
 }
 
 export const rsaOperations = {
