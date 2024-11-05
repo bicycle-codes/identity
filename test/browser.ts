@@ -52,7 +52,7 @@ test('encrypt content', async t => {
         uArrs.fromString(encrypted, 'base64pad'),
         alice.aes
     )
-    t.equal(uArrs.toString(dec), 'hello', 'should decrypt the text')
+    t.equal(uArrs.toString(dec), 'hello', 'Alice can decrypt the text')
 })
 
 test('aes decrypt', async t => {

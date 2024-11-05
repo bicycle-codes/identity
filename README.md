@@ -96,19 +96,28 @@ Given two identities, create a message that is readble by them only.
 
 ```ts
 import type { EncryptedMessage } from '@bicycle-codes/identity'
-import { Identity } from '@bicycle-codes/identity'
+import {
+    encryptContent,
+    Identity
+} from '@bicycle-codes/identity'
 
 // get identities somehow
-const alice = await Identity.create(crypto, {
+const alice = await Identity.create({
     humanName: 'alice',
+    humanReadableDeviceName: 'phone'
 })
-const bob = await Identity.create(bobsCrypto, {
-    humanName: 'bob'
+const bob = await Identity.create({
+    humanName: 'bob',
+    humanReadableDeviceName: 'computer'
 })
 
 const msgToBob = await alice.encryptMsg('hello bob', [
-    await bob.serialize()
+    await bob.serialize()  // <-- pass in recipients
 ])
+
+const decrypted = await bob.decryptMsg(msgToBob)
+// => 'hello bob'
+
 
 //  __the encrypted message__
 //
@@ -119,10 +128,6 @@ const msgToBob = await alice.encryptMsg('hello bob', [
 //          encrypted to the device
 // }
 //
-
-// bob can read the message b/c they are passed in as a recipient above
-const decrypted = await bob.decryptMsg(msgToBob)
-   // => 'hello bob'
 ```
 
 ----------------------------------------------------------
