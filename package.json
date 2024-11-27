@@ -75,7 +75,7 @@
     "markdown-toc": "^1.2.0",
     "tap-spec": "^5.0.0",
     "tape-run": "^11.0.0",
-    "typedoc": "^0.26.6",
+    "typedoc": "^0.27.0",
     "typescript": "^5.4.5"
   },
   "files": [
